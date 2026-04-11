@@ -1,0 +1,17 @@
+{
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "eslint.workingDirectories": [
+    { "pattern": "app/*" },
+    { "pattern": "packages/*" }
+  ],
+  "i18n-ally.localesPaths": ["messages", "src/i18n"]
+}
