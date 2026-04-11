@@ -13,11 +13,11 @@ export function useThreadFileUploader(threadId?: string) {
   const uploadFiles = useCallback(
     async (files: File[]) => {
       if (!threadId || files.length === 0) return;
-      const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50MB per file
+      const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB per file — TODO: 文件上传计费
 
       for (const file of files) {
         if (file.size > MAX_SIZE_BYTES) {
-          toast.error(`${file.name}: file too large (>50MB)`);
+          toast.error(`${file.name}: file too large (>10MB)`);
           continue;
         }
 

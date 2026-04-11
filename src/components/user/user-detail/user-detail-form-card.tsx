@@ -15,10 +15,7 @@ import { Badge } from "ui/badge";
 import { User } from "lucide-react";
 import { toast } from "sonner";
 import Form from "next/form";
-import {
-  updateUserDetailsAction,
-  updateUserImageAction,
-} from "@/app/api/user/actions";
+import { updateUserDetailsAction } from "@/app/api/user/actions";
 import { UpdateUserActionState } from "@/app/api/user/validations";
 import { BasicUserWithLastLogin } from "app-types/user";
 import { getUserAvatar } from "lib/user/utils";
@@ -58,16 +55,9 @@ export function UserDetailFormCard({
     return result;
   }, {});
 
-  const handleImageUpdate = async (imageUrl: string) => {
-    const formData = new FormData();
-    formData.append("userId", user.id);
-    formData.append("image", imageUrl);
-
-    const result = await updateUserImageAction({}, formData);
-    if (result?.success && result.user) {
-      setCurrentUser(result.user);
-      onUserDetailsUpdate?.(result.user);
-    }
+  const handleImageUpdate = (imageUrl: string) => {
+    setCurrentUser((prev) => ({ ...prev, image: imageUrl }));
+    onUserDetailsUpdate?.({ image: imageUrl });
   };
   return (
     <Card className="transition-all duration-200 hover:shadow-md">
@@ -94,6 +84,7 @@ export function UserDetailFormCard({
           {/* Avatar Upload Section */}
           <div className="flex items-center justify-center gap-4 my-4">
             <UserAvatarUpload
+              userId={user.id}
               currentImageUrl={getUserAvatar(currentUser)}
               userName={currentUser.name}
               onImageUpdate={handleImageUpdate}

@@ -1,16 +1,5 @@
 "use server";
 
-/**
- * Get storage configuration info.
- * Used by clients to determine upload strategy.
- */
-export async function getStorageInfoAction() {
-  return {
-    type: "s3" as const,
-    supportsDirectUpload: true,
-  };
-}
-
 interface StorageCheckResult {
   isValid: boolean;
   error?: string;

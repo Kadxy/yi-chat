@@ -55,6 +55,16 @@ export default function AuthForm({
     };
   }, []);
 
+  useEffect(() => {
+    authClient.oneTap({
+      fetchOptions: {
+        onSuccess: () => {
+          window.location.href = "/";
+        },
+      },
+    });
+  }, []);
+
   const startCooldown = () => {
     setCooldown(RESEND_COOLDOWN);
     cooldownRef.current = setInterval(() => {

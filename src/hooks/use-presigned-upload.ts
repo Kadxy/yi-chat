@@ -1,15 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import useSWR from "swr";
 import { toast } from "sonner";
-import { getStorageInfoAction } from "@/app/api/storage/actions";
-
-// Types
-interface StorageInfo {
-  type: "local" | "s3";
-  supportsDirectUpload: boolean;
-}
 
 interface UploadOptions {
   filename?: string;
@@ -23,52 +15,10 @@ interface UploadResult {
   size?: number;
 }
 
-// Helpers
-function useStorageInfo() {
-  const { data, isLoading } = useSWR<StorageInfo>(
-    "storage-info",
-    getStorageInfoAction,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 60000, // Cache for 1 minute
-    },
-  );
-
-  return {
-    storageType: data?.type,
-    supportsDirectUpload: data?.supportsDirectUpload ?? false,
-    isLoading,
-  };
-}
-
 /**
- * Hook for uploading files to storage.
- *
- * Automatically uses the optimal upload method based on storage backend:
- * - S3: Presigned URL (direct upload)
- * - Fallback: Server upload
- *
- * @example
- * ```tsx
- * function FileUpload() {
- *   const { upload, isUploading } = useFileUpload();
- *
- *   const handleFile = async (file: File) => {
- *     const result = await upload(file);
- *     console.log('Public URL:', result.url);
- *   };
- *
- *   return <input type="file" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />;
- * }
- * ```
+ * Hook for uploading files via S3 presigned URLs.
  */
 export function useFileUpload() {
-  const {
-    storageType,
-    supportsDirectUpload,
-    isLoading: isLoadingStorageInfo,
-  } = useStorageInfo();
   const [isUploading, setIsUploading] = useState(false);
 
   const upload = useCallback(
@@ -85,92 +35,45 @@ export function useFileUpload() {
       const contentType =
         uploadOptions.contentType || file.type || "application/octet-stream";
 
-      // Wait for storage info to load
-      if (isLoadingStorageInfo || !storageType) {
-        toast.error("Storage is still loading. Please try again.");
-        return;
-      }
-
       setIsUploading(true);
       try {
-        // S3 direct upload via presigned URL
-        if (supportsDirectUpload && storageType === "s3") {
-          // Request presigned URL
-          const uploadUrlResponse = await fetch("/api/storage/upload-url", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ filename, contentType }),
-          });
-
-          if (!uploadUrlResponse.ok) {
-            const errorBody = await uploadUrlResponse.json().catch(() => ({}));
-
-            // Display detailed error with solution if available
-            if (errorBody.solution) {
-              toast.error(errorBody.error || "Failed to get upload URL", {
-                description: errorBody.solution,
-                duration: 10000, // Show for 10 seconds
-              });
-            } else {
-              toast.error(errorBody.error || "Failed to get upload URL");
-            }
-            return;
-          }
-
-          const uploadUrlData = await uploadUrlResponse.json();
-
-          // Upload to presigned URL
-          const uploadResponse = await fetch(uploadUrlData.url, {
-            method: uploadUrlData.method || "PUT",
-            headers: uploadUrlData.headers || { "Content-Type": contentType },
-            body: file,
-          });
-
-          if (!uploadResponse.ok) {
-            toast.error(`Upload failed: ${uploadResponse.status}`);
-            return;
-          }
-
-          return {
-            pathname: uploadUrlData.key,
-            // Use server-provided public source URL (not the presigned PUT URL)
-            url: uploadUrlData.sourceUrl ?? uploadUrlData.url,
-            contentType,
-            size: file.size,
-          };
-        }
-
-        // Fallback: Server upload
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const serverUploadResponse = await fetch("/api/storage/upload", {
+        const uploadUrlResponse = await fetch("/api/storage/upload-url", {
           method: "POST",
-          body: formData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename, contentType }),
         });
 
-        if (!serverUploadResponse.ok) {
-          const errorBody = await serverUploadResponse.json().catch(() => ({}));
-
-          // Display detailed error with solution if available
+        if (!uploadUrlResponse.ok) {
+          const errorBody = await uploadUrlResponse.json().catch(() => ({}));
           if (errorBody.solution) {
-            toast.error(errorBody.error || "Server upload failed", {
+            toast.error(errorBody.error || "Failed to get upload URL", {
               description: errorBody.solution,
-              duration: 10000, // Show for 10 seconds
+              duration: 10000,
             });
           } else {
-            toast.error(errorBody.error || "Server upload failed");
+            toast.error(errorBody.error || "Failed to get upload URL");
           }
           return;
         }
 
-        const result = await serverUploadResponse.json();
+        const uploadUrlData = await uploadUrlResponse.json();
+
+        const uploadResponse = await fetch(uploadUrlData.url, {
+          method: uploadUrlData.method || "PUT",
+          headers: uploadUrlData.headers || { "Content-Type": contentType },
+          body: file,
+        });
+
+        if (!uploadResponse.ok) {
+          toast.error(`Upload failed: ${uploadResponse.status}`);
+          return;
+        }
 
         return {
-          pathname: result.key,
-          url: result.url,
-          contentType: result.metadata?.contentType,
-          size: result.metadata?.size,
+          pathname: uploadUrlData.key,
+          url: uploadUrlData.sourceUrl ?? uploadUrlData.url,
+          contentType,
+          size: file.size,
         };
       } catch (error: unknown) {
         const message =
@@ -181,14 +84,11 @@ export function useFileUpload() {
         setIsUploading(false);
       }
     },
-    [storageType, supportsDirectUpload, isLoadingStorageInfo],
+    [],
   );
 
   return {
     upload,
-    isUploading: isUploading || isLoadingStorageInfo,
+    isUploading,
   };
 }
-
-// Alias for backward compatibility
-export const usePresignedUpload = useFileUpload;

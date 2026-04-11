@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "ui/avatar";
 import { Camera, Loader2, Upload, Smile } from "lucide-react";
-import { useFileUpload } from "@/hooks/use-presigned-upload";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "ui/popover";
@@ -13,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { EmojiAvatarDialog } from "./emoji-avatar-dialog";
 
 interface UserAvatarUploadProps {
+  userId: string;
   currentImageUrl?: string | null;
   userName: string;
   onImageUpdate: (imageUrl: string) => void;
@@ -23,6 +23,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 export function UserAvatarUpload({
+  userId,
   currentImageUrl,
   userName,
   onImageUpdate,
@@ -30,10 +31,10 @@ export function UserAvatarUpload({
 }: UserAvatarUploadProps) {
   const t = useTranslations("User.Profile.common");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [showEmojiDialog, setShowEmojiDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { upload, isUploading } = useFileUpload();
 
   const displayUrl = previewUrl || currentImageUrl;
 
@@ -62,14 +63,33 @@ export function UserAvatarUpload({
     };
     reader.readAsDataURL(file);
 
-    // Upload file
-    const result = await upload(file);
-    if (result) {
-      onImageUpdate(result.url);
+    // Upload to server (resize + webp conversion happens server-side)
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("userId", userId);
+
+      const response = await fetch("/api/user/avatar", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        toast.error(errorBody.error || "Upload failed");
+        setPreviewUrl(null);
+        return;
+      }
+
+      const result = await response.json();
+      onImageUpdate(result.imageUrl);
       toast.success(t("profilePhotoUpdatedSuccessfully"));
-    } else {
-      // Reset preview on failure
+    } catch {
+      toast.error("Upload failed");
       setPreviewUrl(null);
+    } finally {
+      setIsUploading(false);
     }
 
     // Reset input

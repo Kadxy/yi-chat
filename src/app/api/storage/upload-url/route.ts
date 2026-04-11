@@ -4,109 +4,83 @@ import { serverFileStorage } from "lib/file-storage";
 import globalLogger from "lib/logger";
 import { colorize } from "consola/utils";
 import { checkStorageAction } from "../actions";
+import { DEFAULT_FILE_PART_MIME_TYPES } from "lib/ai/file-support";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", "[S3 Upload URL API]"),
 });
 
-// Constants
 const DEFAULT_UPLOAD_EXPIRES_SECONDS = 3600; // 1 hour
-const FALLBACK_UPLOAD_URL = "/api/storage/upload";
 
-// Types
-interface GenericUploadRequest {
+const ALLOWED_CONTENT_TYPES = new Set<string>(DEFAULT_FILE_PART_MIME_TYPES);
+
+interface UploadUrlRequest {
   filename?: string;
   contentType?: string;
 }
 
-interface FallbackResponse {
-  directUploadSupported: false;
-  fallbackUrl: string;
-  message: string;
-}
-
-// Helpers
-function createFallbackResponse(): FallbackResponse {
-  return {
-    directUploadSupported: false,
-    fallbackUrl: FALLBACK_UPLOAD_URL,
-    message: "Use multipart/form-data upload to fallbackUrl",
-  };
-}
-
-/**
- * Handles generic upload URL request (S3, etc.).
- * Returns presigned URL if supported, otherwise returns fallback response.
- */
-async function handleGenericUpload(request: GenericUploadRequest) {
-  // Check if storage backend supports direct upload
-  if (typeof serverFileStorage.createUploadUrl !== "function") {
-    logger.info("Storage doesn't support createUploadUrl, using fallback");
-    return NextResponse.json(createFallbackResponse());
-  }
-
-  const uploadUrl = await serverFileStorage.createUploadUrl({
-    filename: request.filename || "file",
-    contentType: request.contentType || "application/octet-stream",
-    expiresInSeconds: DEFAULT_UPLOAD_EXPIRES_SECONDS,
-  });
-
-  if (!uploadUrl) {
-    logger.info("Storage returned null, using fallback");
-    return NextResponse.json(createFallbackResponse());
-  }
-
-  // Provide a public source URL for clients to reference after successful PUT
-  const sourceUrl = await serverFileStorage.getSourceUrl(uploadUrl.key);
-
-  return NextResponse.json({
-    directUploadSupported: true,
-    ...uploadUrl,
-    sourceUrl,
-  });
-}
-
 /**
  * Upload URL endpoint.
- *
- * Provides optimal upload method based on storage backend:
- * - S3: Presigned URL
- * - Fallback: Server upload
+ * Returns a presigned S3 URL for direct client upload.
  */
 export async function POST(request: Request) {
-  // Authenticate
   const session = await getSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Check storage configuration first
   const storageCheck = await checkStorageAction();
   if (!storageCheck.isValid) {
     logger.error("Storage configuration error", {
       error: storageCheck.error,
       solution: storageCheck.solution,
     });
-
     return NextResponse.json(
-      {
-        error: storageCheck.error,
-        solution: storageCheck.solution,
-      },
+      { error: storageCheck.error, solution: storageCheck.solution },
       { status: 500 },
     );
   }
 
-  // Parse request body
-  let body: unknown;
+  let body: UploadUrlRequest;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  const contentType = body.contentType || "application/octet-stream";
+
+  // Validate content type against whitelist
+  if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
+    return NextResponse.json(
+      {
+        error: `Unsupported file type: ${contentType}`,
+        allowedTypes: [...ALLOWED_CONTENT_TYPES],
+      },
+      { status: 400 },
+    );
+  }
+
   try {
-    return await handleGenericUpload(body as GenericUploadRequest);
+    const uploadUrl = await serverFileStorage.createUploadUrl!({
+      filename: body.filename || "file",
+      contentType,
+      expiresInSeconds: DEFAULT_UPLOAD_EXPIRES_SECONDS,
+    });
+
+    if (!uploadUrl) {
+      return NextResponse.json(
+        { error: "Failed to create upload URL" },
+        { status: 500 },
+      );
+    }
+
+    const sourceUrl = await serverFileStorage.getSourceUrl(uploadUrl.key);
+
+    return NextResponse.json({
+      ...uploadUrl,
+      sourceUrl,
+    });
   } catch (error) {
     logger.error("Upload URL generation failed", error);
     return NextResponse.json(

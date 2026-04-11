@@ -1,7 +1,11 @@
 "use client";
 
 import { createAuthClient } from "better-auth/react"; // make sure to import from better-auth/react
-import { adminClient, inferAdditionalFields } from "better-auth/client/plugins";
+import {
+  adminClient,
+  inferAdditionalFields,
+  oneTapClient,
+} from "better-auth/client/plugins";
 import { emailOTPClient } from "better-auth/client/plugins";
 
 import { DEFAULT_USER_ROLE, USER_ROLES } from "app-types/roles";
@@ -21,5 +25,8 @@ export const authClient = createAuthClient({
       },
     }),
     emailOTPClient(),
+    oneTapClient({
+      clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+    }),
   ],
 });
