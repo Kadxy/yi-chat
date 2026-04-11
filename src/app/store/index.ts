@@ -3,7 +3,6 @@ import { persist } from "zustand/middleware";
 import { ChatMention, ChatModel, ChatThread } from "app-types/chat";
 import { AllowedMCPServer, MCPServerInfo } from "app-types/mcp";
 import { AppDefaultToolkit } from "lib/ai/tools";
-import { ArchiveWithItemCount } from "app-types/archive";
 
 export interface UploadedFile {
   id: string;
@@ -19,14 +18,13 @@ export interface UploadedFile {
 }
 
 export interface AppState {
-  threadList: ChatThread[];
+  threadList: (ChatThread & { lastMessageAt?: number })[];
   mcpList: (MCPServerInfo & { id: string })[];
   currentThreadId: ChatThread["id"] | null;
   toolChoice: "auto" | "none" | "manual";
   allowedMcpServers?: Record<string, AllowedMCPServer>;
   allowedAppDefaultToolkit?: AppDefaultToolkit[];
   generatingTitleThreadIds: string[];
-  archiveList: ArchiveWithItemCount[];
   threadMentions: {
     [threadId: string]: ChatMention[];
   };
@@ -57,7 +55,6 @@ export interface AppDispatch {
 
 const initialState: AppState = {
   threadList: [],
-  archiveList: [],
   generatingTitleThreadIds: [],
   threadMentions: {},
   threadFiles: {},
@@ -69,6 +66,7 @@ const initialState: AppState = {
   allowedAppDefaultToolkit: [
     AppDefaultToolkit.Code,
     AppDefaultToolkit.Visualization,
+    AppDefaultToolkit.File,
   ],
   toolPresets: [],
   chatModel: undefined,

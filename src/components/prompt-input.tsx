@@ -260,7 +260,12 @@ export default function PromptInput({
       const summary = uploadedFiles
         .map((file, index) => {
           const type = file.mimeType || "unknown";
-          return `${index + 1}. ${file.name} (${type})`;
+          const link = file.url || file.dataUrl || "";
+          const isNative = isFilePartSupported(type, supportedFileMimeTypes);
+          if (isNative) {
+            return `${index + 1}. ${file.name} (${type})`;
+          }
+          return `${index + 1}. ${file.name} (${type}) - URL: ${link} (use read-user-file tool to read content)`;
         })
         .join("\n");
 
@@ -365,7 +370,6 @@ export default function PromptInput({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.tar,.gz,.mp3,.wav,.m4a,.ogg,.mp4,.webm,.mov"
                   multiple
                   className="hidden"
                   onChange={handleFileSelect}

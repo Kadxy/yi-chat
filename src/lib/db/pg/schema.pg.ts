@@ -23,6 +23,7 @@ export const ChatThreadTable = pgTable("chat_thread", {
   userId: uuid("user_id")
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
+  isArchived: boolean("is_archived").notNull().default(false),
   createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -226,33 +227,6 @@ export const WorkflowEdgeTable = pgTable("workflow_edge", {
   createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const ArchiveTable = pgTable("archive", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  name: text("name").notNull(),
-  description: text("description"),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => UserTable.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-});
-
-export const ArchiveItemTable = pgTable(
-  "archive_item",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-    archiveId: uuid("archive_id")
-      .notNull()
-      .references(() => ArchiveTable.id, { onDelete: "cascade" }),
-    itemId: uuid("item_id").notNull(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => UserTable.id, { onDelete: "cascade" }),
-    addedAt: timestamp("added_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  },
-  (t) => [index("archive_item_item_id_idx").on(t.itemId)],
-);
-
 export const McpOAuthSessionTable = pgTable(
   "mcp_oauth_session",
   {
@@ -330,6 +304,3 @@ export const ChatExportCommentTable = pgTable("chat_export_comment", {
   createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
-
-export type ArchiveEntity = typeof ArchiveTable.$inferSelect;
-export type ArchiveItemEntity = typeof ArchiveItemTable.$inferSelect;

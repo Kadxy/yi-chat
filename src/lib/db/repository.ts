@@ -3,7 +3,6 @@ import { pgUserRepository } from "./pg/repositories/user-repository.pg";
 import { pgMcpRepository } from "./pg/repositories/mcp-repository.pg";
 import { pgMcpMcpToolCustomizationRepository } from "./pg/repositories/mcp-tool-customization-repository.pg";
 import { pgMcpServerCustomizationRepository } from "./pg/repositories/mcp-server-customization-repository.pg";
-import { pgArchiveRepository } from "./pg/repositories/archive-repository.pg";
 import { pgMcpOAuthRepository } from "./pg/repositories/mcp-oauth-repository.pg";
 import { pgChatExportRepository } from "./pg/repositories/chat-export-repository.pg";
 
@@ -16,5 +15,4 @@ export const mcpServerCustomizationRepository =
   pgMcpServerCustomizationRepository;
 export const mcpOAuthRepository = pgMcpOAuthRepository;
 
-export const archiveRepository = pgArchiveRepository;
 export const chatExportRepository = pgChatExportRepository;

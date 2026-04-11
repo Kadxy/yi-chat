@@ -29,6 +29,7 @@ export type ChatThread = {
   id: string;
   title: string;
   userId: string;
+  isArchived: boolean;
   createdAt: Date;
 };
 
@@ -88,7 +89,9 @@ export type ChatApiSchemaRequestBody = z.infer<
 >;
 
 export type ChatRepository = {
-  insertThread(thread: Omit<ChatThread, "createdAt">): Promise<ChatThread>;
+  insertThread(
+    thread: Omit<ChatThread, "createdAt" | "isArchived">,
+  ): Promise<ChatThread>;
 
   selectThread(id: string): Promise<ChatThread | null>;
 
@@ -104,7 +107,10 @@ export type ChatRepository = {
 
   selectMessagesByThreadId(threadId: string): Promise<ChatMessage[]>;
 
-  selectThreadsByUserId(userId: string): Promise<
+  selectThreadsByUserId(
+    userId: string,
+    options?: { archived?: boolean },
+  ): Promise<
     (ChatThread & {
       lastMessageAt: number;
     })[]
@@ -118,7 +124,7 @@ export type ChatRepository = {
   deleteThread(id: string): Promise<void>;
 
   upsertThread(
-    thread: PartialBy<Omit<ChatThread, "createdAt">, "userId">,
+    thread: PartialBy<Omit<ChatThread, "createdAt" | "isArchived">, "userId">,
   ): Promise<ChatThread>;
 
   insertMessage(message: Omit<ChatMessage, "createdAt">): Promise<ChatMessage>;
@@ -129,6 +135,10 @@ export type ChatRepository = {
   deleteAllThreads(userId: string): Promise<void>;
 
   deleteUnarchivedThreads(userId: string): Promise<void>;
+
+  archiveThread(id: string): Promise<void>;
+  unarchiveThread(id: string): Promise<void>;
+  archiveAllThreads(userId: string): Promise<void>;
 
   checkAccess(id: string, userId: string): Promise<boolean>;
 

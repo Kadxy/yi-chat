@@ -26,6 +26,7 @@ import {
   ChatAttachment,
   ChatModel,
 } from "app-types/chat";
+import { AppDefaultToolkit } from "lib/ai/tools";
 import { useToRef } from "@/hooks/use-latest";
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 import { Button } from "ui/button";
@@ -173,6 +174,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
         const hasFilePart = lastMessage.parts?.some(
           (p) => (p as any)?.type === "file",
         );
+        const hasSourceUrlPart = attachments.some(
+          (a) => a.type === "source-url",
+        );
 
         const requestBody: ChatApiSchemaRequestBody = {
           ...body,
@@ -182,8 +186,17 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           toolChoice: latestRef.current.toolChoice,
           allowedAppDefaultToolkit:
             latestRef.current.mentions?.length || hasFilePart
-              ? []
-              : latestRef.current.allowedAppDefaultToolkit,
+              ? hasSourceUrlPart
+                ? [AppDefaultToolkit.File]
+                : []
+              : hasSourceUrlPart
+                ? Array.from(
+                    new Set([
+                      ...(latestRef.current.allowedAppDefaultToolkit ?? []),
+                      AppDefaultToolkit.File,
+                    ]),
+                  )
+                : latestRef.current.allowedAppDefaultToolkit,
           allowedMcpServers: latestRef.current.mentions?.length
             ? {}
             : latestRef.current.allowedMcpServers,
@@ -209,7 +222,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     [_addToolResult],
   );
 
-  const _mounted = useMounted();
+  useMounted();
 
   const latestRef = useToRef({
     toolChoice,

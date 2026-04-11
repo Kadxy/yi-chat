@@ -11,7 +11,13 @@ import {
 import { SidebarGroupContent, SidebarMenu, SidebarMenuItem } from "ui/sidebar";
 import { SidebarGroup } from "ui/sidebar";
 import { ThreadDropdown } from "../thread-dropdown";
-import { ChevronDown, ChevronUp, MoreHorizontal, Trash } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  ArchiveIcon,
+  MoreHorizontal,
+  Trash,
+} from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
 import { appStore } from "@/app/store";
 import { Button } from "ui/button";
@@ -23,7 +29,7 @@ import {
 } from "ui/dropdown-menu";
 import {
   deleteThreadsAction,
-  deleteUnarchivedThreadsAction,
+  archiveAllThreadsAction,
 } from "@/app/api/chat/actions";
 import { fetcher } from "lib/utils";
 import { toast } from "sonner";
@@ -35,7 +41,6 @@ import { useMemo, useState } from "react";
 
 import { useTranslations } from "next-intl";
 import { TextShimmer } from "ui/text-shimmer";
-import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { deduplicateByKey, groupBy } from "lib/utils";
 import { ChatThread } from "app-types/chat";
 
@@ -106,9 +111,10 @@ export function AppSidebarThreads() {
   // Use either limited or full thread list based on expanded state
   const displayThreadList = useMemo(() => {
     if (!threadList) return [];
+    const deduplicated = deduplicateByKey(threadList, "id");
     return !isExpanded && hasExcessThreads
-      ? threadList.slice(0, MAX_THREADS_COUNT)
-      : threadList;
+      ? deduplicated.slice(0, MAX_THREADS_COUNT)
+      : deduplicated;
   }, [threadList, hasExcessThreads, isExpanded]);
 
   const threadGroupByDate = useMemo(() => {
@@ -166,15 +172,15 @@ export function AppSidebarThreads() {
     });
   };
 
-  const handleDeleteUnarchivedThreads = async () => {
-    await toast.promise(deleteUnarchivedThreadsAction(), {
-      loading: t("deletingUnarchivedChats"),
+  const handleArchiveAllThreads = async () => {
+    await toast.promise(archiveAllThreadsAction(), {
+      loading: t("archivingAllChats"),
       success: () => {
         mutate("/api/thread");
         router.push("/");
-        return t("unarchivedChatsDeleted");
+        return t("allChatsArchived");
       },
-      error: t("failedToDeleteUnarchivedChats"),
+      error: t("failedToArchiveAllChats"),
     });
   };
 
@@ -233,19 +239,16 @@ export function AppSidebarThreads() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent side="right" align="start">
+                          <DropdownMenuItem onClick={handleArchiveAllThreads}>
+                            <ArchiveIcon />
+                            {t("archiveAllChats")}
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             variant="destructive"
                             onClick={handleDeleteAllThreads}
                           >
                             <Trash />
                             {t("deleteAllChats")}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={handleDeleteUnarchivedThreads}
-                          >
-                            <Trash />
-                            {t("deleteUnarchivedChats")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -264,35 +267,28 @@ export function AppSidebarThreads() {
                           beforeTitle={thread.title}
                         >
                           <div className="flex items-center data-[state=open]:bg-input! group-hover/thread:bg-input! rounded-lg">
-                            <Tooltip delayDuration={1000}>
-                              <TooltipTrigger asChild>
-                                <SidebarMenuButton
-                                  asChild
-                                  className="group-hover/thread:bg-transparent!"
-                                  isActive={currentThreadId === thread.id}
-                                >
-                                  <Link
-                                    href={`/chat/${thread.id}`}
-                                    className="flex items-center"
-                                  >
-                                    {generatingTitleThreadIds.includes(
-                                      thread.id,
-                                    ) ? (
-                                      <TextShimmer className="truncate min-w-0">
-                                        {thread.title || "New Chat"}
-                                      </TextShimmer>
-                                    ) : (
-                                      <p className="truncate min-w-0">
-                                        {thread.title || "New Chat"}
-                                      </p>
-                                    )}
-                                  </Link>
-                                </SidebarMenuButton>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-[200px] p-4 break-all overflow-y-auto max-h-[200px]">
-                                {thread.title || "New Chat"}
-                              </TooltipContent>
-                            </Tooltip>
+                            <SidebarMenuButton
+                              asChild
+                              className="group-hover/thread:bg-transparent!"
+                              isActive={currentThreadId === thread.id}
+                            >
+                              <Link
+                                href={`/chat/${thread.id}`}
+                                className="flex items-center"
+                              >
+                                {generatingTitleThreadIds.includes(
+                                  thread.id,
+                                ) ? (
+                                  <TextShimmer className="truncate min-w-0">
+                                    {thread.title || "New Chat"}
+                                  </TextShimmer>
+                                ) : (
+                                  <p className="truncate min-w-0">
+                                    {thread.title || "New Chat"}
+                                  </p>
+                                )}
+                              </Link>
+                            </SidebarMenuButton>
 
                             <SidebarMenuAction className="data-[state=open]:bg-input data-[state=open]:opacity-100 opacity-0 group-hover/thread:opacity-100">
                               <MoreHorizontal />

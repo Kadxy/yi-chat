@@ -290,6 +290,10 @@ export function ChatMentionInputSuggestion({
           label = "python-execution";
           description = "Execute simple python code";
           break;
+        case DefaultToolName.ReadUserFile:
+          label = "read-file";
+          description = "Read uploaded file content";
+          break;
       }
       return {
         id: toolName,

@@ -3,6 +3,7 @@ export enum AppDefaultToolkit {
   WebSearch = "webSearch",
   Http = "http",
   Code = "code",
+  File = "file",
 }
 
 export enum DefaultToolName {
@@ -15,6 +16,7 @@ export enum DefaultToolName {
   Http = "http",
   JavascriptExecution = "mini-javascript-execution",
   PythonExecution = "python-execution",
+  ReadUserFile = "read-user-file",
 }
 
 export const SequentialThinkingToolName = "sequential-thinking";

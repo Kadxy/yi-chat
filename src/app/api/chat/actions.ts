@@ -112,6 +112,19 @@ export async function deleteUnarchivedThreadsAction() {
   await chatRepository.deleteUnarchivedThreads(userId);
 }
 
+export async function archiveThreadAction(threadId: string) {
+  await chatRepository.archiveThread(threadId);
+}
+
+export async function unarchiveThreadAction(threadId: string) {
+  await chatRepository.unarchiveThread(threadId);
+}
+
+export async function archiveAllThreadsAction() {
+  const userId = await getUserId();
+  await chatRepository.archiveAllThreads(userId);
+}
+
 export async function generateExampleToolSchemaAction(options: {
   model?: ChatModel;
   toolInfo: MCPToolInfo;

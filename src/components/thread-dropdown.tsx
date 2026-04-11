@@ -1,10 +1,13 @@
 "use client";
-import { deleteThreadAction, updateThreadAction } from "@/app/api/chat/actions";
+import {
+  deleteThreadAction,
+  updateThreadAction,
+  archiveThreadAction,
+} from "@/app/api/chat/actions";
 import { appStore } from "@/app/store";
 import { useToRef } from "@/hooks/use-latest";
 import {
-  Archive,
-  ChevronRight,
+  ArchiveIcon,
   Loader,
   PencilLine,
   Trash,
@@ -35,14 +38,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "ui/command";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "ui/dropdown-menu";
 import { useTranslations } from "next-intl";
-import { addItemToArchiveAction } from "@/app/api/archive/actions";
 import { useShallow } from "zustand/shallow";
 import { ChatExportPopup } from "./export/chat-export-popup";
 
@@ -66,8 +62,8 @@ export function ThreadDropdown({
   const t = useTranslations();
   const push = useToRef(router.push);
 
-  const [currentThreadId, archiveList] = appStore(
-    useShallow((state) => [state.currentThreadId, state.archiveList]),
+  const [currentThreadId] = appStore(
+    useShallow((state) => [state.currentThreadId]),
   );
 
   const [open, setOpen] = useState(false);
@@ -115,17 +111,20 @@ export function ThreadDropdown({
       .unwrap();
   };
 
-  const handleAddToArchive = async (archiveId: string) => {
+  const handleArchive = async () => {
     safe()
-      .ifOk(() => addItemToArchiveAction(archiveId, threadId))
+      .ifOk(() => archiveThreadAction(threadId))
+      .watch(() => setOpen(false))
       .watch(({ isOk, error }) => {
         if (isOk) {
-          toast.success(t("Archive.itemAddedToArchive"));
-          if (location.pathname.startsWith(`/archive/${archiveId}`)) {
-            router.refresh();
+          toast.success(t("Archive.threadArchived"));
+          if (currentThreadId === threadId) {
+            push.current("/");
           }
+          mutate("/api/thread");
+          mutate("/api/thread?archived=true");
         } else {
-          toast.error(error.message || t("Archive.failedToCreateArchive"));
+          toast.error(error.message || t("Archive.failedToArchive"));
         }
       })
       .unwrap();
@@ -162,46 +161,14 @@ export function ThreadDropdown({
                 </UpdateThreadNameDialog>
               </CommandItem>
 
-              <CommandItem className="cursor-pointer p-0">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-2 w-full px-2 py-1 rounded hover:bg-accent">
-                      <Archive className="text-foreground" />
-                      <span className="mr-4">{t("Archive.addToArchive")}</span>
-                      <ChevronRight className="ml-auto h-4 w-4" />
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    side="right"
-                    align="start"
-                    className="w-56"
-                  >
-                    {archiveList.length === 0 ? (
-                      <DropdownMenuItem
-                        disabled
-                        className="text-muted-foreground"
-                      >
-                        {t("Archive.noArchives")}
-                      </DropdownMenuItem>
-                    ) : (
-                      archiveList.map((archive) => (
-                        <DropdownMenuItem
-                          key={archive.id}
-                          onClick={() => handleAddToArchive(archive.id)}
-                          className="cursor-pointer"
-                        >
-                          <Archive className="mr-2 h-4 w-4" />
-                          <span className="truncate">{archive.name}</span>
-                          {archive.itemCount > 0 && (
-                            <span className="ml-auto text-xs text-muted-foreground">
-                              {archive.itemCount}
-                            </span>
-                          )}
-                        </DropdownMenuItem>
-                      ))
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <CommandItem
+                className="cursor-pointer p-0"
+                onSelect={handleArchive}
+              >
+                <div className="flex items-center gap-2 w-full px-2 py-1 rounded">
+                  <ArchiveIcon className="text-foreground" />
+                  <span className="mr-4">{t("Archive.archive")}</span>
+                </div>
               </CommandItem>
             </CommandGroup>
             <CommandSeparator />

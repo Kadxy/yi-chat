@@ -1,18 +1,13 @@
 import { ChatMessage, ChatRepository, ChatThread } from "app-types/chat";
 
 import { pgDb as db } from "../db.pg";
-import {
-  ChatMessageTable,
-  ChatThreadTable,
-  UserTable,
-  ArchiveItemTable,
-} from "../schema.pg";
+import { ChatMessageTable, ChatThreadTable, UserTable } from "../schema.pg";
 
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 
 export const pgChatRepository: ChatRepository = {
   insertThread: async (
-    thread: Omit<ChatThread, "createdAt">,
+    thread: Omit<ChatThread, "createdAt" | "isArchived">,
   ): Promise<ChatThread> => {
     const [result] = await db
       .insert(ChatThreadTable)
@@ -56,6 +51,7 @@ export const pgChatRepository: ChatRepository = {
       id: thread.chat_thread.id,
       title: thread.chat_thread.title,
       userId: thread.chat_thread.userId,
+      isArchived: thread.chat_thread.isArchived,
       createdAt: thread.chat_thread.createdAt,
       userPreferences: thread.user?.preferences ?? undefined,
       messages,
@@ -75,17 +71,21 @@ export const pgChatRepository: ChatRepository = {
 
   selectThreadsByUserId: async (
     userId: string,
+    options?: { archived?: boolean },
   ): Promise<
     (ChatThread & {
       lastMessageAt: number;
     })[]
   > => {
+    const archived = options?.archived ?? false;
+
     const threadWithLatestMessage = await db
       .select({
         threadId: ChatThreadTable.id,
         title: ChatThreadTable.title,
         createdAt: ChatThreadTable.createdAt,
         userId: ChatThreadTable.userId,
+        isArchived: ChatThreadTable.isArchived,
         lastMessageAt: sql<string>`MAX(${ChatMessageTable.createdAt})`.as(
           "last_message_at",
         ),
@@ -95,7 +95,12 @@ export const pgChatRepository: ChatRepository = {
         ChatMessageTable,
         eq(ChatThreadTable.id, ChatMessageTable.threadId),
       )
-      .where(eq(ChatThreadTable.userId, userId))
+      .where(
+        and(
+          eq(ChatThreadTable.userId, userId),
+          eq(ChatThreadTable.isArchived, archived),
+        ),
+      )
       .groupBy(ChatThreadTable.id)
       .orderBy(desc(sql`last_message_at`));
 
@@ -104,6 +109,7 @@ export const pgChatRepository: ChatRepository = {
         id: row.threadId,
         title: row.title,
         userId: row.userId,
+        isArchived: row.isArchived,
         createdAt: row.createdAt,
         lastMessageAt: row.lastMessageAt
           ? new Date(row.lastMessageAt).getTime()
@@ -126,7 +132,7 @@ export const pgChatRepository: ChatRepository = {
     return result;
   },
   upsertThread: async (
-    thread: Omit<ChatThread, "createdAt">,
+    thread: Omit<ChatThread, "createdAt" | "isArchived">,
   ): Promise<ChatThread> => {
     const [result] = await db
       .insert(ChatThreadTable)
@@ -142,13 +148,7 @@ export const pgChatRepository: ChatRepository = {
   },
 
   deleteThread: async (id: string): Promise<void> => {
-    // 1. Delete all messages in the thread
     await db.delete(ChatMessageTable).where(eq(ChatMessageTable.threadId, id));
-
-    // 2. Remove thread from all archives
-    await db.delete(ArchiveItemTable).where(eq(ArchiveItemTable.itemId, id));
-
-    // 3. Delete the thread itself
     await db.delete(ChatThreadTable).where(eq(ChatThreadTable.id, id));
   },
 
@@ -193,7 +193,7 @@ export const pgChatRepository: ChatRepository = {
     if (!message) {
       return;
     }
-    // Delete messages that are in the same thread AND created before or at the same time as the target message
+    // Delete messages created at or after the target message in the same thread
     await db
       .delete(ChatMessageTable)
       .where(
@@ -218,14 +218,10 @@ export const pgChatRepository: ChatRepository = {
     const unarchivedThreadIds = await db
       .select({ id: ChatThreadTable.id })
       .from(ChatThreadTable)
-      .leftJoin(
-        ArchiveItemTable,
-        eq(ChatThreadTable.id, ArchiveItemTable.itemId),
-      )
       .where(
         and(
           eq(ChatThreadTable.userId, userId),
-          sql`${ArchiveItemTable.id} IS NULL`,
+          eq(ChatThreadTable.isArchived, false),
         ),
       );
 
@@ -234,6 +230,32 @@ export const pgChatRepository: ChatRepository = {
         pgChatRepository.deleteThread(threadId.id),
       ),
     );
+  },
+
+  archiveThread: async (id: string): Promise<void> => {
+    await db
+      .update(ChatThreadTable)
+      .set({ isArchived: true })
+      .where(eq(ChatThreadTable.id, id));
+  },
+
+  unarchiveThread: async (id: string): Promise<void> => {
+    await db
+      .update(ChatThreadTable)
+      .set({ isArchived: false })
+      .where(eq(ChatThreadTable.id, id));
+  },
+
+  archiveAllThreads: async (userId: string): Promise<void> => {
+    await db
+      .update(ChatThreadTable)
+      .set({ isArchived: true })
+      .where(
+        and(
+          eq(ChatThreadTable.userId, userId),
+          eq(ChatThreadTable.isArchived, false),
+        ),
+      );
   },
 
   insertMessages: async (

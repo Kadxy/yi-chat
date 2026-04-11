@@ -72,7 +72,6 @@ export function UserDetail({
         <UserDetailFormCard
           user={user ?? initialUser}
           currentUserId={currentUserId}
-          userAccountInfo={userAccountInfo}
           view={view}
           onUserDetailsUpdate={handleUserUpdate}
         />
