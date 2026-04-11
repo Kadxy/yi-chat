@@ -56,6 +56,7 @@ import {
 import dynamic from "next/dynamic";
 import { notify } from "lib/notify";
 import { ModelProviderIcon } from "ui/model-provider-icon";
+import { useChatModels } from "@/hooks/queries/use-chat-models";
 
 type MessagePart = UIMessage["parts"][number];
 type TextMessagePart = Extract<MessagePart, { type: "text" }>;
@@ -293,6 +294,22 @@ export const AssistMessagePart = memo(function AssistMessagePart({
   const [isDeleting, setIsDeleting] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const metadata = message.metadata as ChatMetadata | undefined;
+  const { data: providers } = useChatModels();
+
+  const modelDisplayInfo = metadata?.chatModel
+    ? (() => {
+        const provider = providers?.find(
+          (p) => p.provider === metadata.chatModel!.provider,
+        );
+        const model = provider?.models.find(
+          (m) => m.name === metadata.chatModel!.model,
+        );
+        return {
+          providerName: provider?.displayName || metadata.chatModel.provider,
+          modelName: model?.displayName || metadata.chatModel.model,
+        };
+      })()
+    : undefined;
 
   const deleteMessage = useCallback(async () => {
     if (!setMessages) return;
@@ -445,10 +462,10 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                           />
                           <div className="space-y-0.5 flex-1">
                             <div className="text-sm font-medium text-foreground">
-                              {metadata.chatModel.provider}
+                              {modelDisplayInfo?.providerName}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              {metadata.chatModel.model}
+                              {modelDisplayInfo?.modelName}
                               {metadata.toolCount !== undefined &&
                                 metadata.toolCount > 0 && (
                                   <span className="ml-2">

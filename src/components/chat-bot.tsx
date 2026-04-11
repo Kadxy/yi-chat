@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PromptInput from "./prompt-input";
 import clsx from "clsx";
 import { appStore } from "@/app/store";
-import { cn, createDebounce, generateUUID, truncateString } from "lib/utils";
+import { cn, generateUUID, truncateString } from "lib/utils";
 import { ErrorMessage, PreviewMessage } from "./message";
 import { ChatGreeting } from "./chat-greeting";
 
@@ -43,9 +43,7 @@ import {
 import { useTranslations } from "next-intl";
 import { Think } from "ui/think";
 import { useGenerateThreadTitle } from "@/hooks/queries/use-generate-thread-title";
-import dynamic from "next/dynamic";
 import { useMounted } from "@/hooks/use-mounted";
-import { getStorageManager } from "lib/browser-stroage";
 import { AnimatePresence, motion } from "framer-motion";
 import { useThreadFileUploader } from "@/hooks/use-thread-file-uploader";
 import { useFileDragOverlay } from "@/hooks/use-file-drag-overlay";
@@ -55,20 +53,6 @@ type Props = {
   initialMessages: Array<UIMessage>;
   selectedChatModel?: string;
 };
-
-const LightRays = dynamic(() => import("ui/light-rays"), {
-  ssr: false,
-});
-
-const Particles = dynamic(() => import("ui/particles"), {
-  ssr: false,
-});
-
-const debounce = createDebounce();
-
-const firstTimeStorage = getStorageManager("IS_FIRST");
-const isFirstTime = firstTimeStorage.get() ?? true;
-firstTimeStorage.set(false);
 
 export default function ChatBot({ threadId, initialMessages }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -110,8 +94,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   const generateTitle = useGenerateThreadTitle({
     threadId,
   });
-
-  const [showParticles, setShowParticles] = useState(isFirstTime);
 
   const onFinish = useCallback(() => {
     const messages = latestRef.current.messages;
@@ -227,7 +209,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     [_addToolResult],
   );
 
-  const mounted = useMounted();
+  const _mounted = useMounted();
 
   const latestRef = useToRef({
     toolChoice,
@@ -283,43 +265,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     return false;
   }, [isLoading, messages.at(-1)]);
 
-  const particle = useMemo(() => {
-    return (
-      <AnimatePresence>
-        {showParticles && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 5 }}
-          >
-            <div className="absolute top-0 left-0 w-full h-full z-10">
-              <LightRays />
-            </div>
-            <div className="absolute top-0 left-0 w-full h-full z-10">
-              <Particles particleCount={400} particleBaseSize={10} />
-            </div>
-
-            <div className="absolute top-0 left-0 w-full h-full z-10">
-              <div className="w-full h-full bg-gradient-to-t from-background to-50% to-transparent z-20" />
-            </div>
-            <div className="absolute top-0 left-0 w-full h-full z-10">
-              <div className="w-full h-full bg-gradient-to-l from-background to-20% to-transparent z-20" />
-            </div>
-            <div className="absolute top-0 left-0 w-full h-full z-10">
-              <div className="w-full h-full bg-gradient-to-r from-background to-20% to-transparent z-20" />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    );
-  }, [showParticles]);
-
-  const handleFocus = useCallback(() => {
-    setShowParticles(false);
-    debounce(() => setShowParticles(true), 60000);
-  }, []);
-
   const handleScroll = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -328,8 +273,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     const isScrollAtBottom = scrollHeight - scrollTop - clientHeight < 50;
 
     setIsAtBottom(isScrollAtBottom);
-    handleFocus();
-  }, [handleFocus]);
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     containerRef.current?.scrollTo({
@@ -391,15 +335,8 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  useEffect(() => {
-    if (mounted) {
-      handleFocus();
-    }
-  }, [input]);
-
   return (
     <>
-      {particle}
       <div
         className={cn(
           emptyMessage && "justify-center pb-24",
@@ -492,7 +429,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
             setInput={setInput}
             isLoading={isLoading || isPendingToolCall}
             onStop={stop}
-            onFocus={isFirstTime ? undefined : handleFocus}
           />
         </div>
         <DeleteThreadPopup

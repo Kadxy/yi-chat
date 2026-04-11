@@ -5,18 +5,8 @@ import { useChatModels } from "@/hooks/queries/use-chat-models";
 import { ChatModel } from "app-types/chat";
 import { cn } from "lib/utils";
 import { CheckIcon, ChevronDown } from "lucide-react";
-import { Fragment, memo, PropsWithChildren, useEffect, useState } from "react";
+import { PropsWithChildren, useEffect, useState } from "react";
 import { Button } from "ui/button";
-
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "ui/command";
 import { ModelProviderIcon } from "ui/model-provider-icon";
 import { Popover, PopoverContent, PopoverTrigger } from "ui/popover";
 
@@ -32,13 +22,25 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
   const { data: providers } = useChatModels();
   const [model, setModel] = useState(props.currentModel);
 
+  const modelDisplayName = providers
+    ?.find((p) => p.provider === model?.provider)
+    ?.models.find((m) => m.name === model?.model)?.displayName;
+
   useEffect(() => {
     const modelToUse = props.currentModel ?? appStore.getState().chatModel;
-
     if (modelToUse) {
       setModel(modelToUse);
     }
   }, [props.currentModel]);
+
+  const flatModels = providers?.flatMap((provider) =>
+    provider.models.map((m) => ({
+      ...m,
+      provider: provider.provider,
+      providerDisplayName: provider.displayName,
+      hasAPIKey: provider.hasAPIKey,
+    })),
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -47,7 +49,7 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
           <Button
             variant={"secondary"}
             size={"sm"}
-            className="data-[state=open]:bg-input! hover:bg-input! "
+            className="data-[state=open]:bg-input! hover:bg-input!"
             data-testid="model-selector-button"
           >
             <div className="mr-auto flex items-center gap-1">
@@ -57,106 +59,60 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
                   className="size-2.5 mr-1"
                 />
               )}
-              <p data-testid="selected-model-name">{model?.model || "model"}</p>
+              <p data-testid="selected-model-name">
+                {modelDisplayName || model?.model || "model"}
+              </p>
             </div>
             <ChevronDown className="size-3" />
           </Button>
         )}
       </PopoverTrigger>
       <PopoverContent
-        className="p-0 w-[280px]"
+        className="p-1 w-[220px]"
         align={props.align || "end"}
         data-testid="model-selector-popover"
       >
-        <Command
-          className="rounded-lg relative shadow-md h-80"
-          value={JSON.stringify(model)}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <CommandInput
-            placeholder="search model..."
-            data-testid="model-search-input"
-          />
-          <CommandList className="p-2">
-            <CommandEmpty>No results found.</CommandEmpty>
-            {providers?.map((provider, i) => (
-              <Fragment key={provider.provider}>
-                <CommandGroup
-                  heading={
-                    <ProviderHeader
-                      provider={provider.provider}
-                      hasAPIKey={provider.hasAPIKey}
-                    />
-                  }
-                  className={cn(
-                    "pb-4 group",
-                    !provider.hasAPIKey && "opacity-50",
-                  )}
-                  onWheel={(e) => {
-                    e.stopPropagation();
-                  }}
-                  data-testid={`model-provider-${provider.provider}`}
-                >
-                  {provider.models.map((item) => (
-                    <CommandItem
-                      key={item.name}
-                      disabled={!provider.hasAPIKey}
-                      className="cursor-pointer"
-                      onSelect={() => {
-                        setModel({
-                          provider: provider.provider,
-                          model: item.name,
-                        });
-                        props.onSelect({
-                          provider: provider.provider,
-                          model: item.name,
-                        });
-                        setOpen(false);
-                      }}
-                      value={item.name}
-                      data-testid={`model-option-${provider.provider}-${item.name}`}
-                    >
-                      {model?.provider === provider.provider &&
-                      model?.model === item.name ? (
-                        <CheckIcon
-                          className="size-3"
-                          data-testid="selected-model-check"
-                        />
-                      ) : (
-                        <div className="ml-3" />
-                      )}
-                      <span className="pr-2">{item.name}</span>
-                      {item.isToolCallUnsupported && (
-                        <div className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
-                          No tools
-                        </div>
-                      )}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-                {i < providers?.length - 1 && <CommandSeparator />}
-              </Fragment>
-            ))}
-          </CommandList>
-        </Command>
+        <div className="flex flex-col" onClick={(e) => e.stopPropagation()}>
+          {flatModels?.map((item) => {
+            const isSelected =
+              model?.provider === item.provider && model?.model === item.name;
+            return (
+              <button
+                key={`${item.provider}-${item.name}`}
+                disabled={!item.hasAPIKey}
+                className={cn(
+                  "flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer transition-colors",
+                  "hover:bg-accent",
+                  !item.hasAPIKey && "opacity-40 cursor-not-allowed",
+                )}
+                onClick={() => {
+                  setModel({ provider: item.provider, model: item.name });
+                  props.onSelect({ provider: item.provider, model: item.name });
+                  setOpen(false);
+                }}
+                data-testid={`model-option-${item.provider}-${item.name}`}
+              >
+                <ModelProviderIcon
+                  provider={item.provider}
+                  className="size-4 shrink-0"
+                />
+                <span className="flex-1 text-left">{item.displayName}</span>
+                {isSelected && (
+                  <CheckIcon
+                    className="size-4 text-muted-foreground shrink-0"
+                    data-testid="selected-model-check"
+                  />
+                )}
+                {item.isToolCallUnsupported && (
+                  <span className="text-xs text-muted-foreground">
+                    No tools
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </PopoverContent>
     </Popover>
   );
 };
-
-const ProviderHeader = memo(function ProviderHeader({
-  provider,
-  hasAPIKey,
-}: { provider: string; hasAPIKey: boolean }) {
-  return (
-    <div className="text-sm text-muted-foreground flex items-center gap-1.5 group-hover:text-foreground transition-colors duration-300">
-      <ModelProviderIcon provider={provider} className="size-3" />
-      {provider}
-      {!hasAPIKey && (
-        <span className="text-xs ml-auto text-muted-foreground">
-          No API Key
-        </span>
-      )}
-    </div>
-  );
-});

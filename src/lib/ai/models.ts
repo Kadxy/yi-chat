@@ -17,6 +17,22 @@ const staticModels = {
   },
 };
 
+const modelDisplayNames: Record<string, string> = {
+  "haiku-4.5": "Haiku 4.5",
+  "sonnet-4.6": "Sonnet 4.6",
+  "opus-4.6": "Opus 4.6",
+};
+
+const providerDisplayNames: Record<string, string> = {
+  anthropic: "Anthropic",
+};
+
+export const MODEL_IDS = {
+  "haiku-4.5": { provider: "anthropic", model: "haiku-4.5" },
+  "sonnet-4.6": { provider: "anthropic", model: "sonnet-4.6" },
+  "opus-4.6": { provider: "anthropic", model: "opus-4.6" },
+} as const satisfies Record<string, ChatModel>;
+
 const staticFilePartSupportByModel = new Map<
   LanguageModel,
   readonly string[]
@@ -56,8 +72,10 @@ const fallbackModel = staticModels.anthropic["sonnet-4.6"];
 export const customModelProvider = {
   modelsInfo: Object.entries(staticModels).map(([provider, models]) => ({
     provider,
+    displayName: providerDisplayNames[provider] || provider,
     models: Object.entries(models).map(([name, model]) => ({
       name,
+      displayName: modelDisplayNames[name] || name,
       isToolCallUnsupported: false,
       isImageInputUnsupported: false,
       supportedFileMimeTypes: [...getFilePartSupportedMimeTypes(model)],

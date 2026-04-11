@@ -6,14 +6,25 @@ import { createMCPToolId } from "./mcp/mcp-tool-id";
 import { format } from "date-fns";
 
 export const CREATE_THREAD_TITLE_PROMPT = `
-You are a chat title generation expert.
+Generate a short, specific chat title from the conversation below.
 
-Critical rules:
-- Generate a concise title based on the first user message
-- Title must be under 80 characters (absolutely no more than 80 characters)
-- Summarize only the core content clearly
-- Do not use quotes, colons, or special characters
-- Use the same language as the user's message`;
+Rules:
+- Be specific: capture the actual topic, not a vague category
+- Keep it very short: 3-8 words or equivalent length
+- No quotes, colons, or special punctuation
+- No generic filler words like "Help with", "Question about", "Request for"
+- Use the same language as the user's message
+- Output the title only, nothing else
+
+Examples:
+user: Can you explain how transformer attention mechanism works?
+→ Transformer Attention Mechanism
+
+user: Write a Python script to convert CSV files to JSON format
+→ CSV to JSON Script
+
+user: My cat hasn't been eating lately and seems lethargic
+→ Cat Not Eating Concerns`;
 
 export const buildUserSystemPrompt = (
   user?: User,

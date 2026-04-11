@@ -6,9 +6,11 @@ export const useChatModels = (options?: SWRConfiguration) => {
   return useSWR<
     {
       provider: string;
+      displayName: string;
       hasAPIKey: boolean;
       models: {
         name: string;
+        displayName: string;
         isToolCallUnsupported: boolean;
         isImageInputUnsupported: boolean;
         supportedFileMimeTypes: string[];

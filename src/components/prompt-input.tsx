@@ -423,12 +423,15 @@ export default function PromptInput({
                   >
                     {chatModel?.model ? (
                       <>
-                        <ClaudeIcon className="size-3 opacity-0 group-data-[state=open]:opacity-100 group-hover:opacity-100" />
+                        <ClaudeIcon className="size-4" />
                         <span
                           className="text-foreground group-data-[state=open]:text-foreground  "
                           data-testid="selected-model-name"
                         >
-                          {chatModel.model}
+                          {providers
+                            ?.find((p) => p.provider === chatModel.provider)
+                            ?.models.find((m) => m.name === chatModel.model)
+                            ?.displayName || chatModel.model}
                         </span>
                       </>
                     ) : (

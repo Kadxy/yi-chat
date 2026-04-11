@@ -1,9 +1,8 @@
 import { smoothStream, streamText } from "ai";
 
-import { customModelProvider } from "lib/ai/models";
+import { customModelProvider, MODEL_IDS } from "lib/ai/models";
 import { CREATE_THREAD_TITLE_PROMPT } from "lib/ai/prompts";
 import globalLogger from "logger";
-import { ChatModel } from "app-types/chat";
 import { chatRepository } from "lib/db/repository";
 import { getSession } from "auth/server";
 import { colorize } from "consola/utils";
@@ -17,28 +16,26 @@ export async function POST(request: Request) {
   try {
     const json = await request.json();
 
-    const {
-      chatModel,
-      message = "hello",
-      threadId,
-    } = json as {
-      chatModel?: ChatModel;
+    const { message, threadId } = json as {
       message: string;
       threadId: string;
     };
+
+    if (!message || !threadId) {
+      return new Response("Missing message or threadId", { status: 400 });
+    }
 
     const session = await getSession();
     if (!session) {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    logger.info(
-      `chatModel: ${chatModel?.provider}/${chatModel?.model}, threadId: ${threadId}`,
-    );
+    logger.info(`threadId: ${threadId}`);
 
     const result = streamText({
-      model: customModelProvider.getModel(chatModel),
+      model: customModelProvider.getModel(MODEL_IDS["haiku-4.5"]),
       system: CREATE_THREAD_TITLE_PROMPT,
+      maxOutputTokens: 80,
       experimental_transform: smoothStream({ chunking: "word" }),
       prompt: message,
       abortSignal: request.signal,

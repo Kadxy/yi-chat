@@ -50,17 +50,23 @@ export function AppSidebarThreads() {
   const mounted = useMounted();
   const router = useRouter();
   const t = useTranslations("Layout");
-  const [storeMutate, currentThreadId, generatingTitleThreadIds] = appStore(
+  const [
+    storeMutate,
+    currentThreadId,
+    generatingTitleThreadIds,
+    storeThreadList,
+  ] = appStore(
     useShallow((state) => [
       state.mutate,
       state.currentThreadId,
       state.generatingTitleThreadIds,
+      state.threadList,
     ]),
   );
   // State to track if expanded view is active
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const { data: threadList, isLoading } = useSWR("/api/thread", fetcher, {
+  const { isLoading } = useSWR("/api/thread", fetcher, {
     onError: handleErrorWithToast,
     fallbackData: [],
     onSuccess: (data) => {
@@ -91,6 +97,8 @@ export function AppSidebarThreads() {
       });
     },
   });
+
+  const threadList = storeThreadList;
 
   // Check if we have 40 or more threads to display "View All" button
   const hasExcessThreads = threadList && threadList.length >= MAX_THREADS_COUNT;
