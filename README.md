@@ -1,4 +1,4 @@
-# yi.chat
+# Yi Chat (yi.chat)
 
 Low-cost Claude API-powered AI assistant platform.
 

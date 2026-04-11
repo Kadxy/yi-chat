@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "yi.chat",
-  description: "yi.chat is a chatbot that uses the Tools to answer questions.",
+  title: "Yi Chat",
+  description: "Powerful online chatbot.",
 };
 
 export default async function RootLayout({
