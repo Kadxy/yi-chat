@@ -172,6 +172,9 @@
       "resendCode": "Resend code",
       "socialSignInFailed": "Sign in failed"
     },
+    "Common": {
+      "back": "Back"
+    },
     "Intro": {
       "description": "Welcome to yi.chat. Sign in to experience our AI-powered conversational tools."
     }

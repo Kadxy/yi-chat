@@ -172,6 +172,9 @@
       "resendCode": "Send kode på nytt",
       "socialSignInFailed": "Innlogging mislyktes"
     },
+    "Common": {
+      "back": "Tilbake"
+    },
     "Intro": {
       "description": "Velkommen til yi.chat. Logg inn for å oppleve våre AI-drevne samtaleverktøy."
     }

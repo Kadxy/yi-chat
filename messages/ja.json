@@ -59,6 +59,9 @@
       "resendCode": "コードを再送",
       "socialSignInFailed": "サインインに失敗しました"
     },
+    "Common": {
+      "back": "戻る"
+    },
     "Intro": {
       "description": "yi.chat へようこそ。AIを活用した会話ツールを体験するためにサインインしてください。"
     }

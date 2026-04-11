@@ -60,6 +60,9 @@
       "resendCode": "코드 재전송",
       "socialSignInFailed": "로그인 실패"
     },
+    "Common": {
+      "back": "뒤로"
+    },
     "Intro": {
       "description": "yi.chat에 오신 것을 환영합니다. 우리의 AI 기반 대화 도구를 경험하세요."
     }

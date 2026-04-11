@@ -5,7 +5,7 @@ import { adminClient, inferAdditionalFields } from "better-auth/client/plugins";
 import { emailOTPClient } from "better-auth/client/plugins";
 
 import { DEFAULT_USER_ROLE, USER_ROLES } from "app-types/roles";
-import { ac, admin, editor, user } from "./roles";
+import { ac, admin, user } from "./roles";
 import type { auth } from "./auth-instance";
 
 export const authClient = createAuthClient({
@@ -17,7 +17,6 @@ export const authClient = createAuthClient({
       ac,
       roles: {
         admin,
-        editor,
         user,
       },
     }),

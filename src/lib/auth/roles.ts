@@ -15,23 +15,10 @@ const permissions = {
 // Create access control with all permissions
 export const ac = createAccessControl(permissions);
 
-// User role: restricted permissions
+// User role: full app permissions but no user management
 export const user = ac.newRole({
-  // No user/session management permissions for regular users
   user: [],
   session: [],
-  // Restricted app permissions
-  mcp: ["view", "use", "list"],
-  chat: [...Object.values(PERMISSION_TYPES)],
-  temporaryChat: [...Object.values(PERMISSION_TYPES)],
-});
-
-// Editor role: app permissions but no user management
-export const editor = ac.newRole({
-  // No user/session management permissions for editors
-  user: [],
-  session: [],
-  // Full app permissions
   mcp: ["create", "view", "update", "delete", "use", "list"],
   chat: [...Object.values(PERMISSION_TYPES)],
   temporaryChat: [...Object.values(PERMISSION_TYPES)],

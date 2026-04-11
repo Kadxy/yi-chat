@@ -120,6 +120,13 @@
       "when": 1775941536838,
       "tag": "0016_tan_jean_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1776172800000,
+      "tag": "0017_remove_editor_role",
+      "breakpoints": true
     }
   ]
 }

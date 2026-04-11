@@ -14,7 +14,7 @@ import {
 import { getAuthConfig } from "./config";
 import logger from "logger";
 import { DEFAULT_USER_ROLE, USER_ROLES } from "app-types/roles";
-import { admin, editor, user, ac } from "./roles";
+import { admin, user, ac } from "./roles";
 import { sendOTPEmail } from "lib/email";
 
 const { socialAuthenticationProviders } = getAuthConfig();
@@ -30,7 +30,6 @@ const options = {
       ac,
       roles: {
         admin,
-        editor,
         user,
       },
     }),

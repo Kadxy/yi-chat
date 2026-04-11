@@ -1,7 +1,7 @@
 // Client-side permission helpers
 // These mirror the server-side permissions but work with the client session
 
-import { admin, editor, user as userRole } from "./roles";
+import { admin, user as userRole } from "./roles";
 import type { BetterAuthRole } from "./types";
 import { parseRoleString, isBetterAuthRole } from "./types";
 
@@ -16,8 +16,6 @@ function getRolePermissions(role: string | undefined | null): BetterAuthRole {
   switch (cleanRole) {
     case "admin":
       return admin as BetterAuthRole;
-    case "editor":
-      return editor as BetterAuthRole;
     case "user":
     default:
       return userRole as BetterAuthRole;

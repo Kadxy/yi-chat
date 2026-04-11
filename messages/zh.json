@@ -60,6 +60,9 @@
       "resendCode": "重新发送",
       "socialSignInFailed": "登录失败"
     },
+    "Common": {
+      "back": "返回"
+    },
     "Intro": {
       "description": "欢迎来到 yi.chat。登录以体验我们的 AI 对话工具。"
     }

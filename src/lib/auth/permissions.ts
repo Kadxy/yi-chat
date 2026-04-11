@@ -1,7 +1,7 @@
 import "server-only";
 import { getSession } from "./auth-instance";
 import { getIsUserAdmin } from "lib/user/utils";
-import { admin, editor, user as userRole } from "./roles";
+import { admin, user as userRole } from "./roles";
 import type { BetterAuthRole } from "./types";
 import { parseRoleString, isBetterAuthRole } from "./types";
 
@@ -129,15 +129,14 @@ export async function getCurrentUser() {
 }
 
 /**
- * Check if user is editor or admin (can create/edit resources)
+ * Check if user is authenticated (any role)
  */
 export async function hasEditorPermission(): Promise<boolean> {
   try {
     const session = await getSession();
     if (!session?.user) return false;
 
-    // Check if user is admin or editor
-    return session.user.role === "admin" || session.user.role === "editor";
+    return true;
   } catch (error) {
     console.error("Error checking editor permission:", error);
     return false;
@@ -153,8 +152,6 @@ function getRolePermissions(role: string | undefined | null): BetterAuthRole {
   switch (cleanRole) {
     case "admin":
       return admin as BetterAuthRole;
-    case "editor":
-      return editor as BetterAuthRole;
     case "user":
     default:
       return userRole as BetterAuthRole;

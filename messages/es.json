@@ -59,6 +59,9 @@
       "resendCode": "Reenviar código",
       "socialSignInFailed": "Error al iniciar sesión"
     },
+    "Common": {
+      "back": "Volver"
+    },
     "Intro": {
       "description": "Bienvenido a yi.chat. Inicia sesión para experimentar nuestras herramientas conversacionales impulsadas por IA."
     }
