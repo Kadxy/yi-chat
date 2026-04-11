@@ -258,17 +258,23 @@ export async function POST(request: Request) {
           `binding tool count APP_DEFAULT: ${Object.keys(APP_DEFAULT_TOOLS ?? {}).length}, MCP: ${Object.keys(MCP_TOOLS ?? {}).length}`,
         );
         logger.info(`model: ${chatModel?.provider}/${chatModel?.model}`);
+        logger.info(`tools: ${JSON.stringify(Object.keys(vercelAITooles))}`);
 
         const result = streamText({
           model,
           system: systemPrompt,
           messages: convertToModelMessages(messages),
           experimental_transform: smoothStream({ chunking: "word" }),
-          maxRetries: 2,
-          tools: vercelAITooles,
+          maxRetries: 0,
+          tools:
+            Object.keys(vercelAITooles).length > 0 ? vercelAITooles : undefined,
           stopWhen: stepCountIs(10),
-          toolChoice: "auto",
+          toolChoice:
+            Object.keys(vercelAITooles).length > 0 ? "auto" : undefined,
           abortSignal: request.signal,
+          onError: (event) => {
+            logger.error(`streamText error: ${JSON.stringify(event)}`);
+          },
         });
         result.consumeStream();
         dataStream.merge(

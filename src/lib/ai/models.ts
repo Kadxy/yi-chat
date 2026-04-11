@@ -11,9 +11,9 @@ const anthropic = createAnthropic({
 
 const staticModels = {
   anthropic: {
-    "sonnet-4.5": anthropic("claude-sonnet-4-5"),
-    "haiku-4.5": anthropic("claude-haiku-4-5"),
-    "opus-4.5": anthropic("claude-opus-4-5"),
+    "haiku-4.5": anthropic("claude-haiku-4-5-20251001"),
+    "sonnet-4.6": anthropic("claude-sonnet-4-6"),
+    "opus-4.6": anthropic("claude-opus-4-6"),
   },
 };
 
@@ -31,15 +31,15 @@ const registerFileSupport = (
 };
 
 registerFileSupport(
-  staticModels.anthropic["sonnet-4.5"],
-  ANTHROPIC_FILE_MIME_TYPES,
-);
-registerFileSupport(
   staticModels.anthropic["haiku-4.5"],
   ANTHROPIC_FILE_MIME_TYPES,
 );
 registerFileSupport(
-  staticModels.anthropic["opus-4.5"],
+  staticModels.anthropic["sonnet-4.6"],
+  ANTHROPIC_FILE_MIME_TYPES,
+);
+registerFileSupport(
+  staticModels.anthropic["opus-4.6"],
   ANTHROPIC_FILE_MIME_TYPES,
 );
 
@@ -51,7 +51,7 @@ export const getFilePartSupportedMimeTypes = (model: LanguageModel) => {
   return staticFilePartSupportByModel.get(model) ?? [];
 };
 
-const fallbackModel = staticModels.anthropic["sonnet-4.5"];
+const fallbackModel = staticModels.anthropic["sonnet-4.6"];
 
 export const customModelProvider = {
   modelsInfo: Object.entries(staticModels).map(([provider, models]) => ({
