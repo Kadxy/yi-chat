@@ -27,6 +27,9 @@ export const authClient = createAuthClient({
     emailOTPClient(),
     oneTapClient({
       clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+      promptOptions: {
+        fedCM: process.env.NEXT_PUBLIC_ENABLE_FEDCM === "1",
+      },
     }),
   ],
 });
