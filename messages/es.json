@@ -44,27 +44,20 @@
   },
   "Auth": {
     "SignIn": {
-      "title": "Bienvenido de vuelta",
-      "description": "Inicia sesión para continuar a tu cuenta",
-      "oauthClientIdNotSet": "ID del cliente de {provider} no configurado",
-      "noAccount": "¿No tienes una cuenta?",
-      "signUp": "Registrarse",
+      "title": "Bienvenido",
+      "description": "Inicia sesión para continuar",
       "signIn": "Iniciar sesión",
-      "orContinueWith": "O CONTINÚA CON"
-    },
-    "SignUp": {
-      "title": "Crear una cuenta",
-      "signIn": "Iniciar sesión",
-      "description": "Regístrate en tu cuenta",
-      "step1": "Comienza tu viaje con nosotros ingresando tu dirección de correo electrónico",
-      "step2": "Usaré este nombre cuando charlemos",
-      "step3": "Crea una contraseña segura para proteger tu cuenta",
-      "signUp": "Registrarse",
+      "continue": "Continuar",
+      "orContinueWith": "O CONTINÚA CON",
       "invalidEmail": "Dirección de correo electrónico inválida",
-      "emailAlreadyExists": "El correo electrónico ya existe",
-      "nameRequired": "El nombre es obligatorio",
-      "passwordRequired": "La contraseña es obligatoria",
-      "createAccount": "Crear cuenta"
+      "sendOtpFailed": "Error al enviar el código de verificación",
+      "verifyOtpFailed": "Código de verificación inválido",
+      "verificationCode": "Código de verificación",
+      "otpSentTo": "Enviamos un código a {email}",
+      "otpResent": "Código de verificación reenviado",
+      "resendIn": "Reenviar en {seconds}s",
+      "resendCode": "Reenviar código",
+      "socialSignInFailed": "Error al iniciar sesión"
     },
     "Intro": {
       "description": "Bienvenido a yi.chat. Inicia sesión para experimentar nuestras herramientas conversacionales impulsadas por IA."

@@ -44,27 +44,20 @@
   },
   "Auth": {
     "SignIn": {
-      "title": "Bon retour",
-      "description": "Connectez-vous pour continuer vers votre compte",
-      "oauthClientIdNotSet": "L'ID client {provider} n'est pas configuré",
-      "noAccount": "Vous n'avez pas de compte ?",
-      "signUp": "S'inscrire",
+      "title": "Bienvenue",
+      "description": "Connectez-vous pour continuer",
       "signIn": "Se connecter",
-      "orContinueWith": "OU CONTINUER AVEC"
-    },
-    "SignUp": {
-      "title": "Créer un compte",
-      "signIn": "Se connecter",
-      "description": "Inscrivez-vous à votre compte",
-      "step1": "Commencez votre parcours avec nous en saisissant votre adresse e-mail",
-      "step2": "J'utiliserai ce nom quand nous discuterons",
-      "step3": "Créez un mot de passe fort pour sécuriser votre compte",
-      "signUp": "S'inscrire",
+      "continue": "Continuer",
+      "orContinueWith": "OU CONTINUER AVEC",
       "invalidEmail": "Adresse e-mail invalide",
-      "emailAlreadyExists": "L'e-mail existe déjà",
-      "nameRequired": "Le nom est requis",
-      "passwordRequired": "Le mot de passe est requis",
-      "createAccount": "Créer un compte"
+      "sendOtpFailed": "Échec de l'envoi du code de vérification",
+      "verifyOtpFailed": "Code de vérification invalide",
+      "verificationCode": "Code de vérification",
+      "otpSentTo": "Nous avons envoyé un code à {email}",
+      "otpResent": "Code de vérification renvoyé",
+      "resendIn": "Renvoyer dans {seconds}s",
+      "resendCode": "Renvoyer le code",
+      "socialSignInFailed": "Échec de la connexion"
     },
     "Intro": {
       "description": "Bienvenue sur yi.chat. Connectez-vous pour découvrir nos outils de conversation alimentés par l'IA."

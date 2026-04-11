@@ -45,30 +45,23 @@
   },
   "Auth": {
     "SignIn": {
-      "title": "欢迎回来",
-      "description": "登录您的账户以继续",
-      "oauthClientIdNotSet": "{provider} 客户端 ID 未设置",
-      "noAccount": "没有账户？",
-      "signUp": "注册",
+      "title": "欢迎",
+      "description": "登录以继续使用",
       "signIn": "登录",
-      "orContinueWith": "或继续使用"
-    },
-    "SignUp": {
-      "title": "创建账户",
-      "signIn": "登录",
-      "description": "注册您的账户",
-      "step1": "通过输入您的邮箱地址开始您的旅程",
-      "step2": "我会在聊天时使用这个名字",
-      "step3": "创建一个强密码来保护您的账户",
-      "signUp": "注册",
+      "continue": "继续",
+      "orContinueWith": "或继续使用",
       "invalidEmail": "无效的邮箱地址",
-      "emailAlreadyExists": "邮箱已存在",
-      "nameRequired": "姓名是必需的",
-      "passwordRequired": "密码是必需的",
-      "createAccount": "创建账户"
+      "sendOtpFailed": "验证码发送失败",
+      "verifyOtpFailed": "验证码无效",
+      "verificationCode": "验证码",
+      "otpSentTo": "验证码已发送至 {email}",
+      "otpResent": "验证码已重新发送",
+      "resendIn": "{seconds}秒后重新发送",
+      "resendCode": "重新发送",
+      "socialSignInFailed": "登录失败"
     },
     "Intro": {
-      "description": "欢迎来到 MCP 聊天机器人。登录以体验我们的 AI 驱动的对话工具。"
+      "description": "欢迎来到 yi.chat。登录以体验我们的 AI 对话工具。"
     }
   },
   "Chat": {

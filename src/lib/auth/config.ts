@@ -44,8 +44,6 @@ function parseSocialAuthConfigs() {
 
 export function getAuthConfig(): AuthConfig {
   const rawConfig = {
-    emailAndPasswordEnabled: true,
-    signUpEnabled: true,
     socialAuthenticationProviders: parseSocialAuthConfigs(),
   };
 

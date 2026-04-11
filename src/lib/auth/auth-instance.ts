@@ -2,7 +2,7 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { admin as adminPlugin } from "better-auth/plugins";
+import { admin as adminPlugin, emailOTP } from "better-auth/plugins";
 import { pgDb } from "lib/db/pg/db.pg";
 import { headers } from "next/headers";
 import {
@@ -13,15 +13,13 @@ import {
 } from "lib/db/pg/schema.pg";
 import { getAuthConfig } from "./config";
 import logger from "logger";
-import { userRepository } from "lib/db/repository";
 import { DEFAULT_USER_ROLE, USER_ROLES } from "app-types/roles";
 import { admin, editor, user, ac } from "./roles";
+import { sendOTPEmail } from "lib/email";
 
-const {
-  emailAndPasswordEnabled,
-  signUpEnabled,
-  socialAuthenticationProviders,
-} = getAuthConfig();
+const { socialAuthenticationProviders } = getAuthConfig();
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 const options = {
   secret: process.env.BETTER_AUTH_SECRET!,
@@ -36,12 +34,20 @@ const options = {
         user,
       },
     }),
+    emailOTP({
+      otpLength: 6,
+      expiresIn: 300,
+      async sendVerificationOTP({ email, otp, type }) {
+        logger.info(`Sending OTP to ${email}, type: ${type}`);
+        await sendOTPEmail(email, otp);
+      },
+    }),
     nextCookies(),
   ],
   baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_BASE_URL,
   user: {
     changeEmail: {
-      enabled: true,
+      enabled: false,
     },
     deleteUser: {
       enabled: true,
@@ -60,20 +66,19 @@ const options = {
     user: {
       create: {
         before: async (user) => {
-          // This hook ONLY runs during user creation (sign-up), not on sign-in
-          // Use our optimized getIsFirstUser function with caching
-          const isFirstUser = await getIsFirstUser();
+          const role =
+            ADMIN_EMAIL && user.email === ADMIN_EMAIL
+              ? USER_ROLES.ADMIN
+              : DEFAULT_USER_ROLE;
 
-          // Set role based on whether this is the first user
-          const role = isFirstUser ? USER_ROLES.ADMIN : DEFAULT_USER_ROLE;
+          const name = user.name || user.email.split("@")[0];
 
-          logger.info(
-            `User creation hook: ${user.email} will get role: ${role} (isFirstUser: ${isFirstUser})`,
-          );
+          logger.info(`User creation hook: ${user.email} → role: ${role}`);
 
           return {
             data: {
               ...user,
+              name,
               role,
             },
           };
@@ -82,8 +87,7 @@ const options = {
     },
   },
   emailAndPassword: {
-    enabled: emailAndPasswordEnabled,
-    disableSignUp: !signUpEnabled,
+    enabled: false,
   },
   session: {
     cookieCache: {
@@ -129,34 +133,5 @@ export const getSession = async () => {
   } catch (error) {
     logger.error("Error getting session:", error);
     return null;
-  }
-};
-
-// Cache the first user check to avoid repeated DB queries
-let isFirstUserCache: boolean | null = null;
-
-export const getIsFirstUser = async () => {
-  // If we already know there's at least one user, return false immediately
-  // This in-memory cache prevents any DB calls once we know users exist
-  if (isFirstUserCache === false) {
-    return false;
-  }
-
-  try {
-    // Direct database query - simple and reliable
-    const userCount = await userRepository.getUserCount();
-    const isFirstUser = userCount === 0;
-
-    // Once we have at least one user, cache it permanently in memory
-    if (!isFirstUser) {
-      isFirstUserCache = false;
-    }
-
-    return isFirstUser;
-  } catch (error) {
-    logger.error("Error checking if first user:", error);
-    // Cache as false on error to prevent repeated attempts
-    isFirstUserCache = false;
-    return false;
   }
 };

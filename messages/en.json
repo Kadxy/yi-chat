@@ -157,34 +157,20 @@
   },
   "Auth": {
     "SignIn": {
-      "title": "Welcome Back",
+      "title": "Welcome",
       "description": "Sign in to continue to your account",
-      "oauthClientIdNotSet": "{provider} client ID is not set",
-      "noAccount": "Don't have an account? ",
-      "signUp": "Sign up",
       "signIn": "Sign in",
-      "orContinueWith": "OR CONTINUE WITH"
-    },
-    "SignUp": {
-      "title": "Create an account",
-      "titleAdmin": "Create an Admin Account",
-      "signIn": "Sign in",
-      "email": "Email",
-      "description": "Sign up to your account",
-      "signUpDescription": "Start your journey with us",
-      "signUpDescriptionAdmin": "Welcome first user! You will be the admin of the system.",
-      "signUpInstructionsEmailOnly": "Sign up to your account via your email address",
-      "signUpInstructionsEmailAndSocial": "Either click \"Email\" or use a provider to sign up",
-      "signUpSocialOnly": "Use a provider to sign up",
-      "step1": "Start your journey with us by entering your email address",
-      "step2": "I'll use this name when we chat",
-      "step3": "Create a strong password to secure your account",
-      "signUp": "Sign Up",
+      "continue": "Continue",
+      "orContinueWith": "OR CONTINUE WITH",
       "invalidEmail": "Invalid email address",
-      "emailAlreadyExists": "Email already exists",
-      "nameRequired": "Name is required",
-      "passwordRequired": "Password is required",
-      "createAccount": "Create account"
+      "sendOtpFailed": "Failed to send verification code",
+      "verifyOtpFailed": "Invalid verification code",
+      "verificationCode": "Verification Code",
+      "otpSentTo": "We sent a code to {email}",
+      "otpResent": "Verification code resent",
+      "resendIn": "Resend in {seconds}s",
+      "resendCode": "Resend code",
+      "socialSignInFailed": "Sign in failed"
     },
     "Intro": {
       "description": "Welcome to yi.chat. Sign in to experience our AI-powered conversational tools."

@@ -81,7 +81,9 @@ export function AppSidebarUserInner(props: {
                   src={getUserAvatar(user)}
                   alt={user?.name || "User"}
                 />
-                <AvatarFallback>{user?.name?.slice(0, 1) || ""}</AvatarFallback>
+                <AvatarFallback>
+                  {user?.name?.slice(0, 1)?.toUpperCase() || "?"}
+                </AvatarFallback>
               </Avatar>
               <span className="truncate" data-testid="sidebar-user-email">
                 {user?.email}

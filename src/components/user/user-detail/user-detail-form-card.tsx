@@ -12,7 +12,6 @@ import {
 import { Label } from "ui/label";
 import { Input } from "ui/input";
 import { Badge } from "ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { User } from "lucide-react";
 import { toast } from "sonner";
 import Form from "next/form";
@@ -30,10 +29,6 @@ import { UserAvatarUpload } from "./user-avatar-upload";
 interface UserDetailFormCardProps {
   user: BasicUserWithLastLogin;
   currentUserId: string;
-  userAccountInfo?: {
-    hasPassword: boolean;
-    oauthProviders: string[];
-  };
   onUserDetailsUpdate?: (user: Partial<BasicUserWithLastLogin>) => void;
   view?: "admin" | "user";
 }
@@ -41,7 +36,6 @@ interface UserDetailFormCardProps {
 export function UserDetailFormCard({
   user,
   currentUserId,
-  userAccountInfo,
   onUserDetailsUpdate,
   view,
 }: UserDetailFormCardProps) {
@@ -123,34 +117,15 @@ export function UserDetailFormCard({
 
             <div className="space-y-2">
               <Label htmlFor="email">{tCommon("email")}</Label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span
-                    className={
-                      !!userAccountInfo?.oauthProviders?.length
-                        ? "cursor-not-allowed"
-                        : ""
-                    }
-                  >
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      defaultValue={currentUser.email}
-                      disabled={
-                        !!userAccountInfo?.oauthProviders?.length || isPending
-                      }
-                      required
-                      data-testid="user-email-input"
-                    />
-                  </span>
-                </TooltipTrigger>
-                {!!userAccountInfo?.oauthProviders?.length && (
-                  <TooltipContent>
-                    {t("emailCannotBeModifiedSSO")}
-                  </TooltipContent>
-                )}
-              </Tooltip>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                defaultValue={currentUser.email}
+                disabled
+                required
+                data-testid="user-email-input"
+              />
             </div>
           </div>
 

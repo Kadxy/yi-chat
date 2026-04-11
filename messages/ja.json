@@ -44,27 +44,20 @@
   },
   "Auth": {
     "SignIn": {
-      "title": "おかえりなさい",
-      "description": "アカウントにサインインして続行",
-      "oauthClientIdNotSet": "{provider}のクライアントIDが設定されていません",
-      "noAccount": "アカウントをお持ちでない方は",
-      "signUp": "サインアップ",
+      "title": "ようこそ",
+      "description": "サインインして続行",
       "signIn": "サインイン",
-      "orContinueWith": "または次で続行"
-    },
-    "SignUp": {
-      "title": "アカウントを作成",
-      "signIn": "サインイン",
-      "description": "アカウントにサインアップ",
-      "step1": "メールアドレスを入力して、私たちとの旅を始めましょう",
-      "step2": "チャット時にこの名前を使用します",
-      "step3": "アカウントを保護するための強力なパスワードを作成してください",
-      "signUp": "サインアップ",
+      "continue": "続行",
+      "orContinueWith": "または次で続行",
       "invalidEmail": "無効なメールアドレス",
-      "emailAlreadyExists": "メールアドレスが既に存在します",
-      "nameRequired": "名前が必要です",
-      "passwordRequired": "パスワードが必要です",
-      "createAccount": "アカウントを作成"
+      "sendOtpFailed": "認証コードの送信に失敗しました",
+      "verifyOtpFailed": "認証コードが無効です",
+      "verificationCode": "認証コード",
+      "otpSentTo": "{email} にコードを送信しました",
+      "otpResent": "認証コードを再送しました",
+      "resendIn": "{seconds}秒後に再送",
+      "resendCode": "コードを再送",
+      "socialSignInFailed": "サインインに失敗しました"
     },
     "Intro": {
       "description": "yi.chat へようこそ。AIを活用した会話ツールを体験するためにサインインしてください。"

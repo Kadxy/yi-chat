@@ -157,34 +157,20 @@
   },
   "Auth": {
     "SignIn": {
-      "title": "Velkommen tilbake",
-      "description": "Logg inn for å fortsette til kontoen din",
-      "oauthClientIdNotSet": "{provider} klient-ID er ikke satt",
-      "noAccount": "Har du ikke en konto? ",
-      "signUp": "Registrer deg",
+      "title": "Velkommen",
+      "description": "Logg inn for å fortsette",
       "signIn": "Logg inn",
-      "orContinueWith": "ELLER FORTSETT MED"
-    },
-    "SignUp": {
-      "title": "Opprett en konto",
-      "titleAdmin": "Opprett en administratorkonto",
-      "signIn": "Logg inn",
-      "email": "E-post",
-      "description": "Registrer deg for kontoen din",
-      "signUpDescription": "Start reisen din med oss",
-      "signUpDescriptionAdmin": "Velkommen, første bruker! Du vil bli administrator for systemet.",
-      "signUpInstructionsEmailOnly": "Registrer deg for kontoen din via e-postadressen din",
-      "signUpInstructionsEmailAndSocial": "Klikk på «E-post» eller bruk en leverandør for å registrere deg",
-      "signUpSocialOnly": "Bruk en leverandør for å registrere deg",
-      "step1": "Start reisen din med oss ved å skrive inn e-postadressen din",
-      "step2": "Jeg bruker dette navnet når vi chatter",
-      "step3": "Opprett et sterkt passord for å sikre kontoen din",
-      "signUp": "Registrer deg",
+      "continue": "Fortsett",
+      "orContinueWith": "ELLER FORTSETT MED",
       "invalidEmail": "Ugyldig e-postadresse",
-      "emailAlreadyExists": "E-postadressen finnes allerede",
-      "nameRequired": "Navn er påkrevd",
-      "passwordRequired": "Passord er påkrevd",
-      "createAccount": "Opprett konto"
+      "sendOtpFailed": "Kunne ikke sende verifiseringskode",
+      "verifyOtpFailed": "Ugyldig verifiseringskode",
+      "verificationCode": "Verifiseringskode",
+      "otpSentTo": "Vi sendte en kode til {email}",
+      "otpResent": "Verifiseringskode sendt på nytt",
+      "resendIn": "Send på nytt om {seconds}s",
+      "resendCode": "Send kode på nytt",
+      "socialSignInFailed": "Innlogging mislyktes"
     },
     "Intro": {
       "description": "Velkommen til yi.chat. Logg inn for å oppleve våre AI-drevne samtaleverktøy."

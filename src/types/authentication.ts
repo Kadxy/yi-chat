@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { envBooleanSchema } from "./util";
 
 export const SocialAuthenticationProviderSchema = z.enum([
   "github",
@@ -39,8 +38,6 @@ export const SocialAuthenticationConfigSchema = z.object({
 });
 
 export const AuthConfigSchema = z.object({
-  emailAndPasswordEnabled: envBooleanSchema.default(true),
-  signUpEnabled: envBooleanSchema.default(true),
   socialAuthenticationProviders: SocialAuthenticationConfigSchema,
 });
 
