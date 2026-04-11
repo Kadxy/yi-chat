@@ -1,13 +1,12 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { getSession } from "auth/server";
-import { serverFileStorage, storageDriver } from "lib/file-storage";
+import { serverFileStorage } from "lib/file-storage";
 import globalLogger from "lib/logger";
 import { colorize } from "consola/utils";
 import { checkStorageAction } from "../actions";
 
 const logger = globalLogger.withDefaults({
-  message: colorize("blackBright", `[${storageDriver} Upload URL API]`),
+  message: colorize("blackBright", "[S3 Upload URL API]"),
 });
 
 // Constants
@@ -35,58 +34,8 @@ function createFallbackResponse(): FallbackResponse {
   };
 }
 
-function isVercelBlobRequest(body: unknown): body is HandleUploadBody {
-  return (
-    typeof body === "object" &&
-    body !== null &&
-    (body as HandleUploadBody).type === "blob.generate-client-token"
-  );
-}
-
 /**
- * Handles Vercel Blob client upload flow.
- * Generates client token and handles upload completion webhook.
- */
-async function handleVercelBlobUpload(
-  body: HandleUploadBody,
-  request: Request,
-  userId: string,
-) {
-  const jsonResponse = await handleUpload({
-    body,
-    request,
-    onBeforeGenerateToken: async () => {
-      return {
-        allowedContentTypes: undefined, // Allow all file types
-        addRandomSuffix: true, // Prevent filename collisions
-        tokenPayload: JSON.stringify({
-          userId,
-          uploadedAt: new Date().toISOString(),
-        }),
-      };
-    },
-    onUploadCompleted: async ({ blob, tokenPayload }) => {
-      logger.info("Upload completed", {
-        url: blob.url,
-        pathname: blob.pathname,
-        tokenPayload,
-      });
-
-      try {
-        // TODO: Add custom logic here (save to database, send notification, etc.)
-        // const { userId } = JSON.parse(tokenPayload);
-        // await db.files.create({ url: blob.url, userId });
-      } catch (error) {
-        logger.error("Error in onUploadCompleted callback", error);
-      }
-    },
-  });
-
-  return NextResponse.json(jsonResponse);
-}
-
-/**
- * Handles generic upload URL request (S3, Local FS, etc.).
+ * Handles generic upload URL request (S3, etc.).
  * Returns presigned URL if supported, otherwise returns fallback response.
  */
 async function handleGenericUpload(request: GenericUploadRequest) {
@@ -121,9 +70,8 @@ async function handleGenericUpload(request: GenericUploadRequest) {
  * Upload URL endpoint.
  *
  * Provides optimal upload method based on storage backend:
- * - Vercel Blob: Client token for direct upload
- * - S3: Presigned URL (future)
- * - Local FS: Fallback to server upload
+ * - S3: Presigned URL
+ * - Fallback: Server upload
  */
 export async function POST(request: Request) {
   // Authenticate
@@ -144,7 +92,6 @@ export async function POST(request: Request) {
       {
         error: storageCheck.error,
         solution: storageCheck.solution,
-        storageDriver,
       },
       { status: 500 },
     );
@@ -159,11 +106,6 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Route to appropriate handler
-    if (isVercelBlobRequest(body)) {
-      return await handleVercelBlobUpload(body, request, session.user.id);
-    }
-
     return await handleGenericUpload(body as GenericUploadRequest);
   } catch (error) {
     logger.error("Upload URL generation failed", error);

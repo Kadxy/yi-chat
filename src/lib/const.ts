@@ -6,28 +6,16 @@ export const IS_EDGE_RUNTIME = typeof EdgeRuntime !== "undefined";
 
 export const PROMPT_PASTE_MAX_LENGTH = 1000;
 
-export const IS_VERCEL_ENV = process.env.VERCEL === "1";
-export const IS_DOCKER_ENV = process.env.DOCKER_BUILD === "1";
+export const IS_VERCEL_ENV = false;
 
-export const IS_MCP_SERVER_REMOTE_ONLY = IS_VERCEL_ENV;
-export const FILE_BASED_MCP_CONFIG =
-  process.env.FILE_BASED_MCP_CONFIG === "true";
+export const IS_MCP_SERVER_REMOTE_ONLY = true;
 
 export const COOKIE_KEY_SIDEBAR_STATE = "sidebar:state";
 export const COOKIE_KEY_LOCALE = "i18n:locale";
 
 export const BASE_URL = (() => {
   if (process.env.BETTER_AUTH_URL) return process.env.BETTER_AUTH_URL;
-
-  if (IS_VERCEL_ENV) {
-    const vercelDomain =
-      (process.env.VERCEL_ENV == "production"
-        ? process.env.VERCEL_PROJECT_PRODUCTION_URL
-        : process.env.VERCEL_URL) || process.env.VERCEL_URL;
-
-    if (vercelDomain) return `https://${vercelDomain}`;
-  }
-
+  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL;
   return `http://localhost:${process.env.PORT || 3000}`;
 })().replace(/\/+$/, "");
 

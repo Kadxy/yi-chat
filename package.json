@@ -12,12 +12,6 @@
     "build": "next build",
     "start": "next start",
     "build:local": "cross-env NO_HTTPS='1' next build",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:seed": "dotenv -- tsx scripts/seed-test-users.ts",
-    "test:e2e:clean": "dotenv -- tsx scripts/cleanup-all-test-data.ts",
     "lint": "biome lint",
     "lint:fix": "biome lint --write --unsafe",
     "format": "biome format --write",
@@ -42,8 +36,7 @@
     "docker:redis": "docker run --name yi-chat-redis -p 6379:6379 -d redis:7-alpine",
     "docker:app": "docker build -f docker/Dockerfile -t yi-chat . && docker run -p 3000:3000 -e NO_HTTPS=1 yi-chat",
     "prepare": "husky",
-    "playwright:install": "playwright install",
-    "check": "pnpm lint:fix && pnpm check-types && pnpm test"
+    "check": "pnpm lint:fix && pnpm check-types"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.56",
@@ -73,12 +66,10 @@
     "@tiptap/react": "^2.27.1",
     "@tiptap/starter-kit": "^2.27.1",
     "@tiptap/suggestion": "^2.27.1",
-    "@vercel/blob": "^2.0.0",
     "@xyflow/react": "^12.10.0",
     "ai": "^5.0.116",
     "bcrypt-ts": "^7.1.0",
     "better-auth": "^1.4.9",
-    "chokidar": "^4.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -90,7 +81,6 @@
     "emoji-picker-react": "^4.16.1",
     "framer-motion": "^12.23.26",
     "hast-util-to-jsx-runtime": "^2.3.6",
-    "ioredis": "^5.8.2",
     "json-schema": "^0.4.0",
     "katex": "^0.16.27",
     "lucide-react": "^0.486.0",
@@ -122,9 +112,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
-    "@better-auth-kit/seed": "^1.0.12",
     "@biomejs/biome": "1.9.4",
-    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/json-schema": "^7.0.15",
     "@types/node": "^20.19.27",
@@ -141,9 +129,7 @@
     "rimraf": "^6.1.2",
     "tailwindcss": "^4.1.18",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4"
+    "typescript": "^5.9.3"
   },
   "lint-staged": {
     "*.{js,json,mjs,ts,yaml,tsx,css}": ["pnpm format", "pnpm lint:fix"]

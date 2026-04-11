@@ -57,10 +57,6 @@ export async function selectMcpClientAction(id: string) {
 export async function saveMcpClientAction(
   server: typeof McpServerTable.$inferInsert,
 ) {
-  if (process.env.NOT_ALLOW_ADD_MCP_SERVERS) {
-    throw new Error("Not allowed to add MCP servers");
-  }
-
   // Get current user
   const currentUser = await getCurrentUser();
   if (!currentUser) {

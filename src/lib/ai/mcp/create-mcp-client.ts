@@ -24,7 +24,7 @@ import {
 } from "lib/utils";
 
 import { safe } from "ts-safe";
-import { BASE_URL, IS_MCP_SERVER_REMOTE_ONLY, IS_VERCEL_ENV } from "lib/const";
+import { BASE_URL, IS_MCP_SERVER_REMOTE_ONLY } from "lib/const";
 import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
 import { PgOAuthClientProvider } from "./pg-oauth-provider";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
@@ -36,7 +36,7 @@ type ClientOptions = {
   onConnectionStatusChange?: (status: "connected" | "error") => void;
 };
 
-const CONNET_TIMEOUT = IS_VERCEL_ENV ? 30000 : 120000;
+const CONNET_TIMEOUT = 120000;
 const MCP_MAX_TOTAL_TIMEOUT = process.env.MCP_MAX_TOTAL_TIMEOUT
   ? parseInt(process.env.MCP_MAX_TOTAL_TIMEOUT, 10)
   : undefined;

@@ -37,53 +37,43 @@ const buildKey = (filename: string) => {
 };
 
 const buildPublicUrl = (
-  bucket: string,
-  region: string,
   key: string,
   publicBaseUrl?: string,
   endpoint?: string,
-  forcePathStyle?: boolean,
+  bucket?: string,
 ) => {
   if (publicBaseUrl) {
     return `${publicBaseUrl.replace(/\/$/, "")}/${encodeURI(key)}`;
   }
-
-  // If custom endpoint provided (e.g., MinIO), fall back to constructing from it
-  if (endpoint) {
-    const base = endpoint.replace(/\/$/, "");
-    if (forcePathStyle) return `${base}/${bucket}/${encodeURI(key)}`;
-    try {
-      const u = new URL(base);
-      return `${u.protocol}//${bucket}.${u.host}/${encodeURI(key)}`;
-    } catch {
-      return `${base}/${bucket}/${encodeURI(key)}`;
-    }
+  // Fallback: construct from endpoint
+  if (endpoint && bucket) {
+    return `${endpoint.replace(/\/$/, "")}/${bucket}/${encodeURI(key)}`;
   }
-
-  // AWS standard virtual-hosted–style URL
-  return `https://${bucket}.s3.${region}.amazonaws.com/${encodeURI(key)}`;
+  return `/${encodeURI(key)}`;
 };
 
 export const createS3FileStorage = (): FileStorage => {
-  const bucket = required(
-    "FILE_STORAGE_S3_BUCKET",
-    process.env.FILE_STORAGE_S3_BUCKET,
+  const bucket = required("R2_BUCKET_NAME", process.env.R2_BUCKET_NAME);
+  const accountId = required("R2_ACCOUNT_ID", process.env.R2_ACCOUNT_ID);
+  const accessKeyId = required(
+    "R2_ACCESS_KEY_ID",
+    process.env.R2_ACCESS_KEY_ID,
   );
-  const region = process.env.FILE_STORAGE_S3_REGION || process.env.AWS_REGION;
-  if (!region)
-    throw new Error(
-      "Missing required env: FILE_STORAGE_S3_REGION or AWS_REGION",
-    );
-  const endpoint = process.env.FILE_STORAGE_S3_ENDPOINT;
-  const forcePathStyle = /^1|true$/i.test(
-    process.env.FILE_STORAGE_S3_FORCE_PATH_STYLE || "",
+  const secretAccessKey = required(
+    "R2_SECRET_ACCESS_KEY",
+    process.env.R2_SECRET_ACCESS_KEY,
   );
-  const publicBaseUrl = process.env.FILE_STORAGE_S3_PUBLIC_BASE_URL;
+  const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
+  const publicBaseUrl = process.env.R2_PUBLIC_URL;
+  const region = "auto";
 
   const s3 = new S3Client({
     region,
     endpoint,
-    forcePathStyle,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
   });
 
   return {
@@ -110,14 +100,7 @@ export const createS3FileStorage = (): FileStorage => {
         uploadedAt: new Date(),
       };
 
-      const sourceUrl = buildPublicUrl(
-        bucket,
-        region,
-        key,
-        publicBaseUrl,
-        endpoint,
-        forcePathStyle,
-      );
+      const sourceUrl = buildPublicUrl(key, publicBaseUrl, endpoint, bucket);
 
       return { key, sourceUrl, metadata };
     },
@@ -203,14 +186,7 @@ export const createS3FileStorage = (): FileStorage => {
     },
 
     async getSourceUrl(key) {
-      return buildPublicUrl(
-        bucket,
-        region,
-        key,
-        publicBaseUrl,
-        endpoint,
-        forcePathStyle,
-      );
+      return buildPublicUrl(key, publicBaseUrl, endpoint, bucket);
     },
 
     async getDownloadUrl(key) {

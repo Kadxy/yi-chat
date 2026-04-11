@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "auth/server";
-import { serverFileStorage, storageDriver } from "lib/file-storage";
+import { serverFileStorage } from "lib/file-storage";
 import { checkStorageAction } from "../actions";
 
 export async function POST(request: Request) {
@@ -17,7 +17,6 @@ export async function POST(request: Request) {
       {
         error: storageCheck.error,
         solution: storageCheck.solution,
-        storageDriver,
       },
       { status: 500 },
     );

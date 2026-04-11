@@ -1,14 +1,13 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { upload as uploadToVercelBlob } from "@vercel/blob/client";
 import useSWR from "swr";
 import { toast } from "sonner";
 import { getStorageInfoAction } from "@/app/api/storage/actions";
 
 // Types
 interface StorageInfo {
-  type: "local" | "vercel-blob" | "s3";
+  type: "local" | "s3";
   supportsDirectUpload: boolean;
 }
 
@@ -47,9 +46,8 @@ function useStorageInfo() {
  * Hook for uploading files to storage.
  *
  * Automatically uses the optimal upload method based on storage backend:
- * - Vercel Blob: Direct upload from browser (fast)
- * - S3: Presigned URL (future)
- * - Local FS: Server upload (fallback)
+ * - S3: Presigned URL (direct upload)
+ * - Fallback: Server upload
  *
  * @example
  * ```tsx
@@ -95,23 +93,7 @@ export function useFileUpload() {
 
       setIsUploading(true);
       try {
-        // Vercel Blob direct upload
-        if (storageType === "vercel-blob") {
-          const blob = await uploadToVercelBlob(filename, file, {
-            access: "public",
-            handleUploadUrl: "/api/storage/upload-url",
-            contentType,
-          });
-
-          return {
-            pathname: blob.pathname,
-            url: blob.url,
-            contentType: blob.contentType,
-            size: file.size,
-          };
-        }
-
-        // S3 or other direct upload (future)
+        // S3 direct upload via presigned URL
         if (supportsDirectUpload && storageType === "s3") {
           // Request presigned URL
           const uploadUrlResponse = await fetch("/api/storage/upload-url", {
@@ -158,7 +140,7 @@ export function useFileUpload() {
           };
         }
 
-        // Fallback: Server upload (Local FS)
+        // Fallback: Server upload
         const formData = new FormData();
         formData.append("file", file);
 
