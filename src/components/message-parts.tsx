@@ -13,7 +13,6 @@ import {
   Trash2,
   ChevronRight,
   TriangleAlert,
-  HammerIcon,
   EllipsisIcon,
   FileIcon,
   Download,
@@ -23,7 +22,6 @@ import { Button } from "ui/button";
 import { Badge } from "ui/badge";
 import { Markdown } from "./markdown";
 import { cn, safeJSONParse, truncateString } from "lib/utils";
-import JsonView from "ui/json-view";
 import { useMemo, useState, memo, useEffect, useRef, useCallback } from "react";
 import { MessageEditor } from "./message-editor";
 import type { UseChatHelpers } from "@ai-sdk/react";
@@ -47,6 +45,7 @@ import { Separator } from "ui/separator";
 import { TextShimmer } from "ui/text-shimmer";
 import equal from "lib/equal";
 import { DefaultToolName } from "lib/ai/tools";
+import { DefaultToolIcon } from "./default-tool-icon";
 import {
   Shortcut,
   getShortcutKeyList,
@@ -725,8 +724,6 @@ export const ToolMessagePart = memo(
     }, [state]);
 
     const [expanded, setExpanded] = useState(false);
-    const { copied: copiedInput, copy: copyInput } = useCopy();
-    const { copied: copiedOutput, copy: copyOutput } = useCopy();
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Handle keyboard shortcuts for approve/reject actions
@@ -883,6 +880,23 @@ export const ToolMessagePart = memo(
     }, [toolName, state, onToolCallDirect, result, input]);
 
     const { serverName: mcpServerName, toolName: mcpToolName } = useMemo(() => {
+      const defaultToolLabels: Partial<Record<DefaultToolName, string>> = {
+        [DefaultToolName.ReadUserFile]: "Read File",
+        [DefaultToolName.CreateUserFile]: "Create File",
+        [DefaultToolName.WebSearch]: "Web Search",
+        [DefaultToolName.WebContent]: "Web Content",
+        [DefaultToolName.Http]: "HTTP Request",
+        [DefaultToolName.JavascriptExecution]: "JavaScript",
+        [DefaultToolName.PythonExecution]: "Python",
+        [DefaultToolName.CreatePieChart]: "Pie Chart",
+        [DefaultToolName.CreateBarChart]: "Bar Chart",
+        [DefaultToolName.CreateLineChart]: "Line Chart",
+        [DefaultToolName.CreateTable]: "Table",
+      };
+      const friendly = defaultToolLabels[toolName as DefaultToolName];
+      if (friendly) {
+        return { serverName: friendly, toolName: "" };
+      }
       return extractMCPToolId(toolName);
     }, [toolName]);
 
@@ -894,26 +908,50 @@ export const ToolMessagePart = memo(
       return !isCompleted && isLast;
     }, [isCompleted, isLast]);
 
+    const toolSummary = useMemo(() => {
+      const inp = input as Record<string, any> | undefined;
+      if (!inp) return "";
+      // Extract a readable hint — prefer filename, extract from URL if needed
+      if (inp.filename) {
+        return inp.filename;
+      }
+      if (inp.url && typeof inp.url === "string") {
+        // R2 URL pattern: .../uploads/{uuid}-{filename}
+        const match = inp.url.match(
+          /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-(.+?)(?:\?|$)/,
+        );
+        if (match) {
+          return decodeURIComponent(match[1]);
+        }
+      }
+      const hint = inp.query || inp.code || inp.method;
+      if (typeof hint === "string") {
+        return hint.length > 60 ? hint.slice(0, 60) + "…" : hint;
+      }
+      return "";
+    }, [input]);
+
     return (
       <div className="group w-full">
         {CustomToolComponent ? (
           CustomToolComponent
         ) : (
-          <div className="flex flex-col fade-in duration-300 animate-in">
+          <div className="flex flex-col fade-in duration-300 animate-in text-sm">
             <div
-              className="flex gap-2 items-center cursor-pointer group/title"
+              className="flex gap-2 items-center cursor-pointer select-none group/title py-0.5"
               onClick={() => setExpanded(!expanded)}
             >
-              <div className="p-1.5 text-primary bg-input/40 rounded">
-                {isExecuting ? (
-                  <Loader className="size-3.5 animate-spin" />
-                ) : isError ? (
-                  <TriangleAlert className="size-3.5 text-destructive" />
-                ) : (
-                  <HammerIcon className="size-3.5" />
-                )}
-              </div>
-              <span className="font-bold flex items-center gap-2">
+              {isExecuting ? (
+                <Loader className="size-4 animate-spin text-muted-foreground shrink-0" />
+              ) : isError ? (
+                <TriangleAlert className="size-4 text-destructive shrink-0" />
+              ) : (
+                <DefaultToolIcon
+                  name={toolName as DefaultToolName}
+                  className="size-4 shrink-0"
+                />
+              )}
+              <span className="font-semibold text-sm">
                 {isExecuting ? (
                   <TextShimmer>{mcpServerName}</TextShimmer>
                 ) : (
@@ -922,151 +960,96 @@ export const ToolMessagePart = memo(
               </span>
               {mcpToolName && (
                 <>
-                  <ChevronRight className="size-3.5" />
-                  <span className="text-muted-foreground group-hover/title:text-primary transition-colors duration-300">
+                  <ChevronRight className="size-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
                     {mcpToolName}
                   </span>
                 </>
               )}
-              <div className="ml-auto group-hover/title:bg-input p-1.5 rounded transition-colors duration-300">
-                <ChevronDownIcon
-                  className={cn(isExpanded && "rotate-180", "size-3.5")}
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 py-2">
-              <div className="w-7 flex justify-center">
-                <Separator
-                  orientation="vertical"
-                  className="h-full bg-gradient-to-t from-transparent to-border to-5%"
-                />
-              </div>
-              <div className="w-full flex flex-col gap-2">
-                <div
-                  className={cn(
-                    "min-w-0 w-full p-4 rounded-lg bg-card px-4 border text-xs transition-colors fade-300",
-                    !isExpanded && "hover:bg-secondary cursor-pointer",
-                  )}
-                  onClick={() => {
-                    if (!isExpanded) {
-                      setExpanded(true);
-                    }
-                  }}
-                >
-                  <div className="flex items-center">
-                    <h5 className="text-muted-foreground font-medium select-none transition-colors">
-                      Request
-                    </h5>
-                    <div className="flex-1" />
-                    {copiedInput ? (
-                      <Check className="size-3" />
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-3 text-muted-foreground"
-                        onClick={() => copyInput(JSON.stringify(input))}
-                      >
-                        <Copy className="size-3" />
-                      </Button>
-                    )}
-                  </div>
-                  {isExpanded && (
-                    <div className="p-2 max-h-[300px] overflow-y-auto ">
-                      <JsonView data={input} />
-                    </div>
-                  )}
-                </div>
-                {!result ? null : (
-                  <div
-                    className={cn(
-                      "min-w-0 w-full p-4 rounded-lg bg-card px-4 border text-xs mt-2 transition-colors fade-300",
-                      !isExpanded && "hover:bg-secondary cursor-pointer",
-                    )}
-                    onClick={() => {
-                      if (!isExpanded) {
-                        setExpanded(true);
-                      }
-                    }}
-                  >
-                    <div className="flex items-center">
-                      <h5 className="text-muted-foreground font-medium select-none">
-                        Response
-                      </h5>
-                      <div className="flex-1" />
-                      {copiedOutput ? (
-                        <Check className="size-3" />
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-3 text-muted-foreground"
-                          onClick={() => copyOutput(JSON.stringify(result))}
-                        >
-                          <Copy className="size-3" />
-                        </Button>
-                      )}
-                    </div>
-                    {isExpanded && (
-                      <div className="p-2 max-h-[300px] overflow-y-auto">
-                        <JsonView data={result} />
-                      </div>
-                    )}
-                  </div>
+              {!isExpanded && toolSummary && (
+                <span className="text-xs text-muted-foreground truncate max-w-md">
+                  {toolSummary}
+                </span>
+              )}
+              <ChevronDownIcon
+                className={cn(
+                  "size-3 text-muted-foreground ml-auto shrink-0 transition-transform",
+                  isExpanded && "rotate-180",
                 )}
+              />
+            </div>
 
-                {isManualToolInvocation && (
-                  <div className="flex flex-row gap-2 items-center mt-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="rounded-full text-xs hover:ring py-2"
-                      onClick={() =>
-                        addToolResult?.({
-                          tool: toolName,
-                          toolCallId,
-                          output: ManualToolConfirmTag.create({
-                            confirm: true,
-                          }),
-                        })
-                      }
-                    >
-                      <Check />
-                      {t("Common.approve")}
-                      <Separator orientation="vertical" className="h-4" />
-                      <span className="text-muted-foreground">
-                        {getShortcutKeyList(approveToolInvocationShortcut).join(
-                          " ",
-                        )}
-                      </span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="rounded-full text-xs py-2"
-                      onClick={() =>
-                        addToolResult?.({
-                          tool: toolName,
-                          toolCallId,
-                          output: ManualToolConfirmTag.create({
-                            confirm: false,
-                          }),
-                        })
-                      }
-                    >
-                      <X />
-                      {t("Common.reject")}
-                      <Separator orientation="vertical" />
-                      <span className="text-muted-foreground">
-                        {getShortcutKeyList(rejectToolInvocationShortcut).join(
-                          " ",
-                        )}
-                      </span>
-                    </Button>
+            {isExpanded && (
+              <div className="ml-5 mt-1.5 flex flex-col gap-2 text-xs">
+                <div>
+                  <span className="text-muted-foreground select-none font-medium">
+                    Input
+                  </span>
+                  <pre className="mt-1 max-h-[200px] overflow-y-auto no-scrollbar rounded-md bg-secondary/50 px-3 py-2.5 font-mono text-[11px] leading-relaxed whitespace-pre-wrap break-all">
+                    {JSON.stringify(input, null, 2)}
+                  </pre>
+                </div>
+                {!!result && (
+                  <div>
+                    <span className="text-muted-foreground select-none font-medium">
+                      Output
+                    </span>
+                    <pre className="mt-1 max-h-[200px] overflow-y-auto no-scrollbar rounded-md bg-secondary/50 px-3 py-2.5 font-mono text-[11px] leading-relaxed whitespace-pre-wrap break-all">
+                      {JSON.stringify(result, null, 2)}
+                    </pre>
                   </div>
                 )}
               </div>
-            </div>
+            )}
+
+            {isManualToolInvocation && (
+              <div className="flex flex-row gap-2 items-center mt-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="rounded-full text-xs hover:ring py-2"
+                  onClick={() =>
+                    addToolResult?.({
+                      tool: toolName,
+                      toolCallId,
+                      output: ManualToolConfirmTag.create({
+                        confirm: true,
+                      }),
+                    })
+                  }
+                >
+                  <Check />
+                  {t("Common.approve")}
+                  <Separator orientation="vertical" className="h-4" />
+                  <span className="text-muted-foreground">
+                    {getShortcutKeyList(approveToolInvocationShortcut).join(
+                      " ",
+                    )}
+                  </span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full text-xs py-2"
+                  onClick={() =>
+                    addToolResult?.({
+                      tool: toolName,
+                      toolCallId,
+                      output: ManualToolConfirmTag.create({
+                        confirm: false,
+                      }),
+                    })
+                  }
+                >
+                  <X />
+                  {t("Common.reject")}
+                  <Separator orientation="vertical" />
+                  <span className="text-muted-foreground">
+                    {getShortcutKeyList(rejectToolInvocationShortcut).join(" ")}
+                  </span>
+                </Button>
+              </div>
+            )}
 
             {showActions && (
               <div className="flex flex-row gap-2 items-center">

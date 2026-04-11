@@ -294,6 +294,10 @@ export function ChatMentionInputSuggestion({
           label = "read-file";
           description = "Read uploaded file content";
           break;
+        case DefaultToolName.CreateUserFile:
+          label = "create-file";
+          description = "Create a downloadable file";
+          break;
       }
       return {
         id: toolName,

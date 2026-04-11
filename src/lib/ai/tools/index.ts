@@ -17,6 +17,7 @@ export enum DefaultToolName {
   JavascriptExecution = "mini-javascript-execution",
   PythonExecution = "python-execution",
   ReadUserFile = "read-user-file",
+  CreateUserFile = "create-user-file",
 }
 
 export const SequentialThinkingToolName = "sequential-thinking";

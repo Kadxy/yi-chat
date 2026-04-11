@@ -11,6 +11,7 @@ import {
   HammerIcon,
   TableOfContents,
   FileTextIcon,
+  FilePenIcon,
 } from "lucide-react";
 import { useMemo } from "react";
 
@@ -60,7 +61,16 @@ export function DefaultToolIcon({
     }
     if (name === DefaultToolName.ReadUserFile) {
       return (
-        <FileTextIcon className={cn("size-3.5 text-green-500", className)} />
+        <FileTextIcon
+          className={cn("size-3.5 text-muted-foreground", className)}
+        />
+      );
+    }
+    if (name === DefaultToolName.CreateUserFile) {
+      return (
+        <FilePenIcon
+          className={cn("size-3.5 text-muted-foreground", className)}
+        />
       );
     }
     return <HammerIcon className={cn("size-3.5", className)} />;

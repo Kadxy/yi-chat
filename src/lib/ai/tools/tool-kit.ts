@@ -9,6 +9,7 @@ import { httpFetchTool } from "./http/fetch";
 import { jsExecutionTool } from "./code/js-run-tool";
 import { pythonExecutionTool } from "./code/python-run-tool";
 import { readUserFileTool } from "./file/read-user-file";
+import { createUserFileTool } from "./file/create-user-file";
 
 export const APP_DEFAULT_TOOL_KIT: Record<
   AppDefaultToolkit,
@@ -33,5 +34,6 @@ export const APP_DEFAULT_TOOL_KIT: Record<
   },
   [AppDefaultToolkit.File]: {
     [DefaultToolName.ReadUserFile]: readUserFileTool,
+    [DefaultToolName.CreateUserFile]: createUserFileTool,
   },
 };
