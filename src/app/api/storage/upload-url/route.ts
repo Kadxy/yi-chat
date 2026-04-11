@@ -3,7 +3,6 @@ import { getSession } from "auth/server";
 import { serverFileStorage } from "lib/file-storage";
 import globalLogger from "lib/logger";
 import { colorize } from "consola/utils";
-import { checkStorageAction } from "../actions";
 import { DEFAULT_FILE_PART_MIME_TYPES } from "lib/ai/file-support";
 
 const logger = globalLogger.withDefaults({
@@ -27,18 +26,6 @@ export async function POST(request: Request) {
   const session = await getSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const storageCheck = await checkStorageAction();
-  if (!storageCheck.isValid) {
-    logger.error("Storage configuration error", {
-      error: storageCheck.error,
-      solution: storageCheck.solution,
-    });
-    return NextResponse.json(
-      { error: storageCheck.error, solution: storageCheck.solution },
-      { status: 500 },
-    );
   }
 
   let body: UploadUrlRequest;

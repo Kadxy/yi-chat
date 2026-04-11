@@ -24,9 +24,8 @@ export function SWRConfigProvider({
 
   useEffect(() => {
     console.log(
-      "%c██╗   ██╗██╗    ██████╗██╗  ██╗ █████╗ ████████╗\n╚██╗ ██╔╝██║   ██╔════╝██║  ██║██╔══██╗╚══██╔══╝\n ╚████╔╝ ██║   ██║     ███████║███████║   ██║   \n  ╚██╔╝  ██║   ██║     ██╔══██║██╔══██║   ██║   \n   ██║   ██║██╗╚██████╗██║  ██║██║  ██║   ██║   \n   ╚═╝   ╚═╝╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   \n\n%c⛓️ yi.chat\nhttps://github.com/Kadxy/yi-chat",
-      "color: #00d4ff; font-weight: bold; font-family: monospace; font-size: 16px; text-shadow: 0 0 10px #00d4ff;",
-      "color: #888; font-size: 12px;",
+      "%c⚡ Yi Chat",
+      "color: #00d4ff; font-size: 20px; font-weight: bold;",
     );
   }, []);
   return <SWRConfig value={config}>{children}</SWRConfig>;
