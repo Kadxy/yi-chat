@@ -31,17 +31,6 @@ const VISIBILITY_ICONS = {
 } as const;
 
 const VISIBILITY_CONFIG = {
-  agent: {
-    private: {
-      label: "Agent.private",
-      description: "Agent.privateDescription",
-    },
-    readonly: {
-      label: "Agent.readOnly",
-      description: "Agent.readOnlyDescription",
-    },
-    public: { label: "Agent.public", description: "Agent.publicDescription" },
-  },
   mcp: {
     private: {
       label: "MCP.private",
@@ -55,7 +44,7 @@ const VISIBILITY_CONFIG = {
 } as const;
 
 interface ShareableActionsProps {
-  type: "agent" | "mcp";
+  type: "mcp";
   visibility?: Visibility;
   isOwner: boolean;
   canChangeVisibility?: boolean;
@@ -207,7 +196,7 @@ export function ShareableActions({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {t(isBookmarked ? "Agent.removeBookmark" : "Agent.addBookmark")}
+            {isBookmarked ? "Remove bookmark" : "Add bookmark"}
           </TooltipContent>
         </Tooltip>
       )}

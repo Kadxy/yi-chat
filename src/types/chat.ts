@@ -9,7 +9,6 @@ export type ChatMetadata = {
   chatModel?: ChatModel;
   toolChoice?: "auto" | "none" | "manual";
   toolCount?: number;
-  agentId?: string;
 };
 
 export type ChatModel = {
@@ -62,19 +61,6 @@ export const ChatMentionSchema = z.discriminatedUnion("type", [
     description: z.string().optional(),
     toolCount: z.number().optional(),
     serverId: z.string(),
-  }),
-  z.object({
-    type: z.literal("agent"),
-    name: z.string(),
-    description: z.string().nullish(),
-    agentId: z.string(),
-    icon: z
-      .object({
-        type: z.literal("emoji"),
-        value: z.string(),
-        style: z.record(z.string(), z.string()).optional(),
-      })
-      .nullish(),
   }),
 ]);
 

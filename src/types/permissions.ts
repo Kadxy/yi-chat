@@ -1,5 +1,4 @@
 export const RESOURCES = {
-  AGENT: "agent",
   MCP: "mcp",
   CHAT: "chat",
   TEMPORARY_CHAT: "temporaryChat",

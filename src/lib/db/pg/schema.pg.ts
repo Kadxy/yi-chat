@@ -1,4 +1,3 @@
-import { Agent } from "app-types/agent";
 import { UserPreferences } from "app-types/user";
 import { MCPServerConfig, MCPToolInfo } from "app-types/mcp";
 import { sql } from "drizzle-orm";
@@ -37,46 +36,6 @@ export const ChatMessageTable = pgTable("chat_message", {
   metadata: json("metadata").$type<ChatMetadata>(),
   createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
-
-export const AgentTable = pgTable("agent", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  name: text("name").notNull(),
-  description: text("description"),
-  icon: json("icon").$type<Agent["icon"]>(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => UserTable.id, { onDelete: "cascade" }),
-  instructions: json("instructions").$type<Agent["instructions"]>(),
-  visibility: varchar("visibility", {
-    enum: ["public", "private", "readonly"],
-  })
-    .notNull()
-    .default("private"),
-  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-});
-
-export const BookmarkTable = pgTable(
-  "bookmark",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => UserTable.id, { onDelete: "cascade" }),
-    itemId: uuid("item_id").notNull(),
-    itemType: varchar("item_type", {
-      enum: ["agent", "workflow", "mcp"],
-    }).notNull(),
-    createdAt: timestamp("created_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-  },
-  (table) => [
-    unique().on(table.userId, table.itemId, table.itemType),
-    index("bookmark_user_id_idx").on(table.userId),
-    index("bookmark_item_idx").on(table.itemId, table.itemType),
-  ],
-);
 
 export const McpServerTable = pgTable("mcp_server", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -327,7 +286,6 @@ export type McpServerEntity = typeof McpServerTable.$inferSelect;
 export type ChatThreadEntity = typeof ChatThreadTable.$inferSelect;
 export type ChatMessageEntity = typeof ChatMessageTable.$inferSelect;
 
-export type AgentEntity = typeof AgentTable.$inferSelect;
 export type UserEntity = typeof UserTable.$inferSelect;
 export type SessionEntity = typeof SessionTable.$inferSelect;
 
@@ -375,4 +333,3 @@ export const ChatExportCommentTable = pgTable("chat_export_comment", {
 
 export type ArchiveEntity = typeof ArchiveTable.$inferSelect;
 export type ArchiveItemEntity = typeof ArchiveItemTable.$inferSelect;
-export type BookmarkEntity = typeof BookmarkTable.$inferSelect;

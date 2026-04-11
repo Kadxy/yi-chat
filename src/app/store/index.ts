@@ -3,7 +3,6 @@ import { persist } from "zustand/middleware";
 import { ChatMention, ChatModel, ChatThread } from "app-types/chat";
 import { AllowedMCPServer, MCPServerInfo } from "app-types/mcp";
 import { AppDefaultToolkit } from "lib/ai/tools";
-import { AgentSummary } from "app-types/agent";
 import { ArchiveWithItemCount } from "app-types/archive";
 
 export interface UploadedFile {
@@ -22,7 +21,6 @@ export interface UploadedFile {
 export interface AppState {
   threadList: ChatThread[];
   mcpList: (MCPServerInfo & { id: string })[];
-  agentList: AgentSummary[];
   currentThreadId: ChatThread["id"] | null;
   toolChoice: "auto" | "none" | "manual";
   allowedMcpServers?: Record<string, AllowedMCPServer>;
@@ -64,7 +62,6 @@ const initialState: AppState = {
   threadMentions: {},
   threadFiles: {},
   mcpList: [],
-  agentList: [],
   currentThreadId: null,
   toolChoice: "auto",
   allowedMcpServers: undefined,

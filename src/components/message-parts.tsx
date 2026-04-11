@@ -46,7 +46,6 @@ import { Separator } from "ui/separator";
 
 import { TextShimmer } from "ui/text-shimmer";
 import equal from "lib/equal";
-import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { DefaultToolName } from "lib/ai/tools";
 import {
   Shortcut,
@@ -57,8 +56,6 @@ import {
 import dynamic from "next/dynamic";
 import { notify } from "lib/notify";
 import { ModelProviderIcon } from "ui/model-provider-icon";
-import { appStore } from "@/app/store";
-import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
 
 type MessagePart = UIMessage["parts"][number];
 type TextMessagePart = Extract<MessagePart, { type: "text" }>;
@@ -293,14 +290,9 @@ export const AssistMessagePart = memo(function AssistMessagePart({
 }: AssistMessagePartProps) {
   const { copied, copy } = useCopy();
   const [isLoading, setIsLoading] = useState(false);
-  const agentList = appStore((state) => state.agentList);
   const [isDeleting, setIsDeleting] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const metadata = message.metadata as ChatMetadata | undefined;
-
-  const agent = useMemo(() => {
-    return agentList.find((a) => a.id === metadata?.agentId);
-  }, [metadata, agentList]);
 
   const deleteMessage = useCallback(async () => {
     if (!setMessages) return;
@@ -440,39 +432,6 @@ export const AssistMessagePart = memo(function AssistMessagePart({
               </TooltipTrigger>
               <TooltipContent className="p-4 w-72 bg-card border shadow-lg">
                 <div className="space-y-4">
-                  {agent && (
-                    <>
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-semibold text-foreground">
-                          Agent
-                        </h4>
-                        <div className="flex gap-3 items-center">
-                          <div
-                            className="p-1.5 rounded-full ring-2 ring-border/50 bg-background shadow-sm"
-                            style={{
-                              backgroundColor:
-                                agent.icon?.style?.backgroundColor ||
-                                BACKGROUND_COLORS[0],
-                            }}
-                          >
-                            <Avatar className="size-3">
-                              <AvatarImage
-                                src={agent.icon?.value || EMOJI_DATA[0]}
-                              />
-                              <AvatarFallback className="bg-transparent text-xs">
-                                {agent.name[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                          </div>
-                          <span className="font-medium text-sm">
-                            {agent.name}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="border-t border-border/50" />
-                    </>
-                  )}
-
                   {metadata.chatModel && (
                     <>
                       <div className="space-y-2">

@@ -4,7 +4,6 @@ import { UserPreferences } from "app-types/user";
 import { User } from "better-auth";
 import { createMCPToolId } from "./mcp/mcp-tool-id";
 import { format } from "date-fns";
-import { Agent } from "app-types/agent";
 
 export const CREATE_THREAD_TITLE_PROMPT = `
 You are a chat title generation expert.
@@ -16,62 +15,16 @@ Critical rules:
 - Do not use quotes, colons, or special characters
 - Use the same language as the user's message`;
 
-export const buildAgentGenerationPrompt = (toolNames: string[]) => {
-  const toolsList = toolNames.map((name) => `- ${name}`).join("\n");
-
-  return `
-You are an elite AI agent architect. Your mission is to translate user requirements into robust, high-performance agent configurations. Follow these steps for every request:
-
-1. Extract Core Intent: Carefully analyze the user's input to identify the fundamental purpose, key responsibilities, and success criteria for the agent. Consider both explicit and implicit needs.
-
-2. Design Expert Persona: Define a compelling expert identity for the agent, ensuring deep domain knowledge and a confident, authoritative approach to decision-making.
-
-3. Architect Comprehensive Instructions: Write a system prompt that:
-- Clearly defines the agent's behavioral boundaries and operational parameters
-- Specifies methodologies, best practices, and quality control steps for the task
-- Anticipates edge cases and provides guidance for handling them
-- Incorporates any user-specified requirements or preferences
-- Defines output format expectations when relevant
-
-4. Strategic Tool Selection: Select only tools crucially necessary for achieving the agent's mission effectively from available tools:
-${toolsList}
-
-5. Optimize for Performance: Include decision-making frameworks, self-verification steps, efficient workflow patterns, and clear escalation or fallback strategies.
-
-6. Output Generation: Return a structured object with these fields:
-- name: Concise, descriptive name reflecting the agent's primary function
-- description: 1-2 sentences capturing the unique value and primary benefit to users  
-- role: Precise domain-specific expertise area
-- instructions: The comprehensive system prompt from steps 2-5
-- tools: Array of selected tool names from step 4
-
-CRITICAL: Generate all output content in the same language as the user's request. Be specific and comprehensive. Proactively seek clarification if requirements are ambiguous. Your output should enable the new agent to operate autonomously and reliably within its domain.`.trim();
-};
-
 export const buildUserSystemPrompt = (
   user?: User,
   userPreferences?: UserPreferences,
-  agent?: Agent,
 ) => {
-  const assistantName = agent?.name || userPreferences?.botName || "yi.chat";
+  const assistantName = userPreferences?.botName || "yi.chat";
   const currentTime = format(new Date(), "EEEE, MMMM d, yyyy 'at' h:mm:ss a");
 
   let prompt = `You are ${assistantName}`;
 
-  if (agent?.instructions?.role) {
-    prompt += `. You are an expert in ${agent.instructions.role}`;
-  }
-
   prompt += `. The current date and time is ${currentTime}.`;
-
-  // Agent-specific instructions as primary core
-  if (agent?.instructions?.systemPrompt) {
-    prompt += `
-  # Core Instructions
-  <core_capabilities>
-  ${agent.instructions.systemPrompt}
-  </core_capabilities>`;
-  }
 
   // User context section (first priority)
   const userInfo: string[] = [];
@@ -134,26 +87,13 @@ ${userPreferences.responseStyleExample}
 export const buildSpeechSystemPrompt = (
   user: User,
   userPreferences?: UserPreferences,
-  agent?: Agent,
 ) => {
-  const assistantName = agent?.name || userPreferences?.botName || "Assistant";
+  const assistantName = userPreferences?.botName || "Assistant";
   const currentTime = format(new Date(), "EEEE, MMMM d, yyyy 'at' h:mm:ss a");
 
   let prompt = `You are ${assistantName}`;
 
-  if (agent?.instructions?.role) {
-    prompt += `. You are an expert in ${agent.instructions.role}`;
-  }
-
   prompt += `. The current date and time is ${currentTime}.`;
-
-  // Agent-specific instructions as primary core
-  if (agent?.instructions?.systemPrompt) {
-    prompt += `# Core Instructions
-    <core_capabilities>
-    ${agent.instructions.systemPrompt}
-    </core_capabilities>`;
-  }
 
   // User context section (first priority)
   const userInfo: string[] = [];

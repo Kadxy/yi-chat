@@ -56,27 +56,6 @@ function hasPermission(
 }
 
 /**
- * Check if user can create agents (client-side)
- */
-export function canCreateAgent(userRoleString?: string | null): boolean {
-  return hasPermission(userRoleString, "create", "agent");
-}
-
-/**
- * Check if user can edit agents (client-side)
- */
-export function canEditAgent(userRoleString?: string | null): boolean {
-  return hasPermission(userRoleString, "update", "agent");
-}
-
-/**
- * Check if user can delete agents (client-side)
- */
-export function canDeleteAgent(userRoleString?: string | null): boolean {
-  return hasPermission(userRoleString, "delete", "agent");
-}
-
-/**
  * Check if user can create MCP connections (client-side)
  */
 export function canCreateMCP(userRoleString?: string | null): boolean {

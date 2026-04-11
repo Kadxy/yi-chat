@@ -16,7 +16,6 @@ import {
 import type { ChatModel, ChatThread } from "app-types/chat";
 
 import {
-  agentRepository,
   chatExportRepository,
   chatRepository,
   mcpMcpToolCustomizationRepository,
@@ -33,7 +32,6 @@ import logger from "logger";
 import { JSONSchema7 } from "json-schema";
 import { ObjectJsonSchema7 } from "app-types/util";
 import { jsonSchemaToZod } from "lib/json-schema-to-zod";
-import { Agent } from "app-types/agent";
 
 export async function getUserId() {
   const session = await getSession();
@@ -210,20 +208,6 @@ export async function generateObjectAction({
     schema: jsonSchemaToZod(schema),
   });
   return result.object;
-}
-
-export async function rememberAgentAction(
-  agent: string | undefined,
-  userId: string,
-) {
-  if (!agent) return undefined;
-  const key = CacheKeys.agentInstructions(agent);
-  let cachedAgent = await serverCache.get<Agent | null>(key);
-  if (!cachedAgent) {
-    cachedAgent = await agentRepository.selectAgentById(agent, userId);
-    await serverCache.set(key, cachedAgent);
-  }
-  return cachedAgent as Agent | undefined;
 }
 
 export async function exportChatAction({

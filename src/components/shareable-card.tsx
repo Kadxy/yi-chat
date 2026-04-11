@@ -12,7 +12,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { format } from "date-fns";
 import { cn } from "lib/utils";
 import { ShareableActions, type Visibility } from "./shareable-actions";
-import { AgentSummary } from "app-types/agent";
 import { MCPServerInfo } from "app-types/mcp";
 import { MCPIcon } from "ui/mcp-icon";
 import Link from "next/link";
@@ -24,8 +23,8 @@ export interface ShareableIcon {
   };
 }
 interface ShareableCardProps {
-  type: "agent" | "mcp";
-  item: AgentSummary | MCPServerInfo;
+  type: "mcp";
+  item: MCPServerInfo;
   isOwner?: boolean;
   href: string;
   onBookmarkToggle?: (itemId: string, isBookmarked: boolean) => void;
@@ -50,8 +49,7 @@ export function ShareableCard({
   isDeleteLoading,
   actionsDisabled,
 }: ShareableCardProps) {
-  const isBookmarked =
-    type === "mcp" ? undefined : (item as AgentSummary).isBookmarked;
+  const isBookmarked = undefined;
 
   return (
     <Link href={href} title={item.name}>
@@ -71,12 +69,7 @@ export function ShareableCard({
             >
               {type === "mcp" ? (
                 <MCPIcon className="fill-white size-6" />
-              ) : (
-                <Avatar className="size-6">
-                  <AvatarImage src={item.icon?.value} />
-                  <AvatarFallback />
-                </Avatar>
-              )}
+              ) : null}
             </div>
 
             <div className="flex flex-col justify-around min-w-0 flex-1 overflow-hidden">

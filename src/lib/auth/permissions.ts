@@ -193,51 +193,6 @@ function hasPermission(
 }
 
 /**
- * Check if user can create agents
- */
-export async function canCreateAgent(): Promise<boolean> {
-  try {
-    const session = await getSession();
-    if (!session?.user) return false;
-
-    return hasPermission(session.user.role, "create", "agent");
-  } catch (error) {
-    console.error("Error checking agent create permission:", error);
-    return false;
-  }
-}
-
-/**
- * Check if user can edit agents
- */
-export async function canEditAgent(): Promise<boolean> {
-  try {
-    const session = await getSession();
-    if (!session?.user) return false;
-
-    return hasPermission(session.user.role, "update", "agent");
-  } catch (error) {
-    console.error("Error checking agent edit permission:", error);
-    return false;
-  }
-}
-
-/**
- * Check if user can delete agents
- */
-export async function canDeleteAgent(): Promise<boolean> {
-  try {
-    const session = await getSession();
-    if (!session?.user) return false;
-
-    return hasPermission(session.user.role, "delete", "agent");
-  } catch (error) {
-    console.error("Error checking agent delete permission:", error);
-    return false;
-  }
-}
-
-/**
  * Check if user can create MCP connections
  */
 export async function canCreateMCP(): Promise<boolean> {

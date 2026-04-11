@@ -7,7 +7,6 @@ const permissions = {
   // Use Better Auth's default statements for user and session management
   ...defaultStatements,
   // Add our app-specific resources
-  agent: [...Object.values(PERMISSION_TYPES)],
   mcp: [...Object.values(PERMISSION_TYPES)],
   chat: [...Object.values(PERMISSION_TYPES)],
   temporaryChat: [...Object.values(PERMISSION_TYPES)],
@@ -22,7 +21,6 @@ export const user = ac.newRole({
   user: [],
   session: [],
   // Restricted app permissions
-  agent: ["view", "use", "list"],
   mcp: ["view", "use", "list"],
   chat: [...Object.values(PERMISSION_TYPES)],
   temporaryChat: [...Object.values(PERMISSION_TYPES)],
@@ -34,7 +32,6 @@ export const editor = ac.newRole({
   user: [],
   session: [],
   // Full app permissions
-  agent: [...Object.values(PERMISSION_TYPES)],
   mcp: ["create", "view", "update", "delete", "use", "list"],
   chat: [...Object.values(PERMISSION_TYPES)],
   temporaryChat: [...Object.values(PERMISSION_TYPES)],
@@ -46,7 +43,6 @@ export const admin = ac.newRole({
   user: [...defaultStatements.user],
   session: [...defaultStatements.session],
   // Full app permissions
-  agent: [...Object.values(PERMISSION_TYPES)],
   mcp: [...Object.values(PERMISSION_TYPES)],
   chat: [...Object.values(PERMISSION_TYPES)],
   temporaryChat: [...Object.values(PERMISSION_TYPES)],

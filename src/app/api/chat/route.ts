@@ -10,18 +10,14 @@ import {
 
 import { customModelProvider, isToolCallUnsupportedModel } from "lib/ai/models";
 
-import { agentRepository, chatRepository } from "lib/db/repository";
+import { chatRepository } from "lib/db/repository";
 import globalLogger from "logger";
 import {
   buildMcpServerCustomizationsSystemPrompt,
   buildUserSystemPrompt,
   buildToolCallUnsupportedModelSystemPrompt,
 } from "lib/ai/prompts";
-import {
-  chatApiSchemaRequestBodySchema,
-  ChatMention,
-  ChatMetadata,
-} from "app-types/chat";
+import { chatApiSchemaRequestBodySchema, ChatMetadata } from "app-types/chat";
 
 import { errorIf, safe } from "ts-safe";
 
@@ -36,10 +32,7 @@ import {
   loadAppDefaultTools,
   convertToSavePart,
 } from "./shared.chat";
-import {
-  rememberAgentAction,
-  rememberMcpServerCustomizationsAction,
-} from "./actions";
+import { rememberMcpServerCustomizationsAction } from "./actions";
 import { getSession } from "auth/server";
 import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
@@ -168,24 +161,10 @@ export async function POST(request: Request) {
 
     const supportToolCall = !isToolCallUnsupportedModel(model);
 
-    const agentId = (
-      mentions.find((m) => m.type === "agent") as Extract<
-        ChatMention,
-        { type: "agent" }
-      >
-    )?.agentId;
-
-    const agent = await rememberAgentAction(agentId, session.user.id);
-
-    if (agent?.instructions?.mentions) {
-      mentions.push(...agent.instructions.mentions);
-    }
-
     const isToolCallAllowed =
       supportToolCall && (toolChoice != "none" || mentions.length > 0);
 
     const metadata: ChatMetadata = {
-      agentId: agent?.id,
       toolChoice: toolChoice,
       toolCount: 0,
       chatModel: chatModel,
@@ -244,7 +223,7 @@ export async function POST(request: Request) {
           .orElse({});
 
         const systemPrompt = mergeSystemPrompt(
-          buildUserSystemPrompt(session.user, userPreferences, agent),
+          buildUserSystemPrompt(session.user, userPreferences),
           buildMcpServerCustomizationsSystemPrompt(mcpServerCustomizations),
           !supportToolCall && buildToolCallUnsupportedModelSystemPrompt,
         );
@@ -270,9 +249,7 @@ export async function POST(request: Request) {
           .map((t) => t.tools)
           .flat();
 
-        logger.info(
-          `${agent ? `agent: ${agent.name}, ` : ""}tool mode: ${toolChoice}, mentions: ${mentions.length}`,
-        );
+        logger.info(`tool mode: ${toolChoice}, mentions: ${mentions.length}`);
 
         logger.info(
           `allowedMcpTools: ${allowedMcpTools.length ?? 0}, allowedAppDefaultToolkit: ${allowedAppDefaultToolkit?.length ?? 0}`,
@@ -329,12 +306,6 @@ export async function POST(request: Request) {
             parts: responseMessage.parts.map(convertToSavePart),
             metadata,
           });
-        }
-
-        if (agent) {
-          agentRepository.updateAgent(agent.id, session.user.id, {
-            updatedAt: new Date(),
-          } as any);
         }
       },
       onError: handleError,
