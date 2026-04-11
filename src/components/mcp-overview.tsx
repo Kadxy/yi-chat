@@ -6,7 +6,6 @@ import { MCPIcon } from "ui/mcp-icon";
 
 import { NotionIcon } from "ui/notion-icon";
 import { LinearIcon } from "ui/linear-icon";
-import { PlaywrightIcon } from "ui/playwright-icon";
 import { NeonIcon } from "ui/neon-icon";
 import { StripeIcon } from "ui/stripe-icon";
 import { CanvaIcon } from "ui/canva-icon";
@@ -44,15 +43,6 @@ export const RECOMMENDED_MCPS = [
       url: "https://mcp.linear.app/sse",
     },
     icon: LinearIcon,
-  },
-  {
-    name: "playwright",
-    label: "Playwright",
-    config: {
-      command: "npx",
-      args: ["@playwright/mcp@latest"],
-    },
-    icon: PlaywrightIcon,
   },
   {
     name: "neon",

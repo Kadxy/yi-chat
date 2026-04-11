@@ -1,10 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import {
-  MCPServerConfig,
-  MCPRemoteConfigZodSchema,
-  MCPStdioConfigZodSchema,
-} from "app-types/mcp";
+import { MCPServerConfig, MCPRemoteConfigZodSchema } from "app-types/mcp";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
@@ -17,10 +13,7 @@ import { createDebounce, fetcher, isNull, safeJSONParse } from "lib/utils";
 import { handleErrorWithToast } from "ui/shared-toast";
 import { mutate } from "swr";
 import { Loader } from "lucide-react";
-import {
-  isMaybeMCPServerConfig,
-  isMaybeRemoteConfig,
-} from "lib/ai/mcp/is-mcp-config";
+import { isMaybeMCPServerConfig } from "lib/ai/mcp/is-mcp-config";
 
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { z } from "zod";
@@ -33,18 +26,8 @@ interface MCPEditorProps {
   id?: string;
 }
 
-const STDIO_ARGS_ENV_PLACEHOLDER = `/** STDIO Example */
-{
-  "command": "node", 
-  "args": ["index.js"],
-  "env": {
-    "OPENAI_API_KEY": "sk-...",
-  }
-}
-
-/** SSE,Streamable HTTP Example */
-{
-  "url": "https://api.example.com",
+const CONFIG_PLACEHOLDER = `{
+  "url": "https://mcp.example.com/mcp",
   "headers": {
     "Authorization": "Bearer sk-..."
   }
@@ -101,11 +84,8 @@ export default function MCPEditor({
     );
   }, [isLoading, jsonError, nameError, config, name]);
 
-  // Validate
   const validateConfig = (jsonConfig: unknown): boolean => {
-    const result = isMaybeRemoteConfig(jsonConfig)
-      ? MCPRemoteConfigZodSchema.safeParse(jsonConfig)
-      : MCPStdioConfigZodSchema.safeParse(jsonConfig);
+    const result = MCPRemoteConfigZodSchema.safeParse(jsonConfig);
     if (!result.success) {
       handleErrorWithToast(result.error, "mcp-editor-error");
     }
@@ -210,7 +190,7 @@ export default function MCPEditor({
                 onChange={(e) => handleConfigChange(e.target.value)}
                 data-testid="mcp-config-editor"
                 className="font-mono h-[40vh] resize-none overflow-y-auto"
-                placeholder={STDIO_ARGS_ENV_PLACEHOLDER}
+                placeholder={CONFIG_PLACEHOLDER}
               />
             </div>
 

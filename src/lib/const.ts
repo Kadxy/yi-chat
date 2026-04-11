@@ -8,8 +8,6 @@ export const PROMPT_PASTE_MAX_LENGTH = 1000;
 
 export const IS_VERCEL_ENV = false;
 
-export const IS_MCP_SERVER_REMOTE_ONLY = true;
-
 export const COOKIE_KEY_SIDEBAR_STATE = "sidebar:state";
 export const COOKIE_KEY_LOCALE = "i18n:locale";
 

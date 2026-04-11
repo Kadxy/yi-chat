@@ -11,12 +11,6 @@ export const MCPRemoteConfigZodSchema = z.object({
   headers: z.record(z.string(), z.string()).optional(),
 });
 
-export const MCPStdioConfigZodSchema = z.object({
-  command: z.string().min(1).describe("The command to run"),
-  args: z.array(z.string()).optional(),
-  env: z.record(z.string(), z.string()).optional(),
-});
-
 export const AllowedMCPServerZodSchema = z.object({
   tools: z.array(z.string()),
   // resources: z.array(z.string()).optional(),
@@ -25,9 +19,8 @@ export const AllowedMCPServerZodSchema = z.object({
 export type AllowedMCPServer = z.infer<typeof AllowedMCPServerZodSchema>;
 
 export type MCPRemoteConfig = z.infer<typeof MCPRemoteConfigZodSchema>;
-export type MCPStdioConfig = z.infer<typeof MCPStdioConfigZodSchema>;
 
-export type MCPServerConfig = MCPRemoteConfig | MCPStdioConfig;
+export type MCPServerConfig = MCPRemoteConfig;
 
 export type MCPToolInfo = {
   name: string;

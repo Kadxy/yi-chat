@@ -1,16 +1,14 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import {
   type MCPServerInfo,
   MCPRemoteConfigZodSchema,
-  MCPStdioConfigZodSchema,
   type MCPServerConfig,
   type MCPToolInfo,
 } from "app-types/mcp";
 
-import { isMaybeRemoteConfig, isMaybeStdioConfig } from "./is-mcp-config";
+import { isMaybeRemoteConfig } from "./is-mcp-config";
 import logger from "logger";
 import type { ConsolaInstance } from "consola";
 import { colorize } from "consola/utils";
@@ -24,7 +22,7 @@ import {
 } from "lib/utils";
 
 import { safe } from "ts-safe";
-import { BASE_URL, IS_MCP_SERVER_REMOTE_ONLY } from "lib/const";
+import { BASE_URL } from "lib/const";
 import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
 import { PgOAuthClientProvider } from "./pg-oauth-provider";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
@@ -204,37 +202,8 @@ export class MCPClient {
         version: "1.0.0",
       });
 
-      // Create appropriate transport based on server config type
-      if (isMaybeStdioConfig(this.serverConfig)) {
-        // Skip stdio transport
-        if (IS_MCP_SERVER_REMOTE_ONLY) {
-          throw new Error("VERCEL: Stdio transport is not supported");
-        }
-
-        const config = MCPStdioConfigZodSchema.parse(this.serverConfig);
-        this.transport = new StdioClientTransport({
-          command: config.command,
-          args: config.args,
-          // Merge process.env with config.env, ensuring PATH is preserved and filtering out undefined values
-          env: Object.entries({ ...process.env, ...config.env }).reduce(
-            (acc, [key, value]) => {
-              if (value !== undefined) {
-                acc[key] = value;
-              }
-              return acc;
-            },
-            {} as Record<string, string>,
-          ),
-          cwd: process.cwd(),
-        });
-
-        await withTimeout(
-          client.connect(this.transport, {
-            maxTotalTimeout: MCP_MAX_TOTAL_TIMEOUT,
-          }),
-          CONNET_TIMEOUT,
-        );
-      } else if (isMaybeRemoteConfig(this.serverConfig)) {
+      // Create remote transport (StreamableHTTP with SSE fallback)
+      if (isMaybeRemoteConfig(this.serverConfig)) {
         const config = MCPRemoteConfigZodSchema.parse(this.serverConfig);
         const abortController = new AbortController();
         const url = new URL(config.url);
@@ -300,7 +269,7 @@ export class MCPClient {
           }
         }
       } else {
-        throw new Error("Invalid server config");
+        throw new Error("Invalid server config: url is required");
       }
 
       this.logger.info(
