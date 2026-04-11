@@ -1,9 +1,13 @@
 import "server-only";
 
-import { anthropic } from "@ai-sdk/anthropic";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { LanguageModel } from "ai";
 import { ChatModel } from "app-types/chat";
 import { ANTHROPIC_FILE_MIME_TYPES } from "./file-support";
+
+const anthropic = createAnthropic({
+  baseURL: process.env.ANTHROPIC_API_BASE_URL,
+});
 
 const staticModels = {
   anthropic: {

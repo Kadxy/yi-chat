@@ -1,7 +1,7 @@
 import { USER_ROLES } from "app-types/roles";
 
 export const getUserAvatar = (user: { image?: string | null }): string => {
-  return user.image || "/pf.png";
+  return user.image || "";
 };
 
 export const getIsUserAdmin = (user?: { role?: string | null }): boolean => {
