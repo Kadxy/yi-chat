@@ -33,6 +33,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "ui/dialog";
+import { ScrollArea } from "ui/scroll-area";
+import { notify } from "lib/notify";
 import { RECOMMENDED_MCPS } from "./mcp-overview";
 
 export const MCPCard = memo(function MCPCard({
@@ -75,10 +77,15 @@ export const MCPCard = memo(function MCPCard({
     [id],
   );
 
-  const handleDelete = useCallback(
-    () => pipeProcessing(() => removeMcpClientAction(id)),
-    [id],
-  );
+  const handleDelete = useCallback(async () => {
+    const confirmed = await notify.confirm({
+      title: t("delete"),
+      description: `Remove "${presetMcp?.label ?? name}"?`,
+    });
+    if (confirmed) {
+      pipeProcessing(() => removeMcpClientAction(id));
+    }
+  }, [id, name, presetMcp]);
 
   const handleAuthorize = useCallback(
     () => pipeProcessing(() => redriectMcpOauth(id)),
@@ -237,22 +244,24 @@ function ToolsDialog({
           {count} tools
         </button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md p-0 gap-0">
+        <DialogHeader className="p-6 pb-4">
           <DialogTitle>{t("availableTools")}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1">
-          {tools.map((tool) => (
-            <div key={tool.name} className="rounded-md bg-secondary p-2.5">
-              <p className="font-medium text-sm truncate">{tool.name}</p>
-              {tool.description && (
-                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                  {tool.description}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
+        <ScrollArea className="max-h-[50vh] px-6 pb-6">
+          <div className="space-y-1.5">
+            {tools.map((tool) => (
+              <div key={tool.name} className="rounded-md bg-secondary p-2.5">
+                <p className="font-medium text-sm truncate">{tool.name}</p>
+                {tool.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                    {tool.description}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

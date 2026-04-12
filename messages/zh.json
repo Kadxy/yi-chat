@@ -252,6 +252,7 @@
   "MCP": {
     "marketplace": "市场",
     "addMcpServer": "添加服务器",
+    "addCustomServer": "添加自定义服务器",
     "configureYourMcpServerConnectionSettings": "配置您的 MCP 服务器连接设置",
     "mcpConfiguration": "MCP 配置",
     "nameMustContainOnlyAlphanumericCharactersAndHyphens": "名称只能包含字母数字字符 (A-Z, a-z, 0-9) 和连字符 (-)",

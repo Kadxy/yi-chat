@@ -251,6 +251,7 @@
   "MCP": {
     "marketplace": "マーケットプレイス",
     "addMcpServer": "サーバーを追加",
+    "addCustomServer": "カスタムサーバーを追加",
     "configureYourMcpServerConnectionSettings": "MCPサーバー接続設定を構成してください",
     "mcpConfiguration": "MCP設定",
     "nameMustContainOnlyAlphanumericCharactersAndHyphens": "名前は英数字（A-Z、a-z、0-9）とハイフン（-）のみを含む必要があります",

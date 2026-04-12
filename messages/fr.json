@@ -251,6 +251,7 @@
   "MCP": {
     "marketplace": "Marché",
     "addMcpServer": "Ajouter Serveur",
+    "addCustomServer": "Ajouter un serveur personnalisé",
     "configureYourMcpServerConnectionSettings": "Configurez les paramètres de connexion de votre serveur MCP",
     "mcpConfiguration": "Configuration MCP",
     "nameMustContainOnlyAlphanumericCharactersAndHyphens": "Le nom ne doit contenir que des caractères alphanumériques (A-Z, a-z, 0-9) et des traits d'union (-)",

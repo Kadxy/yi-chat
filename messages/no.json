@@ -547,6 +547,7 @@
   "MCP": {
     "marketplace": "Markedsplass",
     "addMcpServer": "Legg til server",
+    "addCustomServer": "Legg til tilpasset server",
     "configureYourMcpServerConnectionSettings": "Konfigurer MCP-serverens tilkoblingsinnstillinger",
     "mcpConfiguration": "MCP konfigurasjon",
     "nameMustContainOnlyAlphanumericCharactersAndHyphens": "Navnet kan bare inneholde alfanumeriske tegn (A-Z, a-z, 0-9) og bindestreker (-)",

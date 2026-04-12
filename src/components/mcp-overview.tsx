@@ -13,10 +13,7 @@ import { AsanaIcon } from "ui/asana-icon";
 import { GithubIcon } from "ui/github-icon";
 import { ComponentType, useCallback, useState } from "react";
 import { MCPServerConfig } from "app-types/mcp";
-import {
-  existMcpClientByServerNameAction,
-  saveMcpClientAction,
-} from "@/app/api/mcp/actions";
+import { saveMcpClientAction } from "@/app/api/mcp/actions";
 import { handleErrorWithToast } from "ui/shared-toast";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -141,11 +138,6 @@ export function MCPPresetGrid({
     async (mcp: RecommendedMCP, tokenHeaders?: Record<string, string>) => {
       setInstalling(mcp.name);
       try {
-        const exists = await existMcpClientByServerNameAction(mcp.name);
-        if (exists) {
-          toast.error(`${mcp.label} is already installed`);
-          return;
-        }
         const config = tokenHeaders
           ? { ...mcp.config, headers: tokenHeaders }
           : mcp.config;
