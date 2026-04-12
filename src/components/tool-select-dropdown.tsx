@@ -80,7 +80,7 @@ const calculateToolCount = (
   mcpList: (MCPServerInfo & { id: string })[],
 ) => {
   return mcpList.reduce((acc, server) => {
-    const count = allowedMcpServers[server.id]?.tools?.length;
+    const count = allowedMcpServers[server.id]?.tools?.length ?? 0;
     return acc + count;
   }, 0);
 };

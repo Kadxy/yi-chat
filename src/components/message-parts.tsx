@@ -10,7 +10,6 @@ import {
   ChevronUp,
   RefreshCw,
   X,
-  Trash2,
   ChevronRight,
   TriangleAlert,
   EllipsisIcon,
@@ -29,10 +28,7 @@ import { useCopy } from "@/hooks/use-copy";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { SelectModel } from "./select-model";
-import {
-  deleteMessageAction,
-  deleteMessagesByChatIdAfterTimestampAction,
-} from "@/app/api/chat/actions";
+import { deleteMessagesByChatIdAfterTimestampAction } from "@/app/api/chat/actions";
 
 import { toast } from "sonner";
 import { safe } from "ts-safe";
@@ -53,7 +49,6 @@ import {
 } from "lib/keyboard-shortcuts";
 
 import dynamic from "next/dynamic";
-import { notify } from "lib/notify";
 import { ModelProviderIcon } from "ui/model-provider-icon";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
 
@@ -113,7 +108,6 @@ export const UserMessagePart = memo(
     const { copied, copy } = useCopy();
     const t = useTranslations();
     const [mode, setMode] = useState<"view" | "edit">("view");
-    const [isDeleting, setIsDeleting] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
     const scrolledRef = useRef(false);
@@ -123,29 +117,6 @@ export const UserMessagePart = memo(
       expanded || !isLongText
         ? part.text
         : truncateString(part.text, MAX_TEXT_LENGTH);
-
-    const deleteMessage = useCallback(async () => {
-      if (!setMessages) return;
-      const ok = await notify.confirm({
-        title: "Delete Message",
-        description: "Are you sure you want to delete this message?",
-      });
-      if (!ok) return;
-      safe(() => setIsDeleting(true))
-        .ifOk(() => deleteMessageAction(message.id))
-        .ifOk(() =>
-          setMessages((messages) => {
-            const index = messages.findIndex((m) => m.id === message.id);
-            if (index !== -1) {
-              return messages.filter((_, i) => i !== index);
-            }
-            return messages;
-          }),
-        )
-        .ifFail((error) => toast.error(error.message))
-        .watch(() => setIsDeleting(false))
-        .unwrap();
-    }, [message.id]);
 
     useEffect(() => {
       if (status === "submitted" && isLast && !scrolledRef.current) {
@@ -236,27 +207,6 @@ export const UserMessagePart = memo(
                   </TooltipTrigger>
                   <TooltipContent side="bottom">Edit</TooltipContent>
                 </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      disabled={isDeleting}
-                      onClick={deleteMessage}
-                      variant="ghost"
-                      size="icon"
-                      className="size-3! p-4! hover:text-destructive"
-                    >
-                      {isDeleting ? (
-                        <Loader className="animate-spin" />
-                      ) : (
-                        <Trash2 />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="text-destructive" side="bottom">
-                    Delete Message
-                  </TooltipContent>
-                </Tooltip>
               </>
             )}
           </div>
@@ -290,7 +240,6 @@ export const AssistMessagePart = memo(function AssistMessagePart({
 }: AssistMessagePartProps) {
   const { copied, copy } = useCopy();
   const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const metadata = message.metadata as ChatMetadata | undefined;
   const { data: providers } = useChatModels();
@@ -309,29 +258,6 @@ export const AssistMessagePart = memo(function AssistMessagePart({
         };
       })()
     : undefined;
-
-  const deleteMessage = useCallback(async () => {
-    if (!setMessages) return;
-    const ok = await notify.confirm({
-      title: "Delete Message",
-      description: "Are you sure you want to delete this message?",
-    });
-    if (!ok) return;
-    safe(() => setIsDeleting(true))
-      .ifOk(() => deleteMessageAction(message.id))
-      .ifOk(() =>
-        setMessages((messages) => {
-          const index = messages.findIndex((m) => m.id === message.id);
-          if (index !== -1) {
-            return messages.filter((_, i) => i !== index);
-          }
-          return messages;
-        }),
-      )
-      .ifFail((error) => toast.error(error.message))
-      .watch(() => setIsDeleting(false))
-      .unwrap();
-  }, [message.id]);
 
   const handleModelChange = (model: ChatModel) => {
     if (!setMessages || !sendMessage || !prevMessage) return;
@@ -398,7 +324,10 @@ export const AssistMessagePart = memo(function AssistMessagePart({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div>
-                    <SelectModel onSelect={handleModelChange}>
+                    <SelectModel
+                      onSelect={handleModelChange}
+                      currentModel={metadata?.chatModel}
+                    >
                       <Button
                         data-testid="message-edit-button data-[state=open]:bg-secondary!"
                         variant="ghost"
@@ -411,26 +340,6 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>Change Model</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={isDeleting}
-                    onClick={deleteMessage}
-                    className="size-3! p-4! hover:text-destructive"
-                  >
-                    {isDeleting ? (
-                      <Loader className="animate-spin" />
-                    ) : (
-                      <Trash2 />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="text-destructive">
-                  Delete Message
-                </TooltipContent>
               </Tooltip>
             </>
           )}
@@ -706,11 +615,8 @@ export const ToolMessagePart = memo(
   ({
     part,
     isLast,
-    showActions,
     addToolResult,
     isError,
-    messageId,
-    setMessages,
     isManualToolInvocation,
   }: ToolMessagePartProps) => {
     const t = useTranslations("");
@@ -724,7 +630,6 @@ export const ToolMessagePart = memo(
     }, [state]);
 
     const [expanded, setExpanded] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
 
     // Handle keyboard shortcuts for approve/reject actions
     useEffect(() => {
@@ -761,28 +666,6 @@ export const ToolMessagePart = memo(
       window.addEventListener("keydown", handleKeyDown);
       return () => window.removeEventListener("keydown", handleKeyDown);
     }, [isManualToolInvocation, isLast]);
-
-    const deleteMessage = useCallback(async () => {
-      const ok = await notify.confirm({
-        title: "Delete Message",
-        description: "Are you sure you want to delete this message?",
-      });
-      if (!ok) return;
-      safe(() => setIsDeleting(true))
-        .ifOk(() => deleteMessageAction(messageId))
-        .ifOk(() =>
-          setMessages?.((messages) => {
-            const index = messages.findIndex((m) => m.id === messageId);
-            if (index !== -1) {
-              return messages.filter((_, i) => i !== index);
-            }
-            return messages;
-          }),
-        )
-        .ifFail((error) => toast.error(error.message))
-        .watch(() => setIsDeleting(false))
-        .unwrap();
-    }, [messageId]);
 
     const onToolCallDirect = useCallback(
       (result: any) => {
@@ -1048,31 +931,6 @@ export const ToolMessagePart = memo(
                     {getShortcutKeyList(rejectToolInvocationShortcut).join(" ")}
                   </span>
                 </Button>
-              </div>
-            )}
-
-            {showActions && (
-              <div className="flex flex-row gap-2 items-center">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      disabled={isDeleting}
-                      onClick={deleteMessage}
-                      variant="ghost"
-                      size="icon"
-                      className="size-3! p-4! opacity-0 group-hover/message:opacity-100 hover:text-destructive"
-                    >
-                      {isDeleting ? (
-                        <Loader className="animate-spin" />
-                      ) : (
-                        <Trash2 />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="text-destructive" side="bottom">
-                    Delete Message
-                  </TooltipContent>
-                </Tooltip>
               </div>
             )}
           </div>

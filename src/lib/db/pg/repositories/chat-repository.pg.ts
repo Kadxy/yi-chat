@@ -20,10 +20,6 @@ export const pgChatRepository: ChatRepository = {
     return result;
   },
 
-  deleteChatMessage: async (id: string): Promise<void> => {
-    await db.delete(ChatMessageTable).where(eq(ChatMessageTable.id, id));
-  },
-
   selectThread: async (id: string): Promise<ChatThread | null> => {
     const [result] = await db
       .select()
