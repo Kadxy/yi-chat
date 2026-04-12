@@ -13,8 +13,10 @@ export function useThreadFileUploader(threadId?: string) {
   const uploadFiles = useCallback(
     async (files: File[]) => {
       if (!threadId || files.length === 0) return;
-      const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB per file — TODO: 文件上传计费
+      const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB per file
 
+      // Filter valid files and prepare all at once
+      const validFiles: { file: File; entry: UploadedFile }[] = [];
       for (const file of files) {
         if (file.size > MAX_SIZE_BYTES) {
           toast.error(`${file.name}: file too large (>10MB)`);
@@ -24,69 +26,81 @@ export function useThreadFileUploader(threadId?: string) {
         const previewUrl = file.type?.startsWith("image/")
           ? URL.createObjectURL(file)
           : undefined;
-        const fileId = generateUUID();
-        const abortController = new AbortController();
 
-        const uploadingFile: UploadedFile = {
-          id: fileId,
-          url: "",
-          name: file.name,
-          mimeType: file.type || "application/octet-stream",
-          size: file.size,
-          isUploading: true,
-          progress: 0,
-          previewUrl,
-          abortController,
-        };
-
-        appStoreMutate((prev) => ({
-          threadFiles: {
-            ...prev.threadFiles,
-            [threadId]: [...(prev.threadFiles[threadId] ?? []), uploadingFile],
+        validFiles.push({
+          file,
+          entry: {
+            id: generateUUID(),
+            url: "",
+            name: file.name,
+            mimeType: file.type || "application/octet-stream",
+            size: file.size,
+            isUploading: true,
+            progress: 0,
+            previewUrl,
+            abortController: new AbortController(),
           },
-        }));
+        });
+      }
 
-        try {
-          const uploaded = await upload(file);
-          if (uploaded) {
-            appStoreMutate((prev) => ({
-              threadFiles: {
-                ...prev.threadFiles,
-                [threadId]: (prev.threadFiles[threadId] ?? []).map((f) =>
-                  f.id === fileId
-                    ? {
-                        ...f,
-                        url: uploaded.url,
-                        isUploading: false,
-                        progress: 100,
-                      }
-                    : f,
-                ),
-              },
-            }));
-          } else {
+      if (validFiles.length === 0) return;
+
+      // Add ALL files to store at once — they all appear in UI immediately
+      appStoreMutate((prev) => ({
+        threadFiles: {
+          ...prev.threadFiles,
+          [threadId]: [
+            ...(prev.threadFiles[threadId] ?? []),
+            ...validFiles.map((v) => v.entry),
+          ],
+        },
+      }));
+
+      // Upload all files concurrently
+      await Promise.allSettled(
+        validFiles.map(async ({ file, entry }) => {
+          try {
+            const uploaded = await upload(file);
+            if (uploaded) {
+              appStoreMutate((prev) => ({
+                threadFiles: {
+                  ...prev.threadFiles,
+                  [threadId]: (prev.threadFiles[threadId] ?? []).map((f) =>
+                    f.id === entry.id
+                      ? {
+                          ...f,
+                          url: uploaded.url,
+                          isUploading: false,
+                          progress: 100,
+                        }
+                      : f,
+                  ),
+                },
+              }));
+            } else {
+              appStoreMutate((prev) => ({
+                threadFiles: {
+                  ...prev.threadFiles,
+                  [threadId]: (prev.threadFiles[threadId] ?? []).filter(
+                    (f) => f.id !== entry.id,
+                  ),
+                },
+              }));
+            }
+          } catch {
             appStoreMutate((prev) => ({
               threadFiles: {
                 ...prev.threadFiles,
                 [threadId]: (prev.threadFiles[threadId] ?? []).filter(
-                  (f) => f.id !== fileId,
+                  (f) => f.id !== entry.id,
                 ),
               },
             }));
+          } finally {
+            if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
           }
-        } catch (_err) {
-          appStoreMutate((prev) => ({
-            threadFiles: {
-              ...prev.threadFiles,
-              [threadId]: (prev.threadFiles[threadId] ?? []).filter(
-                (f) => f.id !== fileId,
-              ),
-            },
-          }));
-        } finally {
-          if (previewUrl) URL.revokeObjectURL(previewUrl);
-        }
-      }
+        }),
+      );
     },
     [threadId, appStoreMutate, upload],
   );

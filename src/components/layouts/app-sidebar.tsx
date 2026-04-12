@@ -23,8 +23,9 @@ export function AppSidebar({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isShortcutEvent(e, Shortcuts.openNewChat)) {
         e.preventDefault();
+        // If already on new chat page, do nothing — preserve input and files
+        if (window.location.pathname === "/") return;
         router.push("/");
-        router.refresh();
       }
     };
     window.addEventListener("keydown", handleKeyDown);

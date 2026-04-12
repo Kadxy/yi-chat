@@ -57,6 +57,48 @@ const PurePreviewMessage = ({
     [message.parts],
   );
 
+  // Group consecutive file/source-url parts for horizontal layout
+  const groupedParts = useMemo(() => {
+    const groups: Array<
+      | { type: "attachment-group"; parts: Array<{ part: any; key: string }> }
+      | {
+          type: "single";
+          part: any;
+          key: string;
+          index: number;
+          isLastPart: boolean;
+        }
+    > = [];
+    let currentAttachments: Array<{ part: any; key: string }> = [];
+
+    const flushAttachments = () => {
+      if (currentAttachments.length > 0) {
+        groups.push({
+          type: "attachment-group",
+          parts: [...currentAttachments],
+        });
+        currentAttachments = [];
+      }
+    };
+
+    partsForDisplay.forEach((part, index) => {
+      const key = `message-${messageIndex}-part-${part.type}-${index}`;
+      const isLastPart = index === partsForDisplay.length - 1;
+      const isAttachment =
+        part.type === "file" || (part as any).type === "source-url";
+
+      if (isAttachment) {
+        currentAttachments.push({ part, key });
+        if (isLastPart) flushAttachments();
+      } else {
+        flushAttachments();
+        groups.push({ type: "single", part, key, index, isLastPart });
+      }
+    });
+    flushAttachments();
+    return groups;
+  }, [partsForDisplay, messageIndex]);
+
   if (message.role == "system") {
     return null; // system message is not shown
   }
@@ -71,15 +113,43 @@ const PurePreviewMessage = ({
         )}
       >
         <div className="flex flex-col gap-4 w-full">
-          {partsForDisplay.map((part, index) => {
-            const key = `message-${messageIndex}-part-${part.type}-${index}`;
-            const isLastPart = index === partsForDisplay.length - 1;
+          {groupedParts.map((group) => {
+            if (group.type === "attachment-group") {
+              return (
+                <div
+                  key={group.parts[0].key}
+                  className={cn(
+                    "flex flex-wrap gap-2",
+                    isUserMessage && "justify-end",
+                  )}
+                >
+                  {group.parts.map(({ part, key }) => {
+                    if (part.type === "file") {
+                      return (
+                        <FileMessagePart
+                          key={key}
+                          part={part}
+                          isUserMessage={isUserMessage}
+                        />
+                      );
+                    }
+                    return (
+                      <SourceUrlMessagePart
+                        key={key}
+                        part={part as any}
+                        isUserMessage={isUserMessage}
+                      />
+                    );
+                  })}
+                </div>
+              );
+            }
+
+            const { part, key, index, isLastPart } = group;
 
             if (part.type === "reasoning") {
               const savedDurationMs = (message.metadata as ChatMetadata)
                 ?.thinkingDurationMs;
-              // Reasoning is active only when: message is streaming AND
-              // no text part has appeared after this reasoning part yet
               const hasTextAfter = partsForDisplay
                 .slice(index + 1)
                 .some((p) => p.type === "text");
@@ -131,19 +201,11 @@ const PurePreviewMessage = ({
 
             if (isToolUIPart(part)) {
               const isLast = isLastMessage && isLastPart;
-              const isManualToolInvocation =
-                (message.metadata as ChatMetadata)?.toolChoice == "manual" &&
-                isLastMessage &&
-                isLastPart &&
-                part.state == "input-available" &&
-                isLoading &&
-                !readonly;
               return (
                 <ToolMessagePart
                   isLast={isLast}
                   readonly={readonly}
                   messageId={message.id}
-                  isManualToolInvocation={isManualToolInvocation}
                   showActions={
                     !readonly &&
                     (isLastMessage ? isLastPart && !isLoading : isLastPart)
@@ -156,22 +218,6 @@ const PurePreviewMessage = ({
               );
             } else if (part.type === "step-start") {
               return null;
-            } else if (part.type === "file") {
-              return (
-                <FileMessagePart
-                  key={key}
-                  part={part}
-                  isUserMessage={isUserMessage}
-                />
-              );
-            } else if ((part as any).type === "source-url") {
-              return (
-                <SourceUrlMessagePart
-                  key={key}
-                  part={part as any}
-                  isUserMessage={isUserMessage}
-                />
-              );
             } else {
               return <div key={key}> unknown part {part.type}</div>;
             }

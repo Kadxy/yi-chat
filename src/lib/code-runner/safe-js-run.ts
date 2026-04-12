@@ -11,7 +11,9 @@ import {
 // Security: Block dangerous keywords that could compromise sandbox
 const FORBIDDEN_KEYWORDS = [
   // DOM and browser globals
-  "document.",
+  // Note: "document" is NOT blocked here because it's not in safeGlobals
+  // (runtime ReferenceError), and blocking it causes false positives when
+  // HTML strings passed to __render_html__ contain "document."
   "globalThis.",
   "self.",
   "window",

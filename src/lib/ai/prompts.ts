@@ -208,19 +208,6 @@ Step 2: Based on that question, generate a valid JSON input object that matches 
 }
 `;
 
-export const MANUAL_REJECT_RESPONSE_PROMPT = `\n
-The user has declined to run the tool. Please respond with the following three approaches:
-
-1. Ask 1-2 specific questions to clarify the user's goal.
-
-2. Suggest the following three alternatives:
-   - A method to solve the problem without using tools
-   - A method utilizing a different type of tool
-   - A method using the same tool but with different parameters or input values
-
-3. Guide the user to choose their preferred direction with a friendly and clear tone.
-`.trim();
-
 export const buildToolCallUnsupportedModelSystemPrompt = `
 ### Tool Call Limitation
 - You are using a model that does not support tool calls. 

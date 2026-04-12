@@ -93,10 +93,6 @@
       "searchedTheWeb": "Buscado en la web",
       "toolModeDescription": "Elije cómo se usan las herramientas:\n• Auto: La IA decide cuándo usar herramientas\n• Manual: Pide permiso antes de usar herramientas\n• Ninguno: Desactiva todas las herramientas",
       "toolsSetupDescription": "Select MCP tools that the chatbot can use.\nThe chatbot will use selected tools based on its own judgment.",
-      "selectToolMode": "Seleccionar modo de herramientas",
-      "autoToolModeDescription": "Decide cuándo usar herramientas sin preguntarte",
-      "manualToolModeDescription": "Pide tu permiso antes de usar cualquier herramienta",
-      "noneToolModeDescription": "Do not use any tools.",
       "toolsSetup": "Configuración de Herramientas",
       "searchOptions": "Opciones de Búsqueda",
       "searchOptionsDescription": "Puedes pasar opciones de búsqueda al chatbot, como el número máximo de resultados de búsqueda, la fecha de búsqueda, etc.",
@@ -107,9 +103,6 @@
       "error": "error",
       "authorizationRequired": "Se Requiere Autorización",
       "clickToAuthorize": "Haz clic aquí para autorizar este servidor MCP y acceder a sus herramientas.",
-      "auto": "Automático",
-      "manual": "Manual",
-      "none": "Ninguno",
       "noToolsAvailable": "No hay herramientas disponibles"
     },
     "VoiceChat": {
@@ -211,7 +204,6 @@
     "title": "Atajos de Teclado",
     "newChat": "Nuevo Chat",
     "toggleSidebar": "Alternar Barra Lateral",
-    "toolMode": "Modo de Herramientas",
     "lastMessageCopy": "Copiar Último Mensaje",
     "openChatPreferences": "Abrir Preferencias de Chat",
     "deleteThread": "Eliminar Chat",

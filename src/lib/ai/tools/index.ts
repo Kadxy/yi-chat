@@ -1,6 +1,7 @@
 export enum AppDefaultToolkit {
   Visualization = "visualization",
   WebSearch = "webSearch",
+  AcademicSearch = "academicSearch",
   Http = "http",
   Code = "code",
   File = "file",
@@ -13,6 +14,7 @@ export enum DefaultToolName {
   CreateTable = "createTable",
   WebSearch = "webSearch",
   WebContent = "webContent",
+  AcademicSearch = "academicSearch",
   Http = "http",
   JavascriptExecution = "mini-javascript-execution",
   PythonExecution = "python-execution",

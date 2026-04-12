@@ -1,19 +1,8 @@
 import "server-only";
-import {
-  LoadAPIKeyError,
-  UIMessage,
-  Tool,
-  tool as createTool,
-  isToolUIPart,
-  UIMessagePart,
-  ToolUIPart,
-  getToolName,
-} from "ai";
-import { ChatMetadata, ManualToolConfirmTag } from "app-types/chat";
+import { LoadAPIKeyError, Tool, UIMessagePart } from "ai";
 import { errorToString, exclude, objectFlow } from "lib/utils";
 import logger from "logger";
-import { VercelAIMcpTool, VercelAIMcpToolTag } from "app-types/mcp";
-import { MANUAL_REJECT_RESPONSE_PROMPT } from "lib/ai/prompts";
+import { VercelAIMcpTool } from "app-types/mcp";
 
 import { safe } from "ts-safe";
 
@@ -33,17 +22,6 @@ export function filterMCPToolsByEnabledServers(
   );
 }
 
-export function excludeToolExecution(
-  tool: Record<string, Tool>,
-): Record<string, Tool> {
-  return objectFlow(tool).map((value) => {
-    return createTool({
-      inputSchema: value.inputSchema,
-      description: value.description,
-    });
-  });
-}
-
 export function mergeSystemPrompt(
   ...prompts: (string | undefined | false)[]
 ): string {
@@ -53,45 +31,6 @@ export function mergeSystemPrompt(
   return filteredPrompts.join("\n\n");
 }
 
-export function manualToolExecuteByLastMessage(
-  part: ToolUIPart,
-  tools: Record<string, VercelAIMcpTool | Tool>,
-  abortSignal?: AbortSignal,
-) {
-  const { input } = part;
-
-  const toolName = getToolName(part);
-
-  const tool = tools[toolName];
-  return safe(() => {
-    if (!tool) throw new Error(`tool not found: ${toolName}`);
-    if (!ManualToolConfirmTag.isMaybe(part.output))
-      throw new Error("manual tool confirm not found");
-    return part.output;
-  })
-    .map(({ confirm }) => {
-      if (!confirm) return MANUAL_REJECT_RESPONSE_PROMPT;
-      if (VercelAIMcpToolTag.isMaybe(tool)) {
-        return mcpClientsManager.toolCall(
-          tool._mcpServerId,
-          tool._originToolName,
-          input,
-        );
-      }
-      return tool.execute!(input, {
-        toolCallId: part.toolCallId,
-        abortSignal: abortSignal ?? new AbortController().signal,
-        messages: [],
-      });
-    })
-    .ifFail((error) => ({
-      isError: true,
-      statusMessage: `tool call fail: ${toolName}`,
-      error: errorToString(error),
-    }))
-    .unwrap();
-}
-
 export function handleError(error: any) {
   if (LoadAPIKeyError.isInstance(error)) {
     return error.message;
@@ -99,17 +38,6 @@ export function handleError(error: any) {
   logger.error(error);
   logger.error(`Route Error: ${error.name}`);
   return errorToString(error.message);
-}
-
-export function extractInProgressToolPart(message: UIMessage): ToolUIPart[] {
-  if (message.role != "assistant") return [];
-  if ((message.metadata as ChatMetadata)?.toolChoice != "manual") return [];
-  return message.parts.filter(
-    (part) =>
-      isToolUIPart(part) &&
-      part.state == "output-available" &&
-      ManualToolConfirmTag.isMaybe(part.output),
-  ) as ToolUIPart[];
 }
 
 export const loadMcpTools = (enabledServerIds?: string[]) =>

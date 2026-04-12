@@ -6,6 +6,7 @@ import {
   ChartColumnIcon,
   ChartPieIcon,
   GlobeIcon,
+  GraduationCapIcon,
   HardDriveUploadIcon,
   CodeIcon,
   HammerIcon,
@@ -45,6 +46,13 @@ export function DefaultToolIcon({
     }
     if (name === DefaultToolName.WebContent) {
       return <GlobeIcon className={cn("size-3.5 text-blue-400", className)} />;
+    }
+    if (name === DefaultToolName.AcademicSearch) {
+      return (
+        <GraduationCapIcon
+          className={cn("size-3.5 text-purple-500", className)}
+        />
+      );
     }
     if (name === DefaultToolName.Http) {
       return (

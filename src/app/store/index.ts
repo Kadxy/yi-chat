@@ -20,7 +20,6 @@ export interface AppState {
   threadList: (ChatThread & { lastMessageAt?: number })[];
   mcpList: (MCPServerInfo & { id: string })[];
   currentThreadId: ChatThread["id"] | null;
-  toolChoice: "auto" | "none" | "manual";
   allowedMcpServers?: string[];
   generatingTitleThreadIds: string[];
   threadFiles: {
@@ -41,7 +40,6 @@ const initialState: AppState = {
   threadFiles: {},
   mcpList: [],
   currentThreadId: null,
-  toolChoice: "auto",
   allowedMcpServers: undefined,
   chatModel: undefined,
   thinkingEnabled: false,
@@ -58,7 +56,6 @@ export const appStore = create<AppState & AppDispatch>()(
       name: "mc-app-store-v3.1.0",
       partialize: (state) => ({
         chatModel: state.chatModel || initialState.chatModel,
-        toolChoice: state.toolChoice || initialState.toolChoice,
         allowedMcpServers:
           state.allowedMcpServers || initialState.allowedMcpServers,
         thinkingEnabled: state.thinkingEnabled ?? initialState.thinkingEnabled,

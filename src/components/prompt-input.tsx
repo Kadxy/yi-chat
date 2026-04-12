@@ -3,27 +3,20 @@
 import {
   ChevronDown,
   SendIcon,
-  FileIcon,
-  FileSpreadsheetIcon,
   FileTextIcon,
-  FileCodeIcon,
-  FileArchiveIcon,
-  FileImageIcon,
-  PresentationIcon,
   Loader2,
   PaperclipIcon,
   PlusIcon,
   Square,
   XIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "ui/button";
 import { UIMessage, UseChatHelpers } from "@ai-sdk/react";
 import { SelectModel } from "./select-model";
 import { appStore, UploadedFile } from "@/app/store";
 import { useShallow } from "zustand/shallow";
 import { ChatModel } from "app-types/chat";
-import { ToolModeDropdown } from "./tool-mode-dropdown";
 
 import { ToolSelectDropdown } from "./tool-select-dropdown";
 import { ThinkingToggle } from "./thinking-mode-dropdown";
@@ -48,49 +41,7 @@ import {
   isUploadBlocked,
 } from "@/lib/ai/file-support";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
-
-function getFileTypeIcon(mimeType: string, filename: string) {
-  const ext = filename.split(".").pop()?.toLowerCase() || "";
-  if (mimeType.startsWith("image/")) return FileImageIcon;
-  if (
-    mimeType.includes("spreadsheet") ||
-    mimeType.includes("excel") ||
-    ["xlsx", "xls", "csv", "tsv"].includes(ext)
-  )
-    return FileSpreadsheetIcon;
-  if (
-    mimeType.includes("presentation") ||
-    mimeType.includes("powerpoint") ||
-    ["pptx", "ppt", "key"].includes(ext)
-  )
-    return PresentationIcon;
-  if (
-    mimeType === "application/pdf" ||
-    mimeType.includes("word") ||
-    mimeType.includes("document") ||
-    ["pdf", "doc", "docx", "txt", "rtf", "md"].includes(ext)
-  )
-    return FileTextIcon;
-  if (
-    mimeType.includes("zip") ||
-    mimeType.includes("compressed") ||
-    mimeType.includes("archive") ||
-    ["zip", "rar", "7z", "tar", "gz"].includes(ext)
-  )
-    return FileArchiveIcon;
-  if (
-    mimeType.includes("javascript") ||
-    mimeType.includes("json") ||
-    mimeType.includes("xml") ||
-    mimeType.includes("html") ||
-    [
-      "js", "ts", "jsx", "tsx", "py", "java", "c", "cpp", "go", "rs",
-      "rb", "php", "html", "css", "json", "xml", "yaml", "yml", "sh",
-    ].includes(ext)
-  )
-    return FileCodeIcon;
-  return FileIcon;
-}
+import { FileTypeIcon } from "./file-type-icon";
 
 interface PromptInputProps {
   placeholder?: string;
@@ -201,20 +152,18 @@ export default function PromptInput({
         }
         return true;
       });
+      const MAX_FILES = 10;
+      if (uploadedFiles.length + files.length > MAX_FILES) {
+        toast.error(t("maxFilesPerMessage", { count: MAX_FILES }));
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
       if (files.length > 0) await uploadFiles(files);
       if (fileInputRef.current) fileInputRef.current.value = "";
       setIsUploadDropdownOpen(false);
     },
-    [uploadFiles],
+    [uploadFiles, uploadedFiles],
   );
-
-  // Auto-resize textarea
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    textarea.style.height = "auto";
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 320)}px`;
-  }, [input]);
 
   const submit = () => {
     if (isLoading) return;
@@ -305,10 +254,10 @@ export default function PromptInput({
       <div className="z-10 mx-auto w-full max-w-3xl relative">
         <fieldset className="flex w-full min-w-0 max-w-full flex-col px-4">
           <div className="shadow-lg rounded-4xl backdrop-blur-sm bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted">
-            <div className="px-6 pt-4 pb-3">
+            <div className="p-3">
               {/* Uploaded Files Preview - Above Input (Gemini style) */}
               {uploadedFiles.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3">
+                <div className="flex flex-wrap gap-2 mb-2">
                   {uploadedFiles.map((file) => {
                     const isImage = file.mimeType.startsWith("image/");
                     const imageSrc =
@@ -317,14 +266,15 @@ export default function PromptInput({
                     const displayExt =
                       file.name.split(".").pop()?.toUpperCase() || "FILE";
                     const isSummarizable = isIngestSupported(file.mimeType);
-                    const TypeIcon = getFileTypeIcon(file.mimeType, file.name);
                     return (
-                      <div
-                        key={file.id}
-                        className="relative group"
-                      >
+                      <div key={file.id} className="relative group">
                         {isImage ? (
-                          <div className="w-16 h-16 rounded-xl overflow-hidden border border-border">
+                          <div
+                            className={cn(
+                              "w-16 h-16 rounded-xl overflow-hidden border border-border",
+                              file.isUploading && "opacity-50",
+                            )}
+                          >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={imageSrc}
@@ -335,8 +285,21 @@ export default function PromptInput({
                         ) : (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className="w-44 h-16 flex items-center gap-2.5 px-3 rounded-xl border border-border bg-accent/40">
-                                <TypeIcon className="size-5 text-muted-foreground shrink-0" />
+                              <div
+                                className={cn(
+                                  "w-40 h-14 flex items-center gap-2 px-2.5 rounded-xl border border-border bg-background/80 transition-colors hover:bg-accent/60",
+                                  file.isUploading && "opacity-50",
+                                )}
+                              >
+                                {file.isUploading ? (
+                                  <Loader2 className="size-8 p-1 animate-spin text-muted-foreground shrink-0" />
+                                ) : (
+                                  <FileTypeIcon
+                                    mimeType={file.mimeType}
+                                    filename={file.name}
+                                    className="size-8 p-1"
+                                  />
+                                )}
                                 <div className="flex flex-col min-w-0 flex-1">
                                   <span className="text-xs font-medium text-foreground truncate">
                                     {displayName}
@@ -353,22 +316,12 @@ export default function PromptInput({
                           </Tooltip>
                         )}
 
-                        {/* Upload Progress Overlay */}
-                        {file.isUploading && (
-                          <div className="absolute inset-0 bg-background/90 flex rounded-xl flex-col items-center justify-center backdrop-blur-sm">
-                            <Loader2 className="size-4 animate-spin text-foreground mb-1" />
-                            <span className="text-foreground text-[10px]">
-                              {file.progress || 0}%
-                            </span>
-                          </div>
-                        )}
-
                         {/* Delete Button */}
                         <button
                           className={cn(
-                            "absolute top-1 right-1 size-5 rounded-full bg-foreground/80 text-background flex items-center justify-center transition-opacity",
+                            "absolute top-2 right-2 size-6 p-1.5 rounded-full bg-foreground/70 text-background flex items-center justify-center transition-opacity",
                             file.isUploading
-                              ? "opacity-100"
+                              ? "hidden"
                               : "opacity-0 group-hover:opacity-100",
                           )}
                           onClick={() => deleteFile(file.id)}
@@ -378,9 +331,7 @@ export default function PromptInput({
 
                         {/* Summarize overlay for non-uploading files */}
                         {!file.isUploading && isSummarizable && !isImage && (
-                          <div
-                            className="absolute inset-0 bg-background/70 rounded-xl backdrop-blur-sm transition-opacity flex items-center justify-center opacity-0 group-hover:opacity-100"
-                          >
+                          <div className="absolute inset-0 bg-background/70 rounded-xl backdrop-blur-sm transition-opacity flex items-center justify-center opacity-0 group-hover:opacity-100">
                             <Button
                               variant="secondary"
                               size="icon"
@@ -432,12 +383,17 @@ export default function PromptInput({
 
               <textarea
                 ref={textareaRef}
-                className="w-full max-h-80 min-h-[1.5rem] break-words overflow-y-auto no-scrollbar resize-none focus:outline-none text-sm bg-transparent mb-3"
+                className="w-full max-h-80 min-h-[24px] [field-sizing:content] break-words overflow-y-auto no-scrollbar resize-none focus:outline-none px-3 py-2 text-sm bg-transparent mb-2"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onFocus={onFocus}
-                placeholder={placeholder ?? t("placeholder", { appName: process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat" })}
+                placeholder={
+                  placeholder ??
+                  t("placeholder", {
+                    appName: process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat",
+                  })
+                }
                 rows={1}
                 autoFocus
               />
@@ -479,7 +435,6 @@ export default function PromptInput({
 
                 {!toolDisabled && (
                   <>
-                    <ToolModeDropdown />
                     <ToolSelectDropdown
                       className="mx-1"
                       align="start"

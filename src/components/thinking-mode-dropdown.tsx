@@ -2,19 +2,35 @@
 
 import { appStore } from "@/app/store";
 import { Lightbulb, LightbulbOff } from "lucide-react";
+import { useEffect } from "react";
 import { Button } from "ui/button";
 import { useTranslations } from "next-intl";
 
 import { useShallow } from "zustand/shallow";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { cn } from "lib/utils";
-import { getShortcutKeyList, Shortcuts } from "lib/keyboard-shortcuts";
+import {
+  getShortcutKeyList,
+  isShortcutEvent,
+  Shortcuts,
+} from "lib/keyboard-shortcuts";
 
 export const ThinkingToggle = ({ disabled }: { disabled?: boolean }) => {
   const t = useTranslations("Chat.Thinking");
   const [thinkingEnabled, appStoreMutate] = appStore(
     useShallow((state) => [state.thinkingEnabled, state.mutate]),
   );
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isShortcutEvent(e, Shortcuts.thinkingMode)) {
+        e.preventDefault();
+        appStoreMutate((prev) => ({ thinkingEnabled: !prev.thinkingEnabled }));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [appStoreMutate]);
 
   return (
     <Tooltip>

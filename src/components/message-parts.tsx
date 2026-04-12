@@ -9,17 +9,9 @@ import {
   ChevronDownIcon,
   ChevronUp,
   RefreshCw,
-  X,
   ChevronRight,
   TriangleAlert,
   EllipsisIcon,
-  FileIcon,
-  FileTextIcon,
-  FileSpreadsheetIcon,
-  FileCodeIcon,
-  FileArchiveIcon,
-  FileImageIcon,
-  PresentationIcon,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { Button } from "ui/button";
@@ -35,21 +27,15 @@ import { deleteMessagesByChatIdAfterTimestampAction } from "@/app/api/chat/actio
 
 import { toast } from "sonner";
 import { safe } from "ts-safe";
-import { ChatMetadata, ChatModel, ManualToolConfirmTag } from "app-types/chat";
+import { ChatMetadata, ChatModel } from "app-types/chat";
 
 import { useTranslations } from "next-intl";
 import { extractMCPToolId } from "lib/ai/mcp/mcp-tool-id";
-import { Separator } from "ui/separator";
 
 import { TextShimmer } from "ui/text-shimmer";
 import equal from "lib/equal";
 import { DefaultToolName } from "lib/ai/tools";
 import { DefaultToolIcon } from "./default-tool-icon";
-import {
-  Shortcut,
-  getShortcutKeyList,
-  isShortcutEvent,
-} from "lib/keyboard-shortcuts";
 
 import dynamic from "next/dynamic";
 import { ModelProviderIcon } from "ui/model-provider-icon";
@@ -58,6 +44,8 @@ import { useChatModels } from "@/hooks/queries/use-chat-models";
 type MessagePart = UIMessage["parts"][number];
 type TextMessagePart = Extract<MessagePart, { type: "text" }>;
 type AssistMessagePart = Extract<MessagePart, { type: "text" }>;
+
+import { FileTypeIcon } from "./file-type-icon";
 
 interface UserMessagePartProps {
   part: TextMessagePart;
@@ -89,7 +77,6 @@ interface ToolMessagePartProps {
   messageId: string;
   showActions: boolean;
   isLast?: boolean;
-  isManualToolInvocation?: boolean;
   addToolResult?: UseChatHelpers<UIMessage>["addToolResult"];
   isError?: boolean;
   setMessages?: UseChatHelpers<UIMessage>["setMessages"];
@@ -613,6 +600,17 @@ const WebSearchToolInvocation = dynamic(
   },
 );
 
+const AcademicSearchToolInvocation = dynamic(
+  () =>
+    import("./tool-invocation/academic-search").then(
+      (mod) => mod.AcademicSearchToolInvocation,
+    ),
+  {
+    ssr: false,
+    loading,
+  },
+);
+
 const CodeExecutor = dynamic(
   () =>
     import("./tool-invocation/code-executor").then((mod) => mod.CodeExecutor),
@@ -622,33 +620,8 @@ const CodeExecutor = dynamic(
   },
 );
 
-// Local shortcuts for tool invocation approval/rejection
-const approveToolInvocationShortcut: Shortcut = {
-  description: "approveToolInvocation",
-  shortcut: {
-    key: "Enter",
-    command: true,
-  },
-};
-
-const rejectToolInvocationShortcut: Shortcut = {
-  description: "rejectToolInvocation",
-  shortcut: {
-    key: "Escape",
-    command: true,
-  },
-};
-
 export const ToolMessagePart = memo(
-  ({
-    part,
-    isLast,
-    addToolResult,
-    isError,
-    isManualToolInvocation,
-  }: ToolMessagePartProps) => {
-    const t = useTranslations("");
-
+  ({ part, isLast, addToolResult, isError }: ToolMessagePartProps) => {
     const { output, toolCallId, state, input, errorText } = part;
 
     const toolName = useMemo(() => getToolName(part), [part.type]);
@@ -658,42 +631,6 @@ export const ToolMessagePart = memo(
     }, [state]);
 
     const [expanded, setExpanded] = useState(false);
-
-    // Handle keyboard shortcuts for approve/reject actions
-    useEffect(() => {
-      // Only enable shortcuts when manual tool invocation buttons are shown
-      if (!isManualToolInvocation) return;
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-        const isApprove = isShortcutEvent(e, approveToolInvocationShortcut);
-        const isReject = isShortcutEvent(e, rejectToolInvocationShortcut);
-
-        if (!isApprove && !isReject) return;
-
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
-        if (isApprove) {
-          addToolResult?.({
-            tool: toolName,
-            toolCallId,
-            output: ManualToolConfirmTag.create({ confirm: true }),
-          });
-        }
-
-        if (isReject) {
-          addToolResult?.({
-            tool: toolName,
-            toolCallId,
-            output: ManualToolConfirmTag.create({ confirm: false }),
-          });
-        }
-      };
-
-      window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isManualToolInvocation, isLast]);
 
     const onToolCallDirect = useCallback(
       (result: any) => {
@@ -734,6 +671,10 @@ export const ToolMessagePart = memo(
     const CustomToolComponent = useMemo(() => {
       if (toolName === DefaultToolName.WebSearch) {
         return <WebSearchToolInvocation part={part} />;
+      }
+
+      if (toolName === DefaultToolName.AcademicSearch) {
+        return <AcademicSearchToolInvocation part={part} />;
       }
 
       if (toolName === DefaultToolName.JavascriptExecution) {
@@ -793,6 +734,7 @@ export const ToolMessagePart = memo(
         [DefaultToolName.CreateUserFile]: "Create File",
         [DefaultToolName.WebSearch]: "Web Search",
         [DefaultToolName.WebContent]: "Web Content",
+        [DefaultToolName.AcademicSearch]: "Academic Search",
         [DefaultToolName.Http]: "HTTP Request",
         [DefaultToolName.JavascriptExecution]: "JavaScript",
         [DefaultToolName.PythonExecution]: "Python",
@@ -909,55 +851,6 @@ export const ToolMessagePart = memo(
                 )}
               </div>
             )}
-
-            {isManualToolInvocation && (
-              <div className="flex flex-row gap-2 items-center mt-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="rounded-full text-xs hover:ring py-2"
-                  onClick={() =>
-                    addToolResult?.({
-                      tool: toolName,
-                      toolCallId,
-                      output: ManualToolConfirmTag.create({
-                        confirm: true,
-                      }),
-                    })
-                  }
-                >
-                  <Check />
-                  {t("Common.approve")}
-                  <Separator orientation="vertical" className="h-4" />
-                  <span className="text-muted-foreground">
-                    {getShortcutKeyList(approveToolInvocationShortcut).join(
-                      " ",
-                    )}
-                  </span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full text-xs py-2"
-                  onClick={() =>
-                    addToolResult?.({
-                      tool: toolName,
-                      toolCallId,
-                      output: ManualToolConfirmTag.create({
-                        confirm: false,
-                      }),
-                    })
-                  }
-                >
-                  <X />
-                  {t("Common.reject")}
-                  <Separator orientation="vertical" />
-                  <span className="text-muted-foreground">
-                    {getShortcutKeyList(rejectToolInvocationShortcut).join(" ")}
-                  </span>
-                </Button>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -967,8 +860,6 @@ export const ToolMessagePart = memo(
     if (prev.isError !== next.isError) return false;
     if (prev.isLast !== next.isLast) return false;
     if (prev.showActions !== next.showActions) return false;
-    if (prev.isManualToolInvocation !== next.isManualToolInvocation)
-      return false;
     if (prev.messageId !== next.messageId) return false;
     if (!equal(prev.part, next.part)) return false;
     return true;
@@ -978,56 +869,13 @@ export const ToolMessagePart = memo(
 ToolMessagePart.displayName = "ToolMessagePart";
 
 // File Message Part Component
-function getFileTypeIcon(mimeType: string, filename: string) {
-  const ext = filename.split(".").pop()?.toLowerCase() || "";
-  if (mimeType.startsWith("image/")) return FileImageIcon;
-  if (
-    mimeType.includes("spreadsheet") ||
-    mimeType.includes("excel") ||
-    ["xlsx", "xls", "csv", "tsv"].includes(ext)
-  )
-    return FileSpreadsheetIcon;
-  if (
-    mimeType.includes("presentation") ||
-    mimeType.includes("powerpoint") ||
-    ["pptx", "ppt", "key"].includes(ext)
-  )
-    return PresentationIcon;
-  if (
-    mimeType === "application/pdf" ||
-    mimeType.includes("word") ||
-    mimeType.includes("document") ||
-    ["pdf", "doc", "docx", "txt", "rtf", "md"].includes(ext)
-  )
-    return FileTextIcon;
-  if (
-    mimeType.includes("zip") ||
-    mimeType.includes("compressed") ||
-    mimeType.includes("archive") ||
-    ["zip", "rar", "7z", "tar", "gz"].includes(ext)
-  )
-    return FileArchiveIcon;
-  if (
-    mimeType.includes("javascript") ||
-    mimeType.includes("json") ||
-    mimeType.includes("xml") ||
-    mimeType.includes("html") ||
-    [
-      "js", "ts", "jsx", "tsx", "py", "java", "c", "cpp", "go", "rs",
-      "rb", "php", "html", "css", "json", "xml", "yaml", "yml", "sh",
-    ].includes(ext)
-  )
-    return FileCodeIcon;
-  return FileIcon;
-}
-
 interface FileMessagePartProps {
   part: FileUIPart;
   isUserMessage: boolean;
 }
 
 export const FileMessagePart = memo(
-  ({ part, isUserMessage }: FileMessagePartProps) => {
+  ({ part, isUserMessage: _isUserMessage }: FileMessagePartProps) => {
     const isImage = part.mediaType?.startsWith("image/");
 
     const fileExtension =
@@ -1037,10 +885,6 @@ export const FileMessagePart = memo(
     const fileUrl = part.url;
     const filename =
       part.filename || part.url?.split("/").pop() || "Attachment";
-    const TypeIcon = getFileTypeIcon(
-      part.mediaType || "",
-      part.filename || "",
-    );
 
     if (isImage && fileUrl) {
       return (
@@ -1050,7 +894,6 @@ export const FileMessagePart = memo(
           rel="noopener noreferrer"
           className={cn(
             "block w-16 h-16 rounded-xl overflow-hidden border border-border hover:opacity-80 transition-opacity",
-            isUserMessage ? "ml-auto" : "mr-auto",
           )}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1072,15 +915,16 @@ export const FileMessagePart = memo(
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              "w-44 h-16 inline-flex items-center gap-2.5 rounded-xl border border-border px-3 hover:bg-accent/60 transition-colors",
-              isUserMessage ? "ml-auto bg-accent/40" : "mr-auto bg-muted/60",
+              "w-44 h-16 inline-flex items-center gap-2.5 rounded-xl border border-border px-3 hover:bg-accent/60 transition-colors bg-background/80",
             )}
           >
-            <TypeIcon className="size-5 text-muted-foreground shrink-0" />
+            <FileTypeIcon
+              mimeType={part.mediaType || ""}
+              filename={part.filename || ""}
+              className="size-8 p-1"
+            />
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-xs font-medium truncate">
-                {filename}
-              </span>
+              <span className="text-xs font-medium truncate">{filename}</span>
               <span className="text-[10px] text-muted-foreground">
                 {fileExtension}
               </span>
@@ -1100,14 +944,13 @@ FileMessagePart.displayName = "FileMessagePart";
 // Source URL (non-model) attachment renderer
 export function SourceUrlMessagePart({
   part,
-  isUserMessage,
+  isUserMessage: _isUserMessage,
 }: {
   part: { type: "source-url"; url: string; title?: string; mediaType?: string };
   isUserMessage: boolean;
 }) {
   const name = part.title || part.url?.split("/").pop() || "attachment";
   const ext = name.split(".").pop()?.toUpperCase() || "FILE";
-  const TypeIcon = getFileTypeIcon(part.mediaType || "", name);
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -1116,18 +959,17 @@ export function SourceUrlMessagePart({
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
-            "w-44 h-16 inline-flex items-center gap-2.5 rounded-xl border border-border px-3 hover:bg-accent/60 transition-colors",
-            isUserMessage ? "ml-auto bg-accent/40" : "mr-auto bg-muted/60",
+            "w-44 h-16 inline-flex items-center gap-2.5 rounded-xl border border-border px-3 hover:bg-accent/60 transition-colors bg-background/80",
           )}
         >
-          <TypeIcon className="size-5 text-muted-foreground shrink-0" />
+          <FileTypeIcon
+            mimeType={part.mediaType || ""}
+            filename={name}
+            className="size-8 p-1"
+          />
           <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-xs font-medium truncate">
-              {name}
-            </span>
-            <span className="text-[10px] text-muted-foreground">
-              {ext}
-            </span>
+            <span className="text-xs font-medium truncate">{name}</span>
+            <span className="text-[10px] text-muted-foreground">{ext}</span>
           </div>
         </a>
       </TooltipTrigger>

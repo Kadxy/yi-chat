@@ -93,10 +93,6 @@
       "searchedTheWeb": "ウェブを検索しました",
       "toolModeDescription": "ツールの使用方法を選択:\n• 自動: AIがツールの使用を自動で決定\n• 手動: ツール使用前に許可を求める\n• なし: すべてのツールを無効化",
       "toolsSetupDescription": "Select MCP tools that the chatbot can use.\nThe chatbot will use selected tools based on its own judgment.",
-      "selectToolMode": "ツールモードを選択",
-      "autoToolModeDescription": "あなたに尋ねることなく、ツールをいつ使用するかを決定します",
-      "manualToolModeDescription": "ツールを使用する前にあなたの許可を求めます",
-      "noneToolModeDescription": "Do not use any tools.",
       "toolsSetup": "ツール設定",
       "searchOptions": "検索オプション",
       "searchOptionsDescription": "検索結果の最大数、検索日時など、チャットボットに検索オプションを渡すことができます。",
@@ -107,9 +103,6 @@
       "error": "エラー",
       "authorizationRequired": "認証が必要です",
       "clickToAuthorize": "このMCPサーバーを認証してツールにアクセスするには、ここをクリックしてください。",
-      "auto": "自動",
-      "manual": "手動",
-      "none": "なし",
       "noToolsAvailable": "利用可能なツールがありません"
     },
     "VoiceChat": {
@@ -211,7 +204,6 @@
     "title": "キーボードショートカット",
     "newChat": "新しいチャット",
     "toggleSidebar": "サイドバーの切り替え",
-    "toolMode": "ツールモード",
     "lastMessageCopy": "最後のメッセージをコピー",
     "openChatPreferences": "チャット設定を開く",
     "deleteThread": "チャットを削除",

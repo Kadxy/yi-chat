@@ -15,13 +15,8 @@ import globalLogger from "logger";
 import { buildUserSystemPrompt } from "lib/ai/prompts";
 import { chatApiSchemaRequestBodySchema, ChatMetadata } from "app-types/chat";
 
-import { errorIf, safe } from "ts-safe";
-
 import {
-  excludeToolExecution,
   handleError,
-  manualToolExecuteByLastMessage,
-  extractInProgressToolPart,
   loadMcpTools,
   loadAppDefaultTools,
   convertToSavePart,
@@ -49,7 +44,6 @@ export async function POST(request: Request) {
       id,
       message,
       chatModel,
-      toolChoice,
       thinkingEnabled,
       allowedMcpServers,
       attachments = [],
@@ -152,10 +146,7 @@ export async function POST(request: Request) {
 
     messages.push(message);
 
-    const isToolCallAllowed = toolChoice != "none";
-
     const metadata: ChatMetadata = {
-      toolChoice: toolChoice,
       toolCount: 0,
       chatModel: chatModel,
       thinkingEnabled: !!thinkingEnabled && thinkingConfig != null,
@@ -163,34 +154,8 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: async ({ writer: dataStream }) => {
-        const MCP_TOOLS = await safe()
-          .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
-          .map(() => loadMcpTools(allowedMcpServers))
-          .orElse({});
-
-        const APP_DEFAULT_TOOLS = await safe()
-          .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
-          .map(() => loadAppDefaultTools())
-          .orElse({});
-        const inProgressToolParts = extractInProgressToolPart(message);
-        if (inProgressToolParts.length) {
-          await Promise.all(
-            inProgressToolParts.map(async (part) => {
-              const output = await manualToolExecuteByLastMessage(
-                part,
-                { ...MCP_TOOLS, ...APP_DEFAULT_TOOLS },
-                request.signal,
-              );
-              part.output = output;
-
-              dataStream.write({
-                type: "tool-output-available",
-                toolCallId: part.toolCallId,
-                output,
-              });
-            }),
-          );
-        }
+        const MCP_TOOLS = await loadMcpTools(allowedMcpServers);
+        const APP_DEFAULT_TOOLS = await loadAppDefaultTools();
 
         const userPreferences = thread?.userPreferences || undefined;
 
@@ -199,24 +164,11 @@ export async function POST(request: Request) {
           userPreferences,
         );
 
-        const vercelAITooles = safe({
+        const vercelAITooles = {
           ...MCP_TOOLS,
-        })
-          .map((t) => {
-            const bindingTools =
-              toolChoice === "manual" ||
-              (message.metadata as ChatMetadata)?.toolChoice === "manual"
-                ? excludeToolExecution(t)
-                : t;
-            return {
-              ...bindingTools,
-              ...APP_DEFAULT_TOOLS, // APP_DEFAULT_TOOLS Not Supported Manual
-            };
-          })
-          .unwrap();
+          ...APP_DEFAULT_TOOLS,
+        };
         metadata.toolCount = Object.keys(vercelAITooles).length;
-
-        logger.info(`tool mode: ${toolChoice}`);
 
         logger.info(`allowedMcpServers: ${allowedMcpServers?.length ?? 0}`);
         logger.info(

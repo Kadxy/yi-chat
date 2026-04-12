@@ -1,12 +1,10 @@
 import type { LanguageModelUsage, UIMessage } from "ai";
 import { z } from "zod";
 import { UserPreferences } from "./user";
-import { tag } from "lib/tag";
 
 export type ChatMetadata = {
   usage?: LanguageModelUsage;
   chatModel?: ChatModel;
-  toolChoice?: "auto" | "none" | "manual";
   toolCount?: number;
   thinkingEnabled?: boolean;
   thinkingDurationMs?: number;
@@ -52,7 +50,7 @@ export const chatApiSchemaRequestBodySchema = z.object({
       model: z.string(),
     })
     .optional(),
-  toolChoice: z.enum(["auto", "none", "manual"]),
+  toolChoice: z.enum(["auto", "none", "manual"]).optional(),
   thinkingEnabled: z.boolean().optional(),
   imageTool: z.object({ model: z.string().optional() }).optional(),
   allowedMcpServers: z.array(z.string()).optional(),
@@ -119,7 +117,3 @@ export type ChatRepository = {
     messages: PartialBy<ChatMessage, "createdAt">[],
   ): Promise<ChatMessage[]>;
 };
-
-export const ManualToolConfirmTag = tag<{
-  confirm: boolean;
-}>("manual-tool-confirm");

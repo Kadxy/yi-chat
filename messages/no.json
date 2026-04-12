@@ -97,10 +97,6 @@
       "webSearching": "Søker på nettet...",
       "searchedTheWeb": "Søkte på nettet",
       "toolsSetupDescription": "Select MCP tools that the chatbot can use.\nThe chatbot will use selected tools based on its own judgment.",
-      "selectToolMode": "Velg en verktøymodus",
-      "autoToolModeDescription": "Bestemmer når verktøy skal brukes uten å spørre deg",
-      "manualToolModeDescription": "Ber om tillatelse før bruk av verktøy",
-      "noneToolModeDescription": "Do not use any tools.",
       "toolsSetup": "Verktøyoppsett",
       "searchOptions": "Søkealternativer",
       "searchOptionsDescription": "Du kan sende søkealternativer til chatboten, som maksimalt antall søkeresultater, søkedato osv.",
@@ -111,9 +107,6 @@
       "error": "feil",
       "authorizationRequired": "Autorisasjon kreves",
       "clickToAuthorize": "Klikk her for å autorisere denne MCP-serveren og få tilgang til verktøyene.",
-      "auto": "Auto",
-      "manual": "Manuell",
-      "none": "Ingen",
       "noToolsAvailable": "Ingen verktøy tilgjengelig"
     },
     "VoiceChat": {
@@ -234,7 +227,6 @@
     "title": "Tastatursnarveier",
     "newChat": "Ny chat",
     "toggleSidebar": "Åpne sidefelt",
-    "toolMode": "Verktøymodus",
     "lastMessageCopy": "Kopier siste melding",
     "openChatPreferences": "Åpne chatpreferanser",
     "deleteThread": "Slett chat",

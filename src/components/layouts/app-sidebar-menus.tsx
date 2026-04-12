@@ -7,7 +7,7 @@ import { SidebarGroupContent } from "ui/sidebar";
 import { SidebarGroup } from "ui/sidebar";
 import Link from "next/link";
 import { getShortcutKeyList, Shortcuts } from "lib/keyboard-shortcuts";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { MCPIcon } from "ui/mcp-icon";
 import { WriteIcon } from "ui/write-icon";
@@ -18,6 +18,7 @@ import { AppSidebarAdmin } from "./app-sidebar-menu-admin";
 
 export function AppSidebarMenus({ user }: { user?: BasicUser }) {
   const router = useRouter();
+  const pathname = usePathname();
   const t = useTranslations("");
   const { setOpenMobile } = useSidebar();
 
@@ -32,8 +33,9 @@ export function AppSidebarMenus({ user }: { user?: BasicUser }) {
                 onClick={(e) => {
                   e.preventDefault();
                   setOpenMobile(false);
-                  router.push(`/`);
-                  router.refresh();
+                  // If already on new chat page, do nothing — preserve input and files
+                  if (pathname === "/") return;
+                  router.push("/");
                 }}
               >
                 <SidebarMenuButton className="flex font-semibold group/new-chat bg-input/20 border border-border/40">

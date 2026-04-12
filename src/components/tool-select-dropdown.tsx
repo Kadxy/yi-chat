@@ -2,7 +2,7 @@
 
 import { appStore } from "@/app/store";
 import { cn } from "lib/utils";
-import { ChevronRight, Loader, ShieldAlertIcon, Wrench } from "lucide-react";
+import { ChevronRight, Loader, ShieldAlertIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "ui/button";
@@ -43,23 +43,17 @@ export function ToolSelectDropdown({
   className,
 }: ToolSelectDropdownProps) {
   const [open, setOpen] = useState(false);
-  const [toolChoice, allowedMcpServers, mcpList] = appStore(
-    useShallow((state) => [
-      state.toolChoice,
-      state.allowedMcpServers,
-      state.mcpList,
-    ]),
+  const [allowedMcpServers, mcpList] = appStore(
+    useShallow((state) => [state.allowedMcpServers, state.mcpList]),
   );
 
-  const t = useTranslations("Chat.Tool");
   const { isLoading } = useMcpList();
 
   const enabledCount = useMemo(() => {
-    if (toolChoice == "none") return 0;
     if (!Array.isArray(allowedMcpServers)) return 0;
     return allowedMcpServers.filter((id) => mcpList.some((s) => s.id === id))
       .length;
-  }, [allowedMcpServers, toolChoice, mcpList]);
+  }, [allowedMcpServers, mcpList]);
 
   const triggerButton = useMemo(() => {
     return (
@@ -77,7 +71,7 @@ export function ToolSelectDropdown({
         )}
       >
         <span className={!enabledCount ? "text-muted-foreground" : ""}>
-          <Wrench className="size-3.5" />
+          <MCPIcon className="size-3.5 fill-current" />
         </span>
 
         {(enabledCount > 0 || isLoading) && (
@@ -106,7 +100,7 @@ export function ToolSelectDropdown({
           <Tooltip>
             <TooltipTrigger asChild>{triggerButton}</TooltipTrigger>
             <TooltipContent align={align} side={side}>
-              {t("toolsSetup")}
+              MCP
             </TooltipContent>
           </Tooltip>
         </div>

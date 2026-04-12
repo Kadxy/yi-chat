@@ -12,7 +12,6 @@ import { ChatGreeting } from "./chat-greeting";
 import { useShallow } from "zustand/shallow";
 import {
   DefaultChatTransport,
-  isToolUIPart,
   lastAssistantMessageIsCompleteWithToolCalls,
   TextUIPart,
   UIMessage,
@@ -57,7 +56,7 @@ type Props = {
 export default function ChatBot({
   threadId,
   initialMessages,
-  initialTitle,
+  initialTitle: _initialTitle,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
@@ -76,7 +75,6 @@ export default function ChatBot({
   const [
     appStoreMutate,
     model,
-    toolChoice,
     allowedMcpServers,
     threadList,
     thinkingEnabled,
@@ -84,7 +82,6 @@ export default function ChatBot({
     useShallow((state) => [
       state.mutate,
       state.chatModel,
-      state.toolChoice,
       state.allowedMcpServers,
       state.threadList,
       state.thinkingEnabled,
@@ -176,7 +173,6 @@ export default function ChatBot({
           id,
           chatModel:
             (body as { model: ChatModel })?.model ?? latestRef.current.model,
-          toolChoice: latestRef.current.toolChoice,
           thinkingEnabled: latestRef.current.thinkingEnabled,
           allowedMcpServers: Array.isArray(latestRef.current.allowedMcpServers)
             ? latestRef.current.allowedMcpServers
@@ -205,7 +201,6 @@ export default function ChatBot({
   useMounted();
 
   const latestRef = useToRef({
-    toolChoice,
     thinkingEnabled,
     model,
     allowedMcpServers,
@@ -230,17 +225,6 @@ export default function ChatBot({
       initialMessages.at(-1)?.id === messages.at(-1)?.id,
     [messages],
   );
-
-  const isPendingToolCall = useMemo(() => {
-    if (status != "ready") return false;
-    const lastMessage = messages.at(-1);
-    if (lastMessage?.role != "assistant") return false;
-    const lastPart = lastMessage.parts.at(-1);
-    if (!lastPart) return false;
-    if (!isToolUIPart(lastPart)) return false;
-    if (lastPart.state.startsWith("output")) return false;
-    return true;
-  }, [status, messages]);
 
   const space = useMemo(() => {
     if (!isLoading || error) return false;
@@ -275,21 +259,10 @@ export default function ChatBot({
   }, []);
 
   useEffect(() => {
-    appStoreMutate((prev) => {
-      const exists = prev.threadList.some((t) => t.id === threadId);
-      if (exists) {
-        return { currentThreadId: threadId };
-      }
-      return {
-        currentThreadId: threadId,
-        threadList: [
-          {
-            id: threadId,
-            title: initialTitle ?? null,
-          } as (typeof prev.threadList)[number],
-          ...prev.threadList,
-        ],
-      };
+    appStoreMutate((_prev) => {
+      // Only set currentThreadId, don't add empty threads to the list.
+      // Threads are added to the list after the first message is sent (in onFinish).
+      return { currentThreadId: threadId };
     });
   }, [threadId]);
 
@@ -300,6 +273,16 @@ export default function ChatBot({
         behavior: "instant",
       });
   }, [isInitialThreadEntry]);
+
+  // Auto-scroll to bottom during streaming when user hasn't scrolled up
+  useEffect(() => {
+    if (isLoading && isAtBottom) {
+      containerRef.current?.scrollTo({
+        top: containerRef.current?.scrollHeight,
+        behavior: "instant",
+      });
+    }
+  }, [messages, isLoading, isAtBottom]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -343,7 +326,7 @@ export default function ChatBot({
           </div>
         )}
         {emptyMessage ? (
-          <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="flex-1 flex flex-col items-center justify-center pb-[12vh]">
             <ChatGreeting />
             <motion.div
               layoutId="prompt-input"
@@ -355,7 +338,7 @@ export default function ChatBot({
                 threadId={threadId}
                 sendMessage={sendMessage}
                 setInput={setInput}
-                isLoading={isLoading || isPendingToolCall}
+                isLoading={isLoading}
                 onStop={stop}
               />
             </motion.div>
@@ -380,7 +363,7 @@ export default function ChatBot({
                     message={message}
                     status={status}
                     addToolResult={addToolResult}
-                    isLoading={isLoading || isPendingToolCall}
+                    isLoading={isLoading}
                     isLastMessage={isLastMessage}
                     setMessages={setMessages}
                     sendMessage={sendMessage}
@@ -430,7 +413,7 @@ export default function ChatBot({
               threadId={threadId}
               sendMessage={sendMessage}
               setInput={setInput}
-              isLoading={isLoading || isPendingToolCall}
+              isLoading={isLoading}
               onStop={stop}
             />
           </motion.div>
