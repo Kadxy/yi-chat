@@ -7,7 +7,10 @@ import { VercelAIMcpTool } from "app-types/mcp";
 import { safe } from "ts-safe";
 
 import { mcpClientsManager } from "lib/ai/mcp/mcp-manager";
-import { APP_DEFAULT_TOOL_KIT } from "lib/ai/tools/tool-kit";
+import {
+  APP_DEFAULT_TOOL_KIT,
+  CONDITIONAL_FILE_TOOLS,
+} from "lib/ai/tools/tool-kit";
 import { AppDefaultToolkit } from "lib/ai/tools";
 
 export function filterMCPToolsByEnabledServers(
@@ -45,14 +48,32 @@ export const loadMcpTools = (enabledServerIds?: string[]) =>
     .map((tools) => filterMCPToolsByEnabledServers(tools, enabledServerIds))
     .orElse({} as Record<string, VercelAIMcpTool>);
 
-export const loadAppDefaultTools = () =>
+export const loadAppDefaultTools = (
+  enabledToolkits?: string[],
+  hasAttachments?: boolean,
+) =>
   safe(APP_DEFAULT_TOOL_KIT)
-    .map((tools) =>
-      Object.values(AppDefaultToolkit).reduce(
-        (acc, key) => ({ ...acc, ...tools[key] }),
+    .map((toolKit) => {
+      // undefined = all enabled (backward compat), [] = none
+      const kits =
+        enabledToolkits === undefined
+          ? Object.values(AppDefaultToolkit)
+          : enabledToolkits.filter((k): k is AppDefaultToolkit =>
+              Object.values(AppDefaultToolkit).includes(k as AppDefaultToolkit),
+            );
+
+      const tools = kits.reduce(
+        (acc, key) => ({ ...acc, ...toolKit[key] }),
         {} as Record<string, Tool>,
-      ),
-    )
+      );
+
+      // Conditional tools (readUserFile - only when attachments present)
+      if (hasAttachments) {
+        Object.assign(tools, CONDITIONAL_FILE_TOOLS);
+      }
+
+      return tools;
+    })
     .ifFail((e) => {
       console.error(e);
       throw e;

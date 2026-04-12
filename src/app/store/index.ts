@@ -21,6 +21,7 @@ export interface AppState {
   mcpList: (MCPServerInfo & { id: string })[];
   currentThreadId: ChatThread["id"] | null;
   allowedMcpServers?: string[];
+  enabledBuiltinToolTypes?: string[];
   generatingTitleThreadIds: string[];
   threadFiles: {
     [threadId: string]: UploadedFile[];
@@ -42,6 +43,7 @@ const initialState: AppState = {
   mcpList: [],
   currentThreadId: null,
   allowedMcpServers: undefined,
+  enabledBuiltinToolTypes: undefined,
   chatModel: undefined,
   thinkingEnabled: false,
   openShortcutsPopup: false,
@@ -60,6 +62,8 @@ export const appStore = create<AppState & AppDispatch>()(
         chatModel: state.chatModel || initialState.chatModel,
         allowedMcpServers:
           state.allowedMcpServers || initialState.allowedMcpServers,
+        enabledBuiltinToolTypes:
+          state.enabledBuiltinToolTypes || initialState.enabledBuiltinToolTypes,
         thinkingEnabled: state.thinkingEnabled ?? initialState.thinkingEnabled,
       }),
     },

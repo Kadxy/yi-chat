@@ -2,7 +2,12 @@
 
 import { appStore } from "@/app/store";
 import { cn } from "lib/utils";
-import { ChevronRight, Loader, ShieldAlertIcon } from "lucide-react";
+import {
+  ChevronRight,
+  Loader,
+  ShieldAlertIcon,
+  WrenchIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "ui/button";
@@ -11,9 +16,9 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "ui/dropdown-menu";
-import { MCPIcon } from "ui/mcp-icon";
 
 import { useTranslations } from "next-intl";
 
@@ -29,6 +34,18 @@ import { safe } from "ts-safe";
 import { mutate } from "swr";
 import { handleErrorWithToast } from "ui/shared-toast";
 import { redriectMcpOauth } from "lib/ai/mcp/oauth-redirect";
+import { AppDefaultToolkit } from "lib/ai/tools";
+
+const TOOLKIT_KEYS: AppDefaultToolkit[] = [
+  AppDefaultToolkit.WebSearch,
+  AppDefaultToolkit.Code,
+  AppDefaultToolkit.Visualization,
+  AppDefaultToolkit.AcademicSearch,
+  AppDefaultToolkit.Http,
+  AppDefaultToolkit.File,
+];
+
+const ALL_TOOLKIT_KEYS = Object.values(AppDefaultToolkit);
 
 interface ToolSelectDropdownProps {
   align?: "start" | "end" | "center";
@@ -43,17 +60,30 @@ export function ToolSelectDropdown({
   className,
 }: ToolSelectDropdownProps) {
   const [open, setOpen] = useState(false);
-  const [allowedMcpServers, mcpList] = appStore(
-    useShallow((state) => [state.allowedMcpServers, state.mcpList]),
+  const [allowedMcpServers, enabledBuiltinToolTypes, mcpList] = appStore(
+    useShallow((state) => [
+      state.allowedMcpServers,
+      state.enabledBuiltinToolTypes,
+      state.mcpList,
+    ]),
   );
 
   const { isLoading } = useMcpList();
 
-  const enabledCount = useMemo(() => {
+  const mcpEnabledCount = useMemo(() => {
     if (!Array.isArray(allowedMcpServers)) return 0;
     return allowedMcpServers.filter((id) => mcpList.some((s) => s.id === id))
       .length;
   }, [allowedMcpServers, mcpList]);
+
+  const builtinEnabledCount = useMemo(() => {
+    if (!Array.isArray(enabledBuiltinToolTypes)) return TOOLKIT_KEYS.length;
+    return enabledBuiltinToolTypes.filter((k) =>
+      ALL_TOOLKIT_KEYS.includes(k as AppDefaultToolkit),
+    ).length;
+  }, [enabledBuiltinToolTypes]);
+
+  const totalEnabledCount = mcpEnabledCount + builtinEnabledCount;
 
   const triggerButton = useMemo(() => {
     return (
@@ -62,7 +92,7 @@ export function ToolSelectDropdown({
         size={"sm"}
         className={cn(
           "gap-0.5 bg-input/60 border rounded-full data-[state=open]:bg-input! hover:bg-input!",
-          !enabledCount &&
+          !totalEnabledCount &&
             !isLoading &&
             "text-muted-foreground bg-transparent border-transparent",
           isLoading && "bg-input/60",
@@ -70,11 +100,11 @@ export function ToolSelectDropdown({
           className,
         )}
       >
-        <span className={!enabledCount ? "text-muted-foreground" : ""}>
-          <MCPIcon className="size-3.5 fill-current" />
+        <span className={!totalEnabledCount ? "text-muted-foreground" : ""}>
+          <WrenchIcon className="size-3.5" />
         </span>
 
-        {(enabledCount > 0 || isLoading) && (
+        {(totalEnabledCount > 0 || isLoading) && (
           <>
             <div className="h-4 hidden sm:block mx-1">
               <Separator orientation="vertical" />
@@ -84,14 +114,17 @@ export function ToolSelectDropdown({
               {isLoading ? (
                 <Loader className="animate-spin size-3.5" />
               ) : (
-                <CountAnimation number={enabledCount} className="text-xs" />
+                <CountAnimation
+                  number={totalEnabledCount}
+                  className="text-xs"
+                />
               )}
             </div>
           </>
         )}
       </Button>
     );
-  }, [enabledCount, isLoading, open]);
+  }, [totalEnabledCount, isLoading, open]);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -100,17 +133,89 @@ export function ToolSelectDropdown({
           <Tooltip>
             <TooltipTrigger asChild>{triggerButton}</TooltipTrigger>
             <TooltipContent align={align} side={side}>
-              MCP
+              Tools
             </TooltipContent>
           </Tooltip>
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="md:w-72" align={align} side={side}>
         <div className="py-2">
+          <BuiltinToolSelector />
+          <div className="py-1.5">
+            <Separator />
+          </div>
           <McpServerSelector />
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function BuiltinToolSelector() {
+  const t = useTranslations("Chat.Tool");
+  const [appStoreMutate, enabledBuiltinToolTypes] = appStore(
+    useShallow((state) => [state.mutate, state.enabledBuiltinToolTypes]),
+  );
+
+  const enabledSet = useMemo(
+    () =>
+      Array.isArray(enabledBuiltinToolTypes)
+        ? new Set(enabledBuiltinToolTypes)
+        : new Set(ALL_TOOLKIT_KEYS as string[]),
+    [enabledBuiltinToolTypes],
+  );
+
+  const toggleToolkit = useCallback(
+    (key: AppDefaultToolkit) => {
+      appStoreMutate((prev) => {
+        // First toggle: initialize from full list
+        const current = Array.isArray(prev.enabledBuiltinToolTypes)
+          ? prev.enabledBuiltinToolTypes
+          : [...ALL_TOOLKIT_KEYS];
+        const isEnabled = current.includes(key);
+        return {
+          enabledBuiltinToolTypes: isEnabled
+            ? current.filter((k) => k !== key)
+            : [...current, key],
+        };
+      });
+    },
+    [appStoreMutate],
+  );
+
+  const toolkitI18nKeys: Record<AppDefaultToolkit, string> = {
+    [AppDefaultToolkit.WebSearch]: "toolkitWebSearch",
+    [AppDefaultToolkit.Code]: "toolkitCode",
+    [AppDefaultToolkit.Visualization]: "toolkitVisualization",
+    [AppDefaultToolkit.AcademicSearch]: "toolkitAcademicSearch",
+    [AppDefaultToolkit.Http]: "toolkitHttp",
+    [AppDefaultToolkit.File]: "toolkitFile",
+  };
+
+  return (
+    <DropdownMenuGroup>
+      <DropdownMenuLabel className="text-xs text-muted-foreground px-2 pb-1">
+        {t("builtInTools")}
+      </DropdownMenuLabel>
+      {TOOLKIT_KEYS.map((key) => {
+        const isEnabled = enabledSet.has(key);
+        return (
+          <DropdownMenuItem
+            key={key}
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              toggleToolkit(key);
+            }}
+          >
+            <span className={cn("truncate flex-1", !isEnabled && "opacity-30")}>
+              {t(toolkitI18nKeys[key])}
+            </span>
+            <Switch checked={isEnabled} />
+          </DropdownMenuItem>
+        );
+      })}
+    </DropdownMenuGroup>
   );
 }
 
@@ -158,6 +263,9 @@ function McpServerSelector() {
   if (!sortedServers.length) {
     return (
       <DropdownMenuGroup>
+        <DropdownMenuLabel className="text-xs text-muted-foreground px-2 pb-1">
+          MCP
+        </DropdownMenuLabel>
         <div className="text-sm text-muted-foreground w-full h-full flex flex-col items-center justify-center py-6">
           <div>{t("noMcpServersDetected")}</div>
           <Link href="/mcp">
@@ -175,6 +283,9 @@ function McpServerSelector() {
 
   return (
     <DropdownMenuGroup>
+      <DropdownMenuLabel className="text-xs text-muted-foreground px-2 pb-1">
+        MCP
+      </DropdownMenuLabel>
       {sortedServers.map((server) => {
         const isEnabled = enabledSet.has(server.id);
         const isAuthorizing = server.status === "authorizing";
@@ -256,10 +367,6 @@ function McpServerItem({
         onToggle();
       }}
     >
-      <div className="flex items-center justify-center p-1 rounded bg-input/40 border">
-        <MCPIcon className="fill-foreground size-2.5" />
-      </div>
-
       <span className={cn("truncate flex-1", !isEnabled && "opacity-30")}>
         {serverName}
       </span>

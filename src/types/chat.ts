@@ -8,6 +8,7 @@ export type ChatMetadata = {
   toolCount?: number;
   thinkingEnabled?: boolean;
   thinkingDurationMs?: number;
+  creditCost?: number;
 };
 
 export type ChatModel = {
@@ -54,6 +55,7 @@ export const chatApiSchemaRequestBodySchema = z.object({
   thinkingEnabled: z.boolean().optional(),
   imageTool: z.object({ model: z.string().optional() }).optional(),
   allowedMcpServers: z.array(z.string()).optional(),
+  enabledBuiltinToolTypes: z.array(z.string()).optional(),
   attachments: z.array(ChatAttachmentSchema).optional(),
 });
 

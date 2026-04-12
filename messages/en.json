@@ -73,6 +73,11 @@
   },
   "Chat": {
     "Error": "Chat Error",
+    "Usage": {
+      "title": "Usage",
+      "input": "Input tokens",
+      "output": "Output tokens"
+    },
     "Errors": {
       "insufficientCredits": "Credits exhausted",
       "insufficientCreditsDesc": "Your credit balance is empty. Top up or upgrade your plan to continue chatting.",
@@ -120,7 +125,14 @@
       "error": "error",
       "authorizationRequired": "Authorization Required",
       "clickToAuthorize": "Click here to authorize this MCP server and access its tools.",
-      "noToolsAvailable": "No tools available"
+      "noToolsAvailable": "No tools available",
+      "builtInTools": "Built-in Tools",
+      "toolkitVisualization": "Visualization",
+      "toolkitWebSearch": "Web Search",
+      "toolkitAcademicSearch": "Academic Search",
+      "toolkitHttp": "HTTP Request",
+      "toolkitCode": "Code Execution",
+      "toolkitFile": "File"
     },
     "Thinking": {
       "selectThinkingMode": "Thinking",
@@ -228,7 +240,33 @@
     "reportAnIssue": "Report an issue",
     "joinCommunity": "Join Community",
     "userSettings": "User Settings",
+    "usageRecords": "Usage Records",
     "yourPublicLinks": "Your Public Links"
+  },
+  "Usage": {
+    "title": "Usage Records",
+    "description": "View your credit consumption history",
+    "currentBalance": "Current Balance",
+    "currentPlan": "Current Plan",
+    "credits": "credits",
+    "time": "Time",
+    "type": "Type",
+    "details": "Details",
+    "model": "Model",
+    "tokens": "Tokens",
+    "inputTokens": "In",
+    "outputTokens": "Out",
+    "amount": "Amount",
+    "balance": "Balance",
+    "noRecords": "No usage records yet",
+    "noRecordsDescription": "Your credit transactions will appear here once you start using the service.",
+    "typeSignup": "Signup Bonus",
+    "typeSignIn": "Sign-in Bonus",
+    "typeSubscription": "Subscription",
+    "typeTopup": "Top Up",
+    "typeUsage": "Usage",
+    "typeAdminGrant": "Admin Grant",
+    "typeAdminDeduct": "Admin Deduct"
   },
   "Archive": {
     "archive": "Archive",
@@ -562,6 +600,7 @@
   },
   "MCP": {
     "addMcpServer": "Add MCP Server",
+    "mcpLimitReached": "MCP limit reached ({count}). Upgrade to add more.",
     "addCustomServer": "Add Custom Server",
     "configureYourMcpServerConnectionSettings": "Configure your MCP server connection settings",
     "mcpConfiguration": "MCP Configuration",

@@ -69,6 +69,11 @@
   },
   "Chat": {
     "Error": "聊天错误",
+    "Usage": {
+      "title": "消耗",
+      "input": "输入 tokens",
+      "output": "输出 tokens"
+    },
     "Errors": {
       "insufficientCredits": "额度已用完",
       "insufficientCreditsDesc": "你的 Credits 余额为零，请充值或升级套餐后继续使用。",
@@ -117,7 +122,14 @@
       "error": "错误",
       "authorizationRequired": "需要授权",
       "clickToAuthorize": "点击此处授权此MCP服务器并访问其工具。",
-      "noToolsAvailable": "无可用工具"
+      "noToolsAvailable": "无可用工具",
+      "builtInTools": "内置工具",
+      "toolkitVisualization": "可视化图表",
+      "toolkitWebSearch": "网页搜索",
+      "toolkitAcademicSearch": "学术搜索",
+      "toolkitHttp": "HTTP 请求",
+      "toolkitCode": "代码执行",
+      "toolkitFile": "文件"
     },
     "Thinking": {
       "selectThinkingMode": "思考",
@@ -223,7 +235,33 @@
     "reportAnIssue": "报告问题",
     "joinCommunity": "加入社区",
     "userSettings": "用户设置",
+    "usageRecords": "消费记录",
     "yourPublicLinks": "你的公开链接"
+  },
+  "Usage": {
+    "title": "消费记录",
+    "description": "查看你的积分消费历史",
+    "currentBalance": "当前余额",
+    "currentPlan": "当前计划",
+    "credits": "积分",
+    "time": "时间",
+    "type": "类型",
+    "details": "详情",
+    "model": "模型",
+    "tokens": "Tokens",
+    "inputTokens": "输入",
+    "outputTokens": "输出",
+    "amount": "变动",
+    "balance": "余额",
+    "noRecords": "暂无消费记录",
+    "noRecordsDescription": "你的积分交易记录将在你开始使用服务后出现在这里。",
+    "typeSignup": "注册奖励",
+    "typeSignIn": "签到奖励",
+    "typeSubscription": "订阅",
+    "typeTopup": "充值",
+    "typeUsage": "消耗",
+    "typeAdminGrant": "管理员发放",
+    "typeAdminDeduct": "管理员扣除"
   },
   "Archive": {
     "archive": "归档",
@@ -283,6 +321,7 @@
   "MCP": {
     "marketplace": "市场",
     "addMcpServer": "添加服务器",
+    "mcpLimitReached": "已达 MCP 上限（{count}个），升级套餐可添加更多",
     "addCustomServer": "添加自定义服务器",
     "configureYourMcpServerConnectionSettings": "配置您的 MCP 服务器连接设置",
     "mcpConfiguration": "MCP 配置",

@@ -52,6 +52,7 @@ export async function POST(request: Request) {
       chatModel,
       thinkingEnabled,
       allowedMcpServers,
+      enabledBuiltinToolTypes,
       attachments = [],
     } = chatApiSchemaRequestBodySchema.parse(json);
 
@@ -188,7 +189,10 @@ export async function POST(request: Request) {
     const stream = createUIMessageStream({
       execute: async ({ writer: dataStream }) => {
         const MCP_TOOLS = await loadMcpTools(allowedMcpServers);
-        const APP_DEFAULT_TOOLS = await loadAppDefaultTools();
+        const APP_DEFAULT_TOOLS = await loadAppDefaultTools(
+          enabledBuiltinToolTypes,
+          attachments.length > 0,
+        );
 
         const userPreferences = thread?.userPreferences || undefined;
 
@@ -277,6 +281,13 @@ export async function POST(request: Request) {
               }
               if (part.type == "finish") {
                 metadata.usage = part.totalUsage;
+                if (requestedModel && part.totalUsage) {
+                  metadata.creditCost = calculateCreditCost(
+                    requestedModel,
+                    part.totalUsage.inputTokens ?? 0,
+                    part.totalUsage.outputTokens ?? 0,
+                  );
+                }
                 return metadata;
               }
             },
@@ -319,6 +330,7 @@ export async function POST(request: Request) {
             inputTokens,
             outputTokens,
           );
+          metadata.creditCost = cost;
 
           if (cost > 0) {
             const result = await creditRepository.adjustCredits({

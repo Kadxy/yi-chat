@@ -37,7 +37,11 @@ export const APP_DEFAULT_TOOL_KIT: Record<
     [DefaultToolName.PythonExecution]: pythonExecutionTool,
   },
   [AppDefaultToolkit.File]: {
-    [DefaultToolName.ReadUserFile]: readUserFileTool,
     [DefaultToolName.CreateUserFile]: createUserFileTool,
   },
+};
+
+/** Injected only when the message has file attachments */
+export const CONDITIONAL_FILE_TOOLS: Record<string, Tool> = {
+  [DefaultToolName.ReadUserFile]: readUserFileTool,
 };

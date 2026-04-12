@@ -76,6 +76,7 @@ export default function ChatBot({
     appStoreMutate,
     model,
     allowedMcpServers,
+    enabledBuiltinToolTypes,
     threadList,
     thinkingEnabled,
   ] = appStore(
@@ -83,6 +84,7 @@ export default function ChatBot({
       state.mutate,
       state.chatModel,
       state.allowedMcpServers,
+      state.enabledBuiltinToolTypes,
       state.threadList,
       state.thinkingEnabled,
     ]),
@@ -177,6 +179,11 @@ export default function ChatBot({
           allowedMcpServers: Array.isArray(latestRef.current.allowedMcpServers)
             ? latestRef.current.allowedMcpServers
             : undefined,
+          enabledBuiltinToolTypes: Array.isArray(
+            latestRef.current.enabledBuiltinToolTypes,
+          )
+            ? latestRef.current.enabledBuiltinToolTypes
+            : undefined,
           message: sanitizedLastMessage,
           attachments,
         };
@@ -204,6 +211,7 @@ export default function ChatBot({
     thinkingEnabled,
     model,
     allowedMcpServers,
+    enabledBuiltinToolTypes,
     messages,
     threadList,
     threadId,
