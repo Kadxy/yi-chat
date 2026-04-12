@@ -600,15 +600,25 @@ const DONE_VERBS = [
   "Worked",
 ];
 
-function pickRandom(arr: string[]): string {
-  return arr[Math.floor(Math.random() * arr.length)];
+function hashStringToIndex(str: string, len: number): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 31 + str.charCodeAt(i)) | 0;
+  }
+  return ((hash % len) + len) % len;
+}
+
+function pickByHash(arr: string[], seed: string): string {
+  return arr[hashStringToIndex(seed, arr.length)];
 }
 
 export const ReasoningPart = memo(function ReasoningPart({
+  messageId,
   reasoningText,
   isThinking,
   savedDurationMs,
 }: {
+  messageId: string;
   reasoningText: string;
   isThinking?: boolean;
   readonly?: boolean;
@@ -618,10 +628,8 @@ export const ReasoningPart = memo(function ReasoningPart({
   const startTimeRef = useRef<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const frozenSecondsRef = useRef<number | null>(null);
-  const [currentVerb, _setCurrentVerb] = useState(() =>
-    pickRandom(SPINNER_VERBS),
-  );
-  const [doneVerb] = useState(() => pickRandom(DONE_VERBS));
+  const currentVerb = pickByHash(SPINNER_VERBS, messageId);
+  const doneVerb = pickByHash(DONE_VERBS, messageId + ":done");
 
   const savedSeconds = savedDurationMs ? Math.floor(savedDurationMs / 1000) : 0;
 

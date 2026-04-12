@@ -158,6 +158,7 @@ const PurePreviewMessage = ({
               return (
                 <ReasoningPart
                   key={key}
+                  messageId={message.id}
                   readonly={readonly}
                   reasoningText={part.text}
                   isThinking={isLastMessage && isLoading && !hasTextAfter}
