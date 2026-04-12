@@ -36,6 +36,7 @@ import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { getLocaleAction } from "@/i18n/get-locale";
 import { Suspense, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { GithubIcon } from "ui/github-icon";
 import { DiscordIcon } from "ui/discord-icon";
 import { useThemeStyle } from "@/hooks/use-theme-style";
@@ -55,6 +56,7 @@ export function AppSidebarUserInner(props: {
     refreshInterval: 1000 * 60 * 10,
   });
   const appStoreMutate = appStore((state) => state.mutate);
+  const router = useRouter();
   const t = useTranslations("Layout");
 
   const logout = () => {
@@ -124,7 +126,7 @@ export function AppSidebarUserInner(props: {
 
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => appStoreMutate({ openChatPreferences: true })}
+              onClick={() => router.push("/preferences")}
             >
               <Settings2 className="size-4 text-foreground" />
               <span>{t("chatPreferences")}</span>
@@ -161,7 +163,7 @@ export function AppSidebarUserInner(props: {
             <DropdownMenuSeparator />
 
             <DropdownMenuItem
-              onClick={() => appStoreMutate({ openUserSettings: true })}
+              onClick={() => router.push("/settings")}
               className="cursor-pointer"
               data-testid="user-settings-menu-item"
             >

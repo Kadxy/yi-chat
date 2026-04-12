@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 
 const KeyboardShortcutsPopup = dynamic(
   () =>
@@ -12,36 +15,29 @@ const KeyboardShortcutsPopup = dynamic(
   },
 );
 
-const ChatPreferencesPopup = dynamic(
-  () =>
-    import("@/components/chat-preferences-popup").then(
-      (mod) => mod.ChatPreferencesPopup,
-    ),
-  {
-    ssr: false,
-  },
-);
+function GlobalShortcuts() {
+  const router = useRouter();
 
-const UserSettingsPopup = dynamic(
-  () =>
-    import("@/components/user/user-detail/user-settings-popup").then(
-      (mod) => mod.UserSettingsPopup,
-    ),
-  {
-    ssr: false,
-  },
-);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isShortcutEvent(e, Shortcuts.openChatPreferences)) {
+        e.preventDefault();
+        e.stopPropagation();
+        router.push("/preferences");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [router]);
 
-export function AppPopupProvider({
-  userSettingsComponent,
-}: {
-  userSettingsComponent: React.ReactNode;
-}) {
+  return null;
+}
+
+export function AppPopupProvider() {
   return (
     <>
       <KeyboardShortcutsPopup />
-      <ChatPreferencesPopup />
-      <UserSettingsPopup userSettingsComponent={userSettingsComponent} />
+      <GlobalShortcuts />
     </>
   );
 }

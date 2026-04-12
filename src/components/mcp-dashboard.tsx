@@ -9,7 +9,7 @@ import { MCPIcon } from "ui/mcp-icon";
 import { useMcpList } from "@/hooks/queries/use-mcp-list";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Plus, PlusIcon } from "lucide-react";
+import { Loader2, PlusIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -115,14 +115,6 @@ export default function MCPDashboard({ message }: MCPDashboardProps) {
                 <p className="text-muted-foreground max-w-md text-sm">
                   {t("overviewDescription")}
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={() => setAddDialogOpen(true)}
-                  className="gap-1.5"
-                >
-                  <Plus className="size-3.5" />
-                  {t("addMcpServer")}
-                </Button>
               </div>
             )}
           </>
