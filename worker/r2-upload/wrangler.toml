@@ -1,0 +1,30 @@
+name = "r2-upload"
+main = "src/index.ts"
+compatibility_date = "2026-04-07"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "yi-chat" # Change to your R2 bucket name
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
+
+[[routes]]
+pattern = "upload.yi.chat"
+zone_name = "yi.chat"
+custom_domain = true
+
+# Secrets (set via `wrangler secret put UPLOAD_SECRET`):
+# - UPLOAD_SECRET: shared HMAC key with your Next.js server

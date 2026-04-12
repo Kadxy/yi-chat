@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import path from "node:path";
 import {
   S3Client,
@@ -109,16 +110,33 @@ export const createS3FileStorage = (): FileStorage => {
       options: UploadUrlOptions,
     ): Promise<UploadUrl | null> {
       const key = buildKey(options.filename);
-      const command = new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        ContentType: options.contentType,
-      });
       const expires = Math.max(
         60,
         Math.min(60 * 60 * 12, options.expiresInSeconds ?? 900),
       );
-      const url = await getSignedUrl(s3, command, { expiresIn: expires });
+
+      const workerUrl = process.env.R2_UPLOAD_WORKER_URL;
+      const uploadSecret = process.env.R2_UPLOAD_SECRET;
+
+      let url: string;
+
+      if (workerUrl && uploadSecret) {
+        // Worker mode: generate HMAC-signed URL pointing to the Worker
+        const expiresMs = String(Date.now() + expires * 1000);
+        const token = createHmac("sha256", uploadSecret)
+          .update(`PUT:${key}:${expiresMs}`)
+          .digest("hex");
+        url = `${workerUrl.replace(/\/$/, "")}/${encodeURI(key)}?token=${token}&expires=${expiresMs}`;
+      } else {
+        // Fallback: S3 presigned URL (direct R2 access)
+        const command = new PutObjectCommand({
+          Bucket: bucket,
+          Key: key,
+          ContentType: options.contentType,
+        });
+        url = await getSignedUrl(s3, command, { expiresIn: expires });
+      }
+
       return {
         key,
         url,
