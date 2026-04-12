@@ -98,10 +98,13 @@ function ThreadDropdownComponent() {
   }, [threadList, currentThreadId]);
 
   useEffect(() => {
-    if (currentThread?.id) {
-      document.title = currentThread.title || "New Chat";
+    if (currentThread) {
+      const appName = process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat";
+      document.title = currentThread.title
+        ? `${currentThread.title} - ${appName}`
+        : appName;
     }
-  }, [currentThread?.id]);
+  }, [currentThread?.id, currentThread?.title]);
 
   if (!currentThread) return null;
 

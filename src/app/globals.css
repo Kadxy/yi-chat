@@ -1451,14 +1451,6 @@
     scrollbar-width: none;
   }
 
-  .mention {
-    color: #0070f3;
-    font-weight: 700;
-    background-color: rgba(0, 112, 243, 0.1);
-    border-radius: 12px;
-    padding: 0.2rem 0.6rem;
-    margin: 0 0.1rem;
-  }
   .duration-3000 {
     --tw-duration: 3000ms;
     transition-duration: var(--tw-duration);

@@ -11,13 +11,6 @@ export const MCPRemoteConfigZodSchema = z.object({
   headers: z.record(z.string(), z.string()).optional(),
 });
 
-export const AllowedMCPServerZodSchema = z.object({
-  tools: z.array(z.string()),
-  // resources: z.array(z.string()).optional(),
-});
-
-export type AllowedMCPServer = z.infer<typeof AllowedMCPServerZodSchema>;
-
 export type MCPRemoteConfig = z.infer<typeof MCPRemoteConfigZodSchema>;
 
 export type MCPServerConfig = MCPRemoteConfig;

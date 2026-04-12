@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Yi Chat",
+  title: process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat",
   description: "Powerful online chatbot.",
 };
 

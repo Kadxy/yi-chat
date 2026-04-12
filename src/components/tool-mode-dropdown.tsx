@@ -160,9 +160,6 @@ export const ToolModeDropdown = ({ disabled }: { disabled?: boolean }) => {
               <div className="flex items-center gap-2">
                 <PenOff />
                 <span className="font-bold">{t("none")}</span>
-                <span className="text-xs text-muted-foreground ml-4">
-                  {t("mentionOnly")}
-                </span>
                 {toolChoice == "none" && <Check className="ml-auto" />}
               </div>
 

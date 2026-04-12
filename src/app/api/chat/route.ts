@@ -54,9 +54,7 @@ export async function POST(request: Request) {
       message,
       chatModel,
       toolChoice,
-      allowedAppDefaultToolkit,
       allowedMcpServers,
-      mentions = [],
       attachments = [],
     } = chatApiSchemaRequestBodySchema.parse(json);
 
@@ -158,8 +156,7 @@ export async function POST(request: Request) {
 
     const supportToolCall = !isToolCallUnsupportedModel(model);
 
-    const isToolCallAllowed =
-      supportToolCall && (toolChoice != "none" || mentions.length > 0);
+    const isToolCallAllowed = supportToolCall && toolChoice != "none";
 
     const metadata: ChatMetadata = {
       toolChoice: toolChoice,
@@ -171,22 +168,12 @@ export async function POST(request: Request) {
       execute: async ({ writer: dataStream }) => {
         const MCP_TOOLS = await safe()
           .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
-          .map(() =>
-            loadMcpTools({
-              mentions,
-              allowedMcpServers,
-            }),
-          )
+          .map(() => loadMcpTools(allowedMcpServers))
           .orElse({});
 
         const APP_DEFAULT_TOOLS = await safe()
           .map(errorIf(() => !isToolCallAllowed && "Not allowed"))
-          .map(() =>
-            loadAppDefaultTools({
-              mentions,
-              allowedAppDefaultToolkit,
-            }),
-          )
+          .map(() => loadAppDefaultTools())
           .orElse({});
         const inProgressToolParts = extractInProgressToolPart(message);
         if (inProgressToolParts.length) {
@@ -232,15 +219,9 @@ export async function POST(request: Request) {
           .unwrap();
         metadata.toolCount = Object.keys(vercelAITooles).length;
 
-        const allowedMcpTools = Object.values(allowedMcpServers ?? {})
-          .map((t) => t.tools)
-          .flat();
+        logger.info(`tool mode: ${toolChoice}`);
 
-        logger.info(`tool mode: ${toolChoice}, mentions: ${mentions.length}`);
-
-        logger.info(
-          `allowedMcpTools: ${allowedMcpTools.length ?? 0}, allowedAppDefaultToolkit: ${allowedAppDefaultToolkit?.length ?? 0}`,
-        );
+        logger.info(`allowedMcpServers: ${allowedMcpServers?.length ?? 0}`);
         logger.info(
           `binding tool count APP_DEFAULT: ${Object.keys(APP_DEFAULT_TOOLS ?? {}).length}, MCP: ${Object.keys(MCP_TOOLS ?? {}).length}`,
         );

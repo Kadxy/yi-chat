@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Yi Chat",
-    short_name: "Yi Chat",
+    name: process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat",
+    short_name: process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat",
     icons: [
       {
         src: "/web-app-manifest-192x192.png",

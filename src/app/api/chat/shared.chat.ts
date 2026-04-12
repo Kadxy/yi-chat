@@ -9,18 +9,10 @@ import {
   ToolUIPart,
   getToolName,
 } from "ai";
-import {
-  ChatMention,
-  ChatMetadata,
-  ManualToolConfirmTag,
-} from "app-types/chat";
+import { ChatMetadata, ManualToolConfirmTag } from "app-types/chat";
 import { errorToString, exclude, objectFlow } from "lib/utils";
 import logger from "logger";
-import {
-  AllowedMCPServer,
-  VercelAIMcpTool,
-  VercelAIMcpToolTag,
-} from "app-types/mcp";
+import { VercelAIMcpTool, VercelAIMcpToolTag } from "app-types/mcp";
 import { MANUAL_REJECT_RESPONSE_PROMPT } from "lib/ai/prompts";
 
 import { safe } from "ts-safe";
@@ -29,54 +21,16 @@ import { mcpClientsManager } from "lib/ai/mcp/mcp-manager";
 import { APP_DEFAULT_TOOL_KIT } from "lib/ai/tools/tool-kit";
 import { AppDefaultToolkit } from "lib/ai/tools";
 
-export function filterMCPToolsByMentions(
+export function filterMCPToolsByEnabledServers(
   tools: Record<string, VercelAIMcpTool>,
-  mentions: ChatMention[],
-) {
-  if (mentions.length === 0) {
-    return tools;
-  }
-  const toolMentions = mentions.filter(
-    (mention) => mention.type == "mcpTool" || mention.type == "mcpServer",
-  ) as Extract<ChatMention, { type: "mcpTool" | "mcpServer" }>[];
-
-  const metionsByServer = toolMentions.reduce(
-    (acc, mention) => {
-      if (mention.type == "mcpServer") {
-        return {
-          ...acc,
-          [mention.serverId]: Object.values(tools).map(
-            (tool) => tool._originToolName,
-          ),
-        };
-      }
-      return {
-        ...acc,
-        [mention.serverId]: [...(acc[mention.serverId] ?? []), mention.name],
-      };
-    },
-    {} as Record<string, string[]>,
-  );
-
-  return objectFlow(tools).filter((_tool) => {
-    if (!metionsByServer[_tool._mcpServerId]) return false;
-    return metionsByServer[_tool._mcpServerId].includes(_tool._originToolName);
-  });
-}
-
-export function filterMCPToolsByAllowedMCPServers(
-  tools: Record<string, VercelAIMcpTool>,
-  allowedMcpServers?: Record<string, AllowedMCPServer>,
+  enabledServerIds?: string[],
 ): Record<string, VercelAIMcpTool> {
-  if (!allowedMcpServers || Object.keys(allowedMcpServers).length === 0) {
+  if (!Array.isArray(enabledServerIds) || !enabledServerIds.length) {
     return {};
   }
-  return objectFlow(tools).filter((_tool) => {
-    if (!allowedMcpServers[_tool._mcpServerId]?.tools) return false;
-    return allowedMcpServers[_tool._mcpServerId].tools.includes(
-      _tool._originToolName,
-    );
-  });
+  return objectFlow(tools).filter((_tool) =>
+    enabledServerIds.includes(_tool._mcpServerId),
+  );
 }
 
 export function excludeToolExecution(
@@ -158,48 +112,19 @@ export function extractInProgressToolPart(message: UIMessage): ToolUIPart[] {
   ) as ToolUIPart[];
 }
 
-export const loadMcpTools = (opt?: {
-  mentions?: ChatMention[];
-  allowedMcpServers?: Record<string, AllowedMCPServer>;
-}) =>
+export const loadMcpTools = (enabledServerIds?: string[]) =>
   safe(() => mcpClientsManager.tools())
-    .map((tools) => {
-      if (opt?.mentions?.length) {
-        return filterMCPToolsByMentions(tools, opt.mentions);
-      }
-      return filterMCPToolsByAllowedMCPServers(tools, opt?.allowedMcpServers);
-    })
+    .map((tools) => filterMCPToolsByEnabledServers(tools, enabledServerIds))
     .orElse({} as Record<string, VercelAIMcpTool>);
 
-export const loadAppDefaultTools = (opt?: {
-  mentions?: ChatMention[];
-  allowedAppDefaultToolkit?: string[];
-}) =>
+export const loadAppDefaultTools = () =>
   safe(APP_DEFAULT_TOOL_KIT)
-    .map((tools) => {
-      if (opt?.mentions?.length) {
-        const defaultToolMentions = opt.mentions.filter(
-          (m) => m.type == "defaultTool",
-        );
-        return Array.from(Object.values(tools)).reduce((acc, t) => {
-          const allowed = objectFlow(t).filter((_, k) => {
-            return defaultToolMentions.some((m) => m.name == k);
-          });
-          return { ...acc, ...allowed };
-        }, {});
-      }
-      const allowedAppDefaultToolkit =
-        opt?.allowedAppDefaultToolkit ?? Object.values(AppDefaultToolkit);
-
-      return (
-        allowedAppDefaultToolkit.reduce(
-          (acc, key) => {
-            return { ...acc, ...tools[key] };
-          },
-          {} as Record<string, Tool>,
-        ) || {}
-      );
-    })
+    .map((tools) =>
+      Object.values(AppDefaultToolkit).reduce(
+        (acc, key) => ({ ...acc, ...tools[key] }),
+        {} as Record<string, Tool>,
+      ),
+    )
     .ifFail((e) => {
       console.error(e);
       throw e;

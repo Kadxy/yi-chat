@@ -1,6 +1,5 @@
 import type { LanguageModelUsage, UIMessage } from "ai";
 import { z } from "zod";
-import { AllowedMCPServerZodSchema } from "./mcp";
 import { UserPreferences } from "./user";
 import { tag } from "lib/tag";
 
@@ -42,31 +41,6 @@ export type ChatMessage = {
   createdAt: Date;
 };
 
-export const ChatMentionSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("mcpTool"),
-    name: z.string(),
-    description: z.string().optional(),
-    serverName: z.string().optional(),
-    serverId: z.string(),
-  }),
-  z.object({
-    type: z.literal("defaultTool"),
-    name: z.string(),
-    label: z.string(),
-    description: z.string().optional(),
-  }),
-  z.object({
-    type: z.literal("mcpServer"),
-    name: z.string(),
-    description: z.string().optional(),
-    toolCount: z.number().optional(),
-    serverId: z.string(),
-  }),
-]);
-
-export type ChatMention = z.infer<typeof ChatMentionSchema>;
-
 export const chatApiSchemaRequestBodySchema = z.object({
   id: z.string(),
   message: z.any() as z.ZodType<UIMessage>,
@@ -77,10 +51,8 @@ export const chatApiSchemaRequestBodySchema = z.object({
     })
     .optional(),
   toolChoice: z.enum(["auto", "none", "manual"]),
-  mentions: z.array(ChatMentionSchema).optional(),
   imageTool: z.object({ model: z.string().optional() }).optional(),
-  allowedMcpServers: z.record(z.string(), AllowedMCPServerZodSchema).optional(),
-  allowedAppDefaultToolkit: z.array(z.string()).optional(),
+  allowedMcpServers: z.array(z.string()).optional(),
   attachments: z.array(ChatAttachmentSchema).optional(),
 });
 

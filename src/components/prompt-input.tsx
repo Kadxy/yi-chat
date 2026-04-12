@@ -17,18 +17,12 @@ import { UIMessage, UseChatHelpers } from "@ai-sdk/react";
 import { SelectModel } from "./select-model";
 import { appStore, UploadedFile } from "@/app/store";
 import { useShallow } from "zustand/shallow";
-import { ChatMention, ChatModel } from "app-types/chat";
-import dynamic from "next/dynamic";
+import { ChatModel } from "app-types/chat";
 import { ToolModeDropdown } from "./tool-mode-dropdown";
 
 import { ToolSelectDropdown } from "./tool-select-dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { useTranslations } from "next-intl";
-import { Editor } from "@tiptap/react";
-import equal from "lib/equal";
-import { MCPIcon } from "ui/mcp-icon";
-import { DefaultToolName } from "lib/ai/tools";
-import { DefaultToolIcon } from "./default-tool-icon";
 import { ClaudeIcon } from "ui/claude-icon";
 import {
   DropdownMenu,
@@ -55,16 +49,8 @@ interface PromptInputProps {
   model?: ChatModel;
   setModel?: (model: ChatModel) => void;
   threadId?: string;
-  disabledMention?: boolean;
   onFocus?: () => void;
 }
-
-const ChatMentionInput = dynamic(() => import("./chat-mention-input"), {
-  ssr: false,
-  loading() {
-    return <div className="h-[2rem] w-full animate-pulse"></div>;
-  },
-});
 
 export default function PromptInput({
   placeholder,
@@ -78,21 +64,16 @@ export default function PromptInput({
   isLoading,
   toolDisabled,
   threadId,
-  disabledMention,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
   const [isUploadDropdownOpen, setIsUploadDropdownOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { uploadFiles } = useThreadFileUploader(threadId);
   const { data: providers } = useChatModels();
 
-  const [globalModel, threadMentions, threadFiles, appStoreMutate] = appStore(
-    useShallow((state) => [
-      state.chatModel,
-      state.threadMentions,
-      state.threadFiles,
-      state.mutate,
-    ]),
+  const [globalModel, threadFiles, appStoreMutate] = appStore(
+    useShallow((state) => [state.chatModel, state.threadFiles, state.mutate]),
   );
 
   const modelInfo = useMemo(() => {
@@ -109,11 +90,6 @@ export default function PromptInput({
   const canUploadImages =
     supportedFileMimeTypes?.some((mime) => mime.startsWith("image/")) ?? true;
 
-  const mentions = useMemo<ChatMention[]>(() => {
-    if (!threadId) return [];
-    return threadMentions[threadId!] ?? [];
-  }, [threadMentions, threadId]);
-
   const uploadedFiles = useMemo<UploadedFile[]>(() => {
     if (!threadId) return [];
     return threadFiles[threadId] ?? [];
@@ -122,8 +98,6 @@ export default function PromptInput({
   const chatModel = useMemo(() => {
     return model ?? globalModel;
   }, [model, globalModel]);
-
-  const editorRef = useRef<Editor | null>(null);
 
   const setChatModel = useCallback(
     (model: ChatModel) => {
@@ -134,22 +108,6 @@ export default function PromptInput({
       }
     },
     [setModel, appStoreMutate],
-  );
-
-  const deleteMention = useCallback(
-    (mention: ChatMention) => {
-      if (!threadId) return;
-      appStoreMutate((prev) => {
-        const newMentions = mentions.filter((m) => !equal(m, mention));
-        return {
-          threadMentions: {
-            ...prev.threadMentions,
-            [threadId!]: newMentions,
-          },
-        };
-      });
-    },
-    [mentions, threadId],
   );
 
   const deleteFile = useCallback(
@@ -180,8 +138,6 @@ export default function PromptInput({
     [uploadedFiles, threadId, appStoreMutate],
   );
 
-  // uploadFiles handled by hook
-
   const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const list = e.target.files;
@@ -194,29 +150,13 @@ export default function PromptInput({
     [uploadFiles],
   );
 
-  const addMention = useCallback(
-    (mention: ChatMention) => {
-      if (!threadId) return;
-      appStoreMutate((prev) => {
-        if (mentions.some((m) => equal(m, mention))) return prev;
-
-        return {
-          threadMentions: {
-            ...prev.threadMentions,
-            [threadId!]: [...mentions, mention],
-          },
-        };
-      });
-    },
-    [mentions, threadId],
-  );
-
-  const onChangeMention = useCallback(
-    (mentions: ChatMention[]) => {
-      mentions.forEach(addMention);
-    },
-    [addMention],
-  );
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 320)}px`;
+  }, [input]);
 
   const submit = () => {
     if (isLoading) return;
@@ -245,7 +185,6 @@ export default function PromptInput({
           filename: file.name,
         } as FileUIPart);
       } else {
-        // Use a rich UI part for unsupported file types; will be filtered out for model input
         acc.push({
           type: "source-url",
           url: link,
@@ -288,82 +227,38 @@ export default function PromptInput({
     }));
   };
 
-  // Handle ESC key to clear mentions
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && threadId && mentions.length > 0) {
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (
+        e.key === "Enter" &&
+        !e.shiftKey &&
+        !e.metaKey &&
+        !e.nativeEvent.isComposing
+      ) {
         e.preventDefault();
-        e.stopPropagation();
-        appStoreMutate(() => ({
-          threadMentions: {},
-        }));
-        editorRef.current?.commands.focus();
+        submit();
       }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [mentions.length, threadId, appStoreMutate]);
-
-  // Drag overlay handled globally in ChatBot
+    },
+    [submit],
+  );
 
   return (
     <div className="max-w-3xl mx-auto fade-in animate-in">
       <div className="z-10 mx-auto w-full max-w-3xl relative">
         <fieldset className="flex w-full min-w-0 max-w-full flex-col px-4">
           <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
-            {mentions.length > 0 && (
-              <div className="bg-input rounded-b-sm rounded-t-3xl p-3 flex flex-col gap-4 mx-2 my-2">
-                {mentions.map((mention, i) => {
-                  return (
-                    <div key={i} className="flex items-center gap-2">
-                      <Button className="size-6 flex items-center justify-center ring ring-border rounded-full flex-shrink-0 p-0.5">
-                        {mention.type == "mcpServer" ? (
-                          <MCPIcon className="size-3.5" />
-                        ) : (
-                          <DefaultToolIcon
-                            name={mention.name as DefaultToolName}
-                            className="size-3.5"
-                          />
-                        )}
-                      </Button>
-
-                      <div className="flex flex-col flex-1 min-w-0">
-                        <span className="text-sm font-semibold truncate">
-                          {mention.name}
-                        </span>
-                        {mention.description ? (
-                          <span className="text-muted-foreground text-xs truncate">
-                            {mention.description}
-                          </span>
-                        ) : null}
-                      </div>
-                      <Button
-                        variant={"ghost"}
-                        size={"icon"}
-                        disabled={!threadId}
-                        className="rounded-full hover:bg-input! flex-shrink-0"
-                        onClick={() => {
-                          deleteMention(mention);
-                        }}
-                      >
-                        <XIcon />
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
             <div className="flex flex-col gap-3.5 px-5 pt-2 pb-4">
               <div className="relative min-h-[2rem]">
-                <ChatMentionInput
-                  input={input}
-                  onChange={setInput}
-                  onChangeMention={onChangeMention}
-                  onEnter={submit}
-                  placeholder={placeholder ?? t("placeholder")}
-                  ref={editorRef}
-                  disabledMention={disabledMention}
+                <textarea
+                  ref={textareaRef}
+                  className="w-full max-h-80 min-h-[2rem] break-words overflow-y-auto resize-none focus:outline-none px-2 py-1 text-sm bg-transparent"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   onFocus={onFocus}
+                  placeholder={placeholder ?? t("placeholder")}
+                  rows={1}
+                  autoFocus
                 />
               </div>
               <div className="flex w-full items-center z-30">
@@ -411,7 +306,6 @@ export default function PromptInput({
                       className="mx-1"
                       align="start"
                       side="top"
-                      mentions={mentions}
                     />
                   </>
                 )}
@@ -453,13 +347,10 @@ export default function PromptInput({
                       submit();
                     }
                   }}
-                  className="fade-in animate-in cursor-pointer text-muted-foreground rounded-full p-2 bg-secondary hover:bg-accent-foreground hover:text-accent transition-all duration-200"
+                  className="fade-in animate-in cursor-pointer text-muted-foreground rounded-full p-2 bg-secondary hover:bg-accent hover:text-accent-foreground transition-all duration-200"
                 >
                   {isLoading ? (
-                    <Square
-                      size={16}
-                      className="fill-muted-foreground text-muted-foreground"
-                    />
+                    <Square size={16} className="fill-current" />
                   ) : (
                     <CornerRightUp size={16} />
                   )}
@@ -562,7 +453,6 @@ export default function PromptInput({
                                           return;
                                         }
                                         const data = await res.json();
-                                        // Append preview text to input for the user to send
                                         setInput(
                                           `${input ? input + "\n\n" : ""}${data.text}`,
                                         );

@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { ChatMention, ChatModel, ChatThread } from "app-types/chat";
-import { AllowedMCPServer, MCPServerInfo } from "app-types/mcp";
-import { AppDefaultToolkit } from "lib/ai/tools";
+import { ChatModel, ChatThread } from "app-types/chat";
+import { MCPServerInfo } from "app-types/mcp";
 
 export interface UploadedFile {
   id: string;
@@ -22,25 +21,15 @@ export interface AppState {
   mcpList: (MCPServerInfo & { id: string })[];
   currentThreadId: ChatThread["id"] | null;
   toolChoice: "auto" | "none" | "manual";
-  allowedMcpServers?: Record<string, AllowedMCPServer>;
-  allowedAppDefaultToolkit?: AppDefaultToolkit[];
+  allowedMcpServers?: string[];
   generatingTitleThreadIds: string[];
-  threadMentions: {
-    [threadId: string]: ChatMention[];
-  };
   threadFiles: {
     [threadId: string]: UploadedFile[];
   };
-  toolPresets: {
-    allowedMcpServers?: Record<string, AllowedMCPServer>;
-    allowedAppDefaultToolkit?: AppDefaultToolkit[];
-    name: string;
-  }[];
   chatModel?: ChatModel;
   openShortcutsPopup: boolean;
   openChatPreferences: boolean;
   openUserSettings: boolean;
-  pendingThreadMention?: ChatMention;
 }
 
 export interface AppDispatch {
@@ -50,23 +39,15 @@ export interface AppDispatch {
 const initialState: AppState = {
   threadList: [],
   generatingTitleThreadIds: [],
-  threadMentions: {},
   threadFiles: {},
   mcpList: [],
   currentThreadId: null,
   toolChoice: "auto",
   allowedMcpServers: undefined,
   openUserSettings: false,
-  allowedAppDefaultToolkit: [
-    AppDefaultToolkit.Code,
-    AppDefaultToolkit.Visualization,
-    AppDefaultToolkit.File,
-  ],
-  toolPresets: [],
   chatModel: undefined,
   openShortcutsPopup: false,
   openChatPreferences: false,
-  pendingThreadMention: undefined,
 };
 
 export const appStore = create<AppState & AppDispatch>()(
@@ -76,17 +57,12 @@ export const appStore = create<AppState & AppDispatch>()(
       mutate: set,
     }),
     {
-      name: "mc-app-store-v2.0.1",
+      name: "mc-app-store-v3.1.0",
       partialize: (state) => ({
         chatModel: state.chatModel || initialState.chatModel,
         toolChoice: state.toolChoice || initialState.toolChoice,
         allowedMcpServers:
           state.allowedMcpServers || initialState.allowedMcpServers,
-        allowedAppDefaultToolkit: (
-          state.allowedAppDefaultToolkit ??
-          initialState.allowedAppDefaultToolkit
-        )?.filter((v) => Object.values(AppDefaultToolkit).includes(v)),
-        toolPresets: state.toolPresets || initialState.toolPresets,
       }),
     },
   ),

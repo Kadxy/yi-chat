@@ -26,7 +26,6 @@ import {
   ChatAttachment,
   ChatModel,
 } from "app-types/chat";
-import { AppDefaultToolkit } from "lib/ai/tools";
 import { useToRef } from "@/hooks/use-latest";
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
 import { Button } from "ui/button";
@@ -52,10 +51,15 @@ import { useFileDragOverlay } from "@/hooks/use-file-drag-overlay";
 type Props = {
   threadId: string;
   initialMessages: Array<UIMessage>;
+  initialTitle?: string;
   selectedChatModel?: string;
 };
 
-export default function ChatBot({ threadId, initialMessages }: Props) {
+export default function ChatBot({
+  threadId,
+  initialMessages,
+  initialTitle,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const { uploadFiles } = useThreadFileUploader(threadId);
@@ -70,27 +74,16 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
     onDropFiles: handleFileDrop,
   });
 
-  const [
-    appStoreMutate,
-    model,
-    toolChoice,
-    allowedAppDefaultToolkit,
-    allowedMcpServers,
-    threadList,
-    threadMentions,
-    pendingThreadMention,
-  ] = appStore(
-    useShallow((state) => [
-      state.mutate,
-      state.chatModel,
-      state.toolChoice,
-      state.allowedAppDefaultToolkit,
-      state.allowedMcpServers,
-      state.threadList,
-      state.threadMentions,
-      state.pendingThreadMention,
-    ]),
-  );
+  const [appStoreMutate, model, toolChoice, allowedMcpServers, threadList] =
+    appStore(
+      useShallow((state) => [
+        state.mutate,
+        state.chatModel,
+        state.toolChoice,
+        state.allowedMcpServers,
+        state.threadList,
+      ]),
+    );
 
   const generateTitle = useGenerateThreadTitle({
     threadId,
@@ -171,12 +164,6 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           ...lastMessage,
           parts: lastMessage.parts.filter((p: any) => p?.type !== "source-url"),
         } as typeof lastMessage;
-        const hasFilePart = lastMessage.parts?.some(
-          (p) => (p as any)?.type === "file",
-        );
-        const hasSourceUrlPart = attachments.some(
-          (a) => a.type === "source-url",
-        );
 
         const requestBody: ChatApiSchemaRequestBody = {
           ...body,
@@ -184,23 +171,9 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           chatModel:
             (body as { model: ChatModel })?.model ?? latestRef.current.model,
           toolChoice: latestRef.current.toolChoice,
-          allowedAppDefaultToolkit:
-            latestRef.current.mentions?.length || hasFilePart
-              ? hasSourceUrlPart
-                ? [AppDefaultToolkit.File]
-                : []
-              : hasSourceUrlPart
-                ? Array.from(
-                    new Set([
-                      ...(latestRef.current.allowedAppDefaultToolkit ?? []),
-                      AppDefaultToolkit.File,
-                    ]),
-                  )
-                : latestRef.current.allowedAppDefaultToolkit,
-          allowedMcpServers: latestRef.current.mentions?.length
-            ? {}
-            : latestRef.current.allowedMcpServers,
-          mentions: latestRef.current.mentions,
+          allowedMcpServers: Array.isArray(latestRef.current.allowedMcpServers)
+            ? latestRef.current.allowedMcpServers
+            : undefined,
           message: sanitizedLastMessage,
           attachments,
         };
@@ -227,12 +200,10 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   const latestRef = useToRef({
     toolChoice,
     model,
-    allowedAppDefaultToolkit,
     allowedMcpServers,
     messages,
     threadList,
     threadId,
-    mentions: threadMentions[threadId],
   });
 
   const isLoading = useMemo(
@@ -296,23 +267,23 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
   }, []);
 
   useEffect(() => {
-    appStoreMutate({ currentThreadId: threadId });
-    return () => {
-      appStoreMutate({ currentThreadId: null });
-    };
+    appStoreMutate((prev) => {
+      const exists = prev.threadList.some((t) => t.id === threadId);
+      if (exists) {
+        return { currentThreadId: threadId };
+      }
+      return {
+        currentThreadId: threadId,
+        threadList: [
+          {
+            id: threadId,
+            title: initialTitle ?? null,
+          } as (typeof prev.threadList)[number],
+          ...prev.threadList,
+        ],
+      };
+    });
   }, [threadId]);
-
-  useEffect(() => {
-    if (pendingThreadMention && threadId) {
-      appStoreMutate((prev) => ({
-        threadMentions: {
-          ...prev.threadMentions,
-          [threadId]: [pendingThreadMention],
-        },
-        pendingThreadMention: undefined,
-      }));
-    }
-  }, [pendingThreadMention, threadId, appStoreMutate]);
 
   useEffect(() => {
     if (isInitialThreadEntry)
@@ -350,12 +321,7 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
 
   return (
     <>
-      <div
-        className={cn(
-          emptyMessage && "justify-center pb-24",
-          "flex flex-col min-w-0 relative h-full z-40",
-        )}
-      >
+      <div className={cn("flex flex-col min-w-0 relative h-full z-40")}>
         {isDragging && (
           <div className="absolute inset-0 z-40 bg-background/70 backdrop-blur-sm flex items-center justify-center pointer-events-none">
             <div className="rounded-2xl px-6 py-5 bg-background/80 shadow-xl border border-border flex items-center gap-3">
@@ -369,7 +335,23 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           </div>
         )}
         {emptyMessage ? (
-          <ChatGreeting />
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <ChatGreeting />
+            <motion.div
+              layoutId="prompt-input"
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="w-full z-10"
+            >
+              <PromptInput
+                input={input}
+                threadId={threadId}
+                sendMessage={sendMessage}
+                setInput={setInput}
+                isLoading={isLoading || isPendingToolCall}
+                onStop={stop}
+              />
+            </motion.div>
+          </div>
         ) : (
           <>
             <div
@@ -422,28 +404,29 @@ export default function ChatBot({ threadId, initialMessages }: Props) {
           </>
         )}
 
-        <div
-          className={clsx(
-            messages.length && "absolute bottom-14",
-            "w-full z-10",
-          )}
-        >
-          <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
-            <ScrollToBottomButton
-              show={!isAtBottom && messages.length > 0}
-              onClick={scrollToBottom}
-            />
-          </div>
+        {!emptyMessage && (
+          <motion.div
+            layoutId="prompt-input"
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="w-full z-10 absolute bottom-14"
+          >
+            <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
+              <ScrollToBottomButton
+                show={!isAtBottom && messages.length > 0}
+                onClick={scrollToBottom}
+              />
+            </div>
 
-          <PromptInput
-            input={input}
-            threadId={threadId}
-            sendMessage={sendMessage}
-            setInput={setInput}
-            isLoading={isLoading || isPendingToolCall}
-            onStop={stop}
-          />
-        </div>
+            <PromptInput
+              input={input}
+              threadId={threadId}
+              sendMessage={sendMessage}
+              setInput={setInput}
+              isLoading={isLoading || isPendingToolCall}
+              onStop={stop}
+            />
+          </motion.div>
+        )}
         <DeleteThreadPopup
           threadId={threadId}
           onClose={() => setIsDeleteThreadPopupOpen(false)}

@@ -37,7 +37,7 @@ export function AppSidebar({
       className="border-r border-sidebar-border/80"
     >
       <SidebarHeaderShared
-        title="Yi Chat"
+        title={process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat"}
         href="/"
         enableShortcuts={true}
         onLinkClick={() => {

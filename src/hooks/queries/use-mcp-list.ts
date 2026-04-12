@@ -2,7 +2,7 @@
 import { appStore } from "@/app/store";
 import useSWR, { SWRConfiguration } from "swr";
 import { handleErrorWithToast } from "ui/shared-toast";
-import { fetcher, objectFlow } from "lib/utils";
+import { fetcher } from "lib/utils";
 import { MCPServerInfo } from "app-types/mcp";
 
 export function useMcpList(options?: SWRConfiguration) {
@@ -16,9 +16,10 @@ export function useMcpList(options?: SWRConfiguration) {
       const ids = data.map((v) => v.id);
       appStore.setState((prev) => ({
         mcpList: data,
-        allowedMcpServers: objectFlow(prev.allowedMcpServers || {}).filter(
-          (_, key) => ids.includes(key),
-        ),
+        allowedMcpServers: (Array.isArray(prev.allowedMcpServers)
+          ? prev.allowedMcpServers
+          : []
+        ).filter((id) => ids.includes(id)),
       }));
     },
     ...options,
