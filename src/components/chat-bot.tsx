@@ -4,7 +4,6 @@ import { useChat } from "@ai-sdk/react";
 import { toast } from "sonner";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PromptInput from "./prompt-input";
-import clsx from "clsx";
 import { appStore } from "@/app/store";
 import { cn, generateUUID, truncateString } from "lib/utils";
 import { ErrorMessage, PreviewMessage } from "./message";
@@ -74,16 +73,23 @@ export default function ChatBot({
     onDropFiles: handleFileDrop,
   });
 
-  const [appStoreMutate, model, toolChoice, allowedMcpServers, threadList] =
-    appStore(
-      useShallow((state) => [
-        state.mutate,
-        state.chatModel,
-        state.toolChoice,
-        state.allowedMcpServers,
-        state.threadList,
-      ]),
-    );
+  const [
+    appStoreMutate,
+    model,
+    toolChoice,
+    allowedMcpServers,
+    threadList,
+    thinkingEnabled,
+  ] = appStore(
+    useShallow((state) => [
+      state.mutate,
+      state.chatModel,
+      state.toolChoice,
+      state.allowedMcpServers,
+      state.threadList,
+      state.thinkingEnabled,
+    ]),
+  );
 
   const generateTitle = useGenerateThreadTitle({
     threadId,
@@ -171,6 +177,7 @@ export default function ChatBot({
           chatModel:
             (body as { model: ChatModel })?.model ?? latestRef.current.model,
           toolChoice: latestRef.current.toolChoice,
+          thinkingEnabled: latestRef.current.thinkingEnabled,
           allowedMcpServers: Array.isArray(latestRef.current.allowedMcpServers)
             ? latestRef.current.allowedMcpServers
             : undefined,
@@ -199,6 +206,7 @@ export default function ChatBot({
 
   const latestRef = useToRef({
     toolChoice,
+    thinkingEnabled,
     model,
     allowedMcpServers,
     messages,

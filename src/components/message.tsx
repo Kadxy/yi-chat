@@ -76,12 +76,20 @@ const PurePreviewMessage = ({
             const isLastPart = index === partsForDisplay.length - 1;
 
             if (part.type === "reasoning") {
+              const savedDurationMs = (message.metadata as ChatMetadata)
+                ?.thinkingDurationMs;
+              // Reasoning is active only when: message is streaming AND
+              // no text part has appeared after this reasoning part yet
+              const hasTextAfter = partsForDisplay
+                .slice(index + 1)
+                .some((p) => p.type === "text");
               return (
                 <ReasoningPart
                   key={key}
                   readonly={readonly}
                   reasoningText={part.text}
-                  isThinking={isLastPart && isLastMessage && isLoading}
+                  isThinking={isLastMessage && isLoading && !hasTextAfter}
+                  savedDurationMs={savedDurationMs}
                 />
               );
             }
@@ -142,7 +150,7 @@ const PurePreviewMessage = ({
                   }
                   addToolResult={addToolResult}
                   key={key}
-                  part={part}
+                  part={part as any}
                   setMessages={setMessages}
                 />
               );

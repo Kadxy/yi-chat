@@ -45,6 +45,14 @@ const toolModeShortcut: Shortcut = {
   },
 };
 
+const thinkingModeShortcut: Shortcut = {
+  description: "thinkingMode",
+  shortcut: {
+    key: "J",
+    command: true,
+  },
+};
+
 const lastMessageCopyShortcut: Shortcut = {
   description: "lastMessageCopy",
   shortcut: {
@@ -87,6 +95,7 @@ export const Shortcuts = {
   lastMessageCopy: lastMessageCopyShortcut,
   deleteThread: deleteThreadShortcut,
   toolMode: toolModeShortcut,
+  thinkingMode: thinkingModeShortcut,
   openShortcutsPopup: openShortcutsPopupShortcut,
 };
 

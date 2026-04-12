@@ -8,14 +8,11 @@ import {
   UIMessage,
 } from "ai";
 
-import { customModelProvider, isToolCallUnsupportedModel } from "lib/ai/models";
+import { customModelProvider } from "lib/ai/models";
 
 import { chatRepository } from "lib/db/repository";
 import globalLogger from "logger";
-import {
-  buildUserSystemPrompt,
-  buildToolCallUnsupportedModelSystemPrompt,
-} from "lib/ai/prompts";
+import { buildUserSystemPrompt } from "lib/ai/prompts";
 import { chatApiSchemaRequestBodySchema, ChatMetadata } from "app-types/chat";
 
 import { errorIf, safe } from "ts-safe";
@@ -24,7 +21,6 @@ import {
   excludeToolExecution,
   handleError,
   manualToolExecuteByLastMessage,
-  mergeSystemPrompt,
   extractInProgressToolPart,
   loadMcpTools,
   loadAppDefaultTools,
@@ -54,11 +50,13 @@ export async function POST(request: Request) {
       message,
       chatModel,
       toolChoice,
+      thinkingEnabled,
       allowedMcpServers,
       attachments = [],
     } = chatApiSchemaRequestBodySchema.parse(json);
 
     const model = customModelProvider.getModel(chatModel);
+    const thinkingConfig = customModelProvider.getThinkingConfig(chatModel);
 
     let thread = await chatRepository.selectThreadDetails(id);
 
@@ -154,14 +152,13 @@ export async function POST(request: Request) {
 
     messages.push(message);
 
-    const supportToolCall = !isToolCallUnsupportedModel(model);
-
-    const isToolCallAllowed = supportToolCall && toolChoice != "none";
+    const isToolCallAllowed = toolChoice != "none";
 
     const metadata: ChatMetadata = {
       toolChoice: toolChoice,
       toolCount: 0,
       chatModel: chatModel,
+      thinkingEnabled: !!thinkingEnabled && thinkingConfig != null,
     };
 
     const stream = createUIMessageStream({
@@ -197,9 +194,9 @@ export async function POST(request: Request) {
 
         const userPreferences = thread?.userPreferences || undefined;
 
-        const systemPrompt = mergeSystemPrompt(
-          buildUserSystemPrompt(session.user, userPreferences),
-          !supportToolCall && buildToolCallUnsupportedModelSystemPrompt,
+        const systemPrompt = buildUserSystemPrompt(
+          session.user,
+          userPreferences,
         );
 
         const vercelAITooles = safe({
@@ -227,27 +224,72 @@ export async function POST(request: Request) {
         );
         logger.info(`model: ${chatModel?.provider}/${chatModel?.model}`);
         logger.info(`tools: ${JSON.stringify(Object.keys(vercelAITooles))}`);
+        logger.info(
+          `thinking: ${thinkingEnabled ? "on" : "off"} (${thinkingConfig?.type ?? "unsupported"})`,
+        );
+
+        // Build thinking providerOptions from model config.
+        // adaptive → Opus 4.6 / Sonnet 4.6 (Claude decides depth)
+        // enabled  → Haiku 4.5 (fixed budget_tokens)
+        // null     → model doesn't support thinking
+        const useThinking = !!thinkingEnabled && thinkingConfig != null;
+
+        const providerOptions = (() => {
+          if (!useThinking || !thinkingConfig) return undefined;
+          if (thinkingConfig.type === "adaptive") {
+            return { anthropic: { thinking: { type: "adaptive" } } };
+          }
+          return {
+            anthropic: {
+              thinking: {
+                type: "enabled",
+                budgetTokens: thinkingConfig.budgetTokens,
+              },
+            },
+          };
+        })() as Parameters<typeof streamText>[0]["providerOptions"];
+
+        // Haiku with budget_tokens needs maxOutputTokens > budgetTokens
+        const thinkingMaxOutput =
+          useThinking && thinkingConfig?.type === "enabled"
+            ? thinkingConfig.budgetTokens + 16384
+            : undefined;
 
         const result = streamText({
           model,
           system: systemPrompt,
-          messages: convertToModelMessages(messages),
+          messages: await convertToModelMessages(messages),
           experimental_transform: smoothStream({ chunking: "word" }),
           maxRetries: 0,
+          maxOutputTokens: thinkingMaxOutput,
           tools:
             Object.keys(vercelAITooles).length > 0 ? vercelAITooles : undefined,
           stopWhen: stepCountIs(10),
           toolChoice:
             Object.keys(vercelAITooles).length > 0 ? "auto" : undefined,
+          providerOptions,
           abortSignal: request.signal,
           onError: (event) => {
             logger.error(`streamText error: ${JSON.stringify(event)}`);
           },
         });
         result.consumeStream();
+
+        // Measure thinking duration: time from stream start to first text output.
+        // More reliable than tracking individual events.
+        const streamStartTime = useThinking ? Date.now() : null;
+
         dataStream.merge(
           result.toUIMessageStream({
+            sendReasoning: true,
             messageMetadata: ({ part }) => {
+              if (
+                part.type === "text-start" &&
+                streamStartTime &&
+                !metadata.thinkingDurationMs
+              ) {
+                metadata.thinkingDurationMs = Date.now() - streamStartTime;
+              }
               if (part.type == "finish") {
                 metadata.usage = part.totalUsage;
                 return metadata;

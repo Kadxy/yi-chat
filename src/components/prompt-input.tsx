@@ -21,6 +21,7 @@ import { ChatModel } from "app-types/chat";
 import { ToolModeDropdown } from "./tool-mode-dropdown";
 
 import { ToolSelectDropdown } from "./tool-select-dropdown";
+import { ThinkingToggle } from "./thinking-mode-dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { useTranslations } from "next-intl";
 import { ClaudeIcon } from "ui/claude-icon";
@@ -288,9 +289,7 @@ export default function PromptInput({
                   <DropdownMenuContent align="start" side="top">
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      disabled={
-                        modelInfo?.isImageInputUnsupported || !canUploadImages
-                      }
+                      disabled={!canUploadImages}
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <PaperclipIcon className="mr-2 size-4" />
@@ -307,6 +306,7 @@ export default function PromptInput({
                       align="start"
                       side="top"
                     />
+                    <ThinkingToggle />
                   </>
                 )}
 

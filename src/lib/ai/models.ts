@@ -34,38 +34,24 @@ export const MODEL_IDS = {
   [MODEL_ID.OPUS]: { provider: "anthropic", model: MODEL_ID.OPUS },
 } as const satisfies Record<string, ChatModel>;
 
-const staticFilePartSupportByModel = new Map<
-  LanguageModel,
-  readonly string[]
->();
+/**
+ * Per-model thinking configuration.
+ *
+ * Opus 4.6 / Sonnet 4.6 → adaptive thinking (Claude auto-determines depth)
+ * Haiku 4.5              → manual thinking with fixed budget_tokens
+ *
+ * To add a new provider/model, add an entry here.
+ * `null` means the model does not support thinking.
+ */
+export type ModelThinkingConfig =
+  | { type: "adaptive" }
+  | { type: "enabled"; budgetTokens: number }
+  | null;
 
-const registerFileSupport = (
-  model: LanguageModel | undefined,
-  mimeTypes: readonly string[],
-) => {
-  if (!model) return;
-  staticFilePartSupportByModel.set(model, Array.from(mimeTypes));
-};
-
-registerFileSupport(
-  staticModels.anthropic[MODEL_ID.HAIKU],
-  ANTHROPIC_FILE_MIME_TYPES,
-);
-registerFileSupport(
-  staticModels.anthropic[MODEL_ID.SONNET],
-  ANTHROPIC_FILE_MIME_TYPES,
-);
-registerFileSupport(
-  staticModels.anthropic[MODEL_ID.OPUS],
-  ANTHROPIC_FILE_MIME_TYPES,
-);
-
-export const isToolCallUnsupportedModel = (_model: LanguageModel) => {
-  return false;
-};
-
-export const getFilePartSupportedMimeTypes = (model: LanguageModel) => {
-  return staticFilePartSupportByModel.get(model) ?? [];
+const modelThinkingConfigs: Record<string, ModelThinkingConfig> = {
+  [MODEL_ID.OPUS]: { type: "adaptive" },
+  [MODEL_ID.SONNET]: { type: "adaptive" },
+  [MODEL_ID.HAIKU]: { type: "enabled", budgetTokens: 10240 },
 };
 
 const fallbackModel = staticModels.anthropic[MODEL_ID.SONNET];
@@ -74,12 +60,11 @@ export const customModelProvider = {
   modelsInfo: Object.entries(staticModels).map(([provider, models]) => ({
     provider,
     displayName: providerDisplayNames[provider] || provider,
-    models: Object.entries(models).map(([name, model]) => ({
+    models: Object.entries(models).map(([name]) => ({
       name,
       displayName: modelDisplayNames[name] || name,
-      isToolCallUnsupported: false,
-      isImageInputUnsupported: false,
-      supportedFileMimeTypes: [...getFilePartSupportedMimeTypes(model)],
+      isThinkingSupported: modelThinkingConfigs[name] != null,
+      supportedFileMimeTypes: [...ANTHROPIC_FILE_MIME_TYPES],
     })),
     hasAPIKey:
       !!process.env.ANTHROPIC_API_KEY &&
@@ -92,5 +77,9 @@ export const customModelProvider = {
         model.model
       ] || fallbackModel
     );
+  },
+  getThinkingConfig: (model?: ChatModel): ModelThinkingConfig => {
+    if (!model) return null;
+    return modelThinkingConfigs[model.model] ?? null;
   },
 };

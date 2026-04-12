@@ -2,7 +2,7 @@
 
 import { appStore } from "@/app/store";
 import { cn } from "lib/utils";
-import { ChevronRight, Loader, ShieldAlertIcon } from "lucide-react";
+import { ChevronRight, Loader, ShieldAlertIcon, Wrench } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "ui/button";
@@ -77,7 +77,7 @@ export function ToolSelectDropdown({
         )}
       >
         <span className={!enabledCount ? "text-muted-foreground" : ""}>
-          {t("tools")}
+          <Wrench className="size-3.5" />
         </span>
 
         {(enabledCount > 0 || isLoading) && (

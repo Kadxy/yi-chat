@@ -116,6 +116,11 @@
       "none": "None",
       "noToolsAvailable": "No tools available"
     },
+    "Thinking": {
+      "selectThinkingMode": "Thinking",
+      "on": "Thinking On",
+      "off": "Thinking Off"
+    },
     "VoiceChat": {
       "title": "Voice Chat Mode",
       "compactDisplayMode": "Compact display mode",
@@ -236,7 +241,8 @@
     "openChatPreferences": "Open Chat Preferences",
     "deleteThread": "Delete Chat",
     "openShortcutsPopup": "Open Shortcuts Popup",
-    "toggleVoiceChat": "Toggle Voice Chat"
+    "toggleVoiceChat": "Toggle Voice Chat",
+    "thinkingMode": "Toggle Thinking"
   },
   "User": {
     "Profile": {

@@ -27,6 +27,7 @@ export interface AppState {
     [threadId: string]: UploadedFile[];
   };
   chatModel?: ChatModel;
+  thinkingEnabled: boolean;
   openShortcutsPopup: boolean;
   openChatPreferences: boolean;
   openUserSettings: boolean;
@@ -46,6 +47,7 @@ const initialState: AppState = {
   allowedMcpServers: undefined,
   openUserSettings: false,
   chatModel: undefined,
+  thinkingEnabled: false,
   openShortcutsPopup: false,
   openChatPreferences: false,
 };
@@ -63,6 +65,7 @@ export const appStore = create<AppState & AppDispatch>()(
         toolChoice: state.toolChoice || initialState.toolChoice,
         allowedMcpServers:
           state.allowedMcpServers || initialState.allowedMcpServers,
+        thinkingEnabled: state.thinkingEnabled ?? initialState.thinkingEnabled,
       }),
     },
   ),

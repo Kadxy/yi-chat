@@ -26,7 +26,6 @@ import { MessageEditor } from "./message-editor";
 import type { UseChatHelpers } from "@ai-sdk/react";
 import { useCopy } from "@/hooks/use-copy";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { SelectModel } from "./select-model";
 import { deleteMessagesByChatIdAfterTimestampAction } from "@/app/api/chat/actions";
 
@@ -452,29 +451,56 @@ export const AssistMessagePart = memo(function AssistMessagePart({
   );
 });
 AssistMessagePart.displayName = "AssistMessagePart";
-const variants = {
-  collapsed: {
-    height: 0,
-    opacity: 0,
-    marginTop: 0,
-    marginBottom: 0,
-  },
-  expanded: {
-    height: "auto",
-    opacity: 1,
-    marginTop: "1rem",
-    marginBottom: "0.5rem",
-  },
-};
 export const ReasoningPart = memo(function ReasoningPart({
   reasoningText,
   isThinking,
+  savedDurationMs,
 }: {
   reasoningText: string;
   isThinking?: boolean;
   readonly?: boolean;
+  savedDurationMs?: number;
 }) {
-  const [isExpanded, setIsExpanded] = useState(isThinking);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const startTimeRef = useRef<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const frozenSecondsRef = useRef<number | null>(null);
+
+  const savedSeconds = savedDurationMs ? Math.floor(savedDurationMs / 1000) : 0;
+
+  // Start timer when thinking begins
+  useEffect(() => {
+    if (isThinking) {
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now();
+      }
+      frozenSecondsRef.current = null;
+      const timer = setInterval(() => {
+        setElapsedSeconds(
+          Math.floor((Date.now() - startTimeRef.current!) / 1000),
+        );
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+    // Thinking just ended — freeze the elapsed time
+    if (startTimeRef.current && frozenSecondsRef.current === null) {
+      frozenSecondsRef.current = Math.floor(
+        (Date.now() - startTimeRef.current) / 1000,
+      );
+      setElapsedSeconds(frozenSecondsRef.current);
+    }
+  }, [isThinking]);
+
+  // Pick the best available duration: live > frozen > saved from DB
+  const seconds = elapsedSeconds || savedSeconds;
+
+  const displayText = isThinking
+    ? seconds > 0
+      ? `Thinking for ${seconds}s`
+      : "Thinking"
+    : seconds > 0
+      ? `Thought for ${seconds}s`
+      : "Thought";
 
   useEffect(() => {
     if (!isThinking && isExpanded) {
@@ -491,40 +517,38 @@ export const ReasoningPart = memo(function ReasoningPart({
     >
       <div className="flex flex-row gap-2 items-center text-ring hover:text-primary transition-colors">
         {isThinking ? (
-          <TextShimmer>Reasoned for a few seconds</TextShimmer>
+          <TextShimmer>{displayText}</TextShimmer>
         ) : (
-          <div className="font-medium">Reasoned for a few seconds</div>
+          <div className="font-medium">{displayText}</div>
         )}
 
         <button
           data-testid="message-reasoning-toggle"
           type="button"
-          className="cursor-pointer"
+          className={cn(
+            "cursor-pointer transition-transform duration-200",
+            isExpanded && "rotate-180",
+          )}
         >
           <ChevronDownIcon size={16} />
         </button>
       </div>
 
-      <div className="pl-4">
-        <AnimatePresence initial={false}>
-          {isExpanded && (
-            <motion.div
-              data-testid="message-reasoning"
-              key="content"
-              initial="collapsed"
-              animate="expanded"
-              exit="collapsed"
-              variants={variants}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-              style={{ overflow: "hidden" }}
-              className="pl-6 text-muted-foreground border-l flex flex-col gap-4"
-            >
-              <Markdown>
-                {reasoningText || (isThinking ? "" : "Hmm, let's see...🤔")}
-              </Markdown>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div
+        data-testid="message-reasoning"
+        className={cn(
+          "pl-6 text-muted-foreground border-l ml-4 overflow-hidden",
+          "transition-[grid-template-rows] duration-200 ease-in-out grid",
+          isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="flex flex-col gap-4 pt-2">
+            <Markdown>
+              {reasoningText || (isThinking ? "" : "Hmm, let's see...🤔")}
+            </Markdown>
+          </div>
+        </div>
       </div>
     </div>
   );

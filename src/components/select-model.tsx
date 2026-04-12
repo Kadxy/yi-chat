@@ -103,11 +103,6 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
                     data-testid="selected-model-check"
                   />
                 )}
-                {item.isToolCallUnsupported && (
-                  <span className="text-xs text-muted-foreground">
-                    No tools
-                  </span>
-                )}
               </button>
             );
           })}

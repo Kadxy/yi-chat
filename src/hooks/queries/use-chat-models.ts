@@ -11,8 +11,7 @@ export const useChatModels = (options?: SWRConfiguration) => {
       models: {
         name: string;
         displayName: string;
-        isToolCallUnsupported: boolean;
-        isImageInputUnsupported: boolean;
+        isThinkingSupported: boolean;
         supportedFileMimeTypes: string[];
       }[];
     }[]
