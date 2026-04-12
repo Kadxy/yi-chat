@@ -43,7 +43,6 @@
     "youAreAnExpertIn": "You are an expert in {role}",
     "sharedBy": "Shared by {userName}"
   },
-  "Error": {},
   "Info": {
     "mcpAddingDisabled": "MCP server addition has been disabled by the administrator.",
     "vercelSyncDelay": "Running on Vercel\n\nMCP changes may take 10-15 seconds to sync. Please wait a moment after adding, editing, or deleting servers if changes don't appear immediately."
@@ -545,7 +544,7 @@
     }
   },
   "MCP": {
-    "addMcpServer": "Add Server",
+    "addMcpServer": "Add MCP Server",
     "addCustomServer": "Add Custom Server",
     "configureYourMcpServerConnectionSettings": "Configure your MCP server connection settings",
     "mcpConfiguration": "MCP Configuration",

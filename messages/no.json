@@ -43,7 +43,6 @@
     "youAreAnExpertIn": "Du er en ekspert på {role}",
     "sharedBy": "Delt av {userName}"
   },
-  "Error": {},
   "Info": {
     "mcpAddingDisabled": "Administratoren har deaktivert muligheten til å legge til MCP-servere.",
     "vercelSyncDelay": "Kjører på Vercel\n\nMCP-endringer kan ta 10-15 sekunder å synkronisere. Vent litt etter å ha lagt til, redigert eller slettet servere hvis endringene ikke vises umiddelbart."

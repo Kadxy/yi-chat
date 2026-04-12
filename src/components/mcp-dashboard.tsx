@@ -2,7 +2,6 @@
 import { MCPCard } from "@/components/mcp-card";
 import { canCreateMCP } from "lib/auth/client-permissions";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { MCPPresetGrid } from "@/components/mcp-overview";
 import { Skeleton } from "ui/skeleton";
 import { ScrollArea } from "ui/scroll-area";
@@ -11,8 +10,15 @@ import { MCPIcon } from "ui/mcp-icon";
 import { useMcpList } from "@/hooks/queries/use-mcp-list";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { BasicUser } from "app-types/user";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "ui/dialog";
 
 interface MCPDashboardProps {
   message?: string;
@@ -37,6 +43,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
   );
 
   const [showValidating, setShowValidating] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   useEffect(() => {
     if (isValidating) {
@@ -57,7 +64,7 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
 
   return (
     <ScrollArea className="h-full w-full">
-      <div className="pt-8 flex-1 relative flex flex-col gap-6 px-8 max-w-3xl h-full mx-auto pb-8">
+      <div className="pt-8 flex-1 relative flex flex-col gap-6 px-4 sm:px-8 max-w-3xl h-full mx-auto pb-8">
         {/* Header */}
         <div className="flex items-center">
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -68,12 +75,25 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
           </h1>
           <div className="flex-1" />
           {canCreate && (
-            <Link href="/mcp/create">
-              <Button variant="outline" size="sm" className="gap-1.5">
-                <MCPIcon className="fill-foreground size-3" />
-                {t("addCustomServer")}
-              </Button>
-            </Link>
+            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <MCPIcon className="fill-foreground size-3" />
+                  {t("addMcpServer")}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg p-0 gap-0 max-h-[80vh] flex flex-col">
+                <DialogHeader className="px-5 pt-5 pb-3 shrink-0">
+                  <DialogTitle>{t("addMcpServer")}</DialogTitle>
+                </DialogHeader>
+                <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <MCPPresetGrid
+                    installedNames={installedNames}
+                    onInstalled={() => setAddDialogOpen(false)}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
           )}
         </div>
 
@@ -94,25 +114,28 @@ export default function MCPDashboard({ message, user }: MCPDashboardProps) {
               </div>
             )}
 
-            {/* Preset marketplace */}
-            {canCreate && (
-              <div className="flex flex-col gap-3">
-                <h2 className="text-sm font-medium text-muted-foreground">
-                  {t("availableIntegrations")}
-                </h2>
-                <MCPPresetGrid installedNames={installedNames} />
-              </div>
-            )}
-
-            {/* Empty state for non-creators */}
-            {!canCreate && (!mcpList || mcpList.length === 0) && (
+            {/* Empty state */}
+            {(!mcpList || mcpList.length === 0) && (
               <div className="flex flex-col items-center justify-center space-y-4 py-20 text-center">
-                <h3 className="text-2xl font-semibold">
-                  {t("noMcpServersAvailable")}
+                <MCPIcon className="fill-muted-foreground size-8" />
+                <h3 className="text-xl font-semibold">
+                  {canCreate ? t("overviewTitle") : t("noMcpServersAvailable")}
                 </h3>
-                <p className="text-muted-foreground max-w-md">
-                  {t("noMcpServersAvailableDescription")}
+                <p className="text-muted-foreground max-w-md text-sm">
+                  {canCreate
+                    ? t("overviewDescription")
+                    : t("noMcpServersAvailableDescription")}
                 </p>
+                {canCreate && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setAddDialogOpen(true)}
+                    className="gap-1.5"
+                  >
+                    <Plus className="size-3.5" />
+                    {t("addMcpServer")}
+                  </Button>
+                )}
               </div>
             )}
           </>
