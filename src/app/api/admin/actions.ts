@@ -9,10 +9,15 @@ import {
   UpdateUserRoleActionState,
   UpdateUserBanStatusSchema,
   UpdateUserBanStatusActionState,
+  AdjustCreditsSchema,
+  AdjustCreditsActionState,
+  UpdateUserPlanSchema,
+  UpdateUserPlanActionState,
 } from "./validations";
 import logger from "lib/logger";
 import { getTranslations } from "next-intl/server";
 import { getUser } from "lib/user/server";
+import { creditRepository } from "lib/db/repository";
 
 export const updateUserRolesAction = validatedActionWithAdminPermission(
   UpdateUserRoleSchema,
@@ -111,6 +116,63 @@ export const updateUserBanStatusAction = validatedActionWithAdminPermission(
         success: false,
         message: tCommon("failedToUpdateUserStatus"),
         error: error instanceof Error ? error.message : tCommon("unknownError"),
+      };
+    }
+  },
+);
+
+export const adjustCreditsAction = validatedActionWithAdminPermission(
+  AdjustCreditsSchema,
+  async (data): Promise<AdjustCreditsActionState> => {
+    const { userId, amount, description } = data;
+    try {
+      const type = amount > 0 ? "admin_grant" : "admin_deduct";
+      const result = await creditRepository.adjustCredits({
+        userId,
+        amount,
+        type,
+        description:
+          description ||
+          `Admin ${type === "admin_grant" ? "grant" : "deduction"}`,
+      });
+
+      if (!result) {
+        return {
+          success: false,
+          message: "Insufficient balance for deduction.",
+        };
+      }
+
+      return {
+        success: true,
+        message: `Credits adjusted by ${amount > 0 ? "+" : ""}${amount}. New balance: ${result.newBalance.toFixed(2)}`,
+        newBalance: result.newBalance,
+      };
+    } catch (error) {
+      logger.error(error);
+      return {
+        success: false,
+        message: "Failed to adjust credits.",
+      };
+    }
+  },
+);
+
+export const updateUserPlanAction = validatedActionWithAdminPermission(
+  UpdateUserPlanSchema,
+  async (data): Promise<UpdateUserPlanActionState> => {
+    const { userId, plan } = data;
+    try {
+      await creditRepository.setPlan(userId, plan);
+      return {
+        success: true,
+        message: `Plan updated to ${plan}.`,
+      };
+    } catch (error) {
+      logger.error(error);
+      return {
+        success: false,
+        message: "Failed to update plan.",
       };
     }
   },

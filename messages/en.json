@@ -73,6 +73,13 @@
   },
   "Chat": {
     "Error": "Chat Error",
+    "Errors": {
+      "insufficientCredits": "Credits exhausted",
+      "insufficientCreditsDesc": "Your credit balance is empty. Top up or upgrade your plan to continue chatting.",
+      "modelNotAllowed": "Model not available",
+      "modelNotAllowedDesc": "Your current plan doesn't include this model. Upgrade to unlock it.",
+      "viewPlans": "View plans"
+    },
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "This message was not saved. Please try the chat again.",
     "uploadFile": "Upload File",
     "captureScreen": "Capture Screen",
@@ -519,6 +526,39 @@
       "cannotUpdateOwnRole": "You cannot update your own role",
       "roleUpdatedSuccessfullyTo": "User role updated successfully to {role}"
     }
+  },
+  "PlanModal": {
+    "title": "Choose your plan",
+    "current": "Current",
+    "annual": "Annual",
+    "monthly": "Monthly",
+    "creditsIncluded": "{count} credits included",
+    "signupCredits": "300 sign-up credits",
+    "modelAccess": {
+      "free": "Basic models",
+      "plus": "Advanced models",
+      "pro": "All models",
+      "max": "All models"
+    },
+    "free": "Free",
+    "perMonth": " /mo",
+    "compareTitle": "Compare features",
+    "compare": {
+      "models": "Models",
+      "basicModels": "Basic",
+      "advancedModels": "Advanced",
+      "allModels": "All",
+      "contextLength": "Context length",
+      "thinking": "Extended Thinking",
+      "fileAnalysis": "File & image analysis",
+      "uploadSize": "Upload file size",
+      "fileUploads": "Files per message",
+      "mcpTools": "MCP connections",
+      "unlimited": "Unlimited",
+      "signInRewards": "Sign-in rewards",
+      "priorityAndEarly": "Priority & early access"
+    },
+    "next": "Next"
   },
   "MCP": {
     "addMcpServer": "Add MCP Server",

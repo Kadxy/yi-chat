@@ -14,6 +14,7 @@ import {
 import { getAuthConfig } from "./config";
 import logger from "logger";
 import { DEFAULT_USER_ROLE, USER_ROLES } from "app-types/roles";
+import { DEFAULT_PLAN, SIGNUP_CREDITS } from "app-types/plans";
 import { admin, user, ac } from "./roles";
 import { sendOTPEmail } from "lib/email";
 
@@ -80,8 +81,27 @@ const options = {
               ...user,
               name,
               role,
+              plan: DEFAULT_PLAN,
+              creditBalance: String(SIGNUP_CREDITS),
             },
           };
+        },
+        after: async (user) => {
+          // Log the signup credit transaction
+          try {
+            const { pgCreditRepository } = await import(
+              "lib/db/pg/repositories/credit-repository.pg"
+            );
+            await pgCreditRepository.logTransaction({
+              userId: user.id,
+              amount: SIGNUP_CREDITS,
+              balanceAfter: SIGNUP_CREDITS,
+              type: "signup",
+              description: "Signup bonus",
+            });
+          } catch (e) {
+            logger.error("Failed to log signup credit transaction:", e);
+          }
         },
       },
     },

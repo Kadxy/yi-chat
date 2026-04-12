@@ -10,9 +10,12 @@ const KeyboardShortcutsPopup = dynamic(
     import("@/components/keyboard-shortcuts-popup").then(
       (mod) => mod.KeyboardShortcutsPopup,
     ),
-  {
-    ssr: false,
-  },
+  { ssr: false },
+);
+
+const PlanModal = dynamic(
+  () => import("@/components/plan-modal").then((mod) => mod.PlanModal),
+  { ssr: false },
 );
 
 function GlobalShortcuts() {
@@ -37,6 +40,7 @@ export function AppPopupProvider() {
   return (
     <>
       <KeyboardShortcutsPopup />
+      <PlanModal />
       <GlobalShortcuts />
     </>
   );

@@ -10,6 +10,8 @@ import {
   boolean,
   varchar,
   index,
+  integer,
+  numeric,
 } from "drizzle-orm/pg-core";
 import { isNotNull } from "drizzle-orm";
 import { UIMessage } from "ai";
@@ -67,10 +69,52 @@ export const UserTable = pgTable("user", {
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
   role: text("role").notNull().default("user"),
+  plan: text("plan").notNull().default("free"),
+  creditBalance: numeric("credit_balance", { precision: 12, scale: 2 })
+    .notNull()
+    .default("0"),
 });
 
 // Role tables removed - using Better Auth's built-in role system
 // Roles are now managed via the 'role' field on UserTable
+
+export const CreditTransactionTable = pgTable(
+  "credit_transaction",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => UserTable.id, { onDelete: "cascade" }),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(), // positive = credit, negative = debit
+    balanceAfter: numeric("balance_after", {
+      precision: 12,
+      scale: 2,
+    }).notNull(),
+    type: varchar("type", {
+      enum: [
+        "signup",
+        "sign_in",
+        "subscription",
+        "topup",
+        "usage",
+        "admin_grant",
+        "admin_deduct",
+      ],
+    }).notNull(),
+    description: text("description"),
+    // For usage type: which model and how many tokens
+    model: text("model"),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("credit_tx_user_id_idx").on(t.userId),
+    index("credit_tx_created_at_idx").on(t.createdAt),
+  ],
+);
 
 export const SessionTable = pgTable("session", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -152,6 +196,8 @@ export type ChatThreadEntity = typeof ChatThreadTable.$inferSelect;
 export type ChatMessageEntity = typeof ChatMessageTable.$inferSelect;
 
 export type UserEntity = typeof UserTable.$inferSelect;
+export type CreditTransactionEntity =
+  typeof CreditTransactionTable.$inferSelect;
 
 export const ChatShareTable = pgTable("chat_share", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),

@@ -3,6 +3,7 @@
 import { BasicUserWithLastLogin } from "app-types/user";
 import { UserDetailFormCard } from "./user-detail-form-card";
 import { UserAccessCard } from "./user-access-card";
+import { UserCreditPlanCard } from "./user-credit-plan-card";
 import { useProfileTranslations } from "@/hooks/use-profile-translations";
 import { useSidebar } from "ui/sidebar";
 import useSWR, { mutate } from "swr";
@@ -83,6 +84,13 @@ export function UserDetail({
           view={view}
           onUserDetailsUpdate={handleUserUpdate}
         />
+
+        {view === "admin" && (
+          <UserCreditPlanCard
+            user={user ?? initialUser}
+            onUserDetailsUpdate={handleUserUpdate}
+          />
+        )}
 
         <div
           className={cn("col-span-1 md:col-span-2", {

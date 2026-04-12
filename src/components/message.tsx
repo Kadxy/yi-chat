@@ -18,6 +18,8 @@ import { ChevronDown, ChevronUp, TriangleAlertIcon } from "lucide-react";
 import { Button } from "ui/button";
 import { useTranslations } from "next-intl";
 import { ChatMetadata } from "app-types/chat";
+import { appStore } from "@/app/store";
+import { CHAT_ERROR_CODE, parseChatErrorCode } from "app-types/errors";
 
 interface Props {
   message: UIMessage;
@@ -264,6 +266,38 @@ export const ErrorMessage = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const maxLength = 200;
   const t = useTranslations();
+
+  const errorCode = parseChatErrorCode(error.message);
+
+  // Credit/plan errors — clean card with action
+  if (errorCode) {
+    const isCredits = errorCode === CHAT_ERROR_CODE.INSUFFICIENT_CREDITS;
+    return (
+      <div className="w-full mx-auto max-w-3xl px-6 animate-in fade-in mt-4">
+        <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
+          <p className="text-sm font-medium mb-0.5">
+            {isCredits
+              ? t("Chat.Errors.insufficientCredits")
+              : t("Chat.Errors.modelNotAllowed")}
+          </p>
+          <p className="text-xs text-muted-foreground mb-2.5">
+            {isCredits
+              ? t("Chat.Errors.insufficientCreditsDesc")
+              : t("Chat.Errors.modelNotAllowedDesc")}
+          </p>
+          <Button
+            size="sm"
+            variant="default"
+            className="h-7 text-xs"
+            onClick={() => appStore.getState().mutate({ openPlanModal: true })}
+          >
+            {t("Chat.Errors.viewPlans")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full mx-auto max-w-3xl px-6 animate-in fade-in mt-4">
       <div className="flex flex-col gap-2">

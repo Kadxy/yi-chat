@@ -10,10 +10,16 @@ import {
 
 import { customModelProvider } from "lib/ai/models";
 
-import { chatRepository } from "lib/db/repository";
+import { chatRepository, creditRepository } from "lib/db/repository";
 import globalLogger from "logger";
 import { buildUserSystemPrompt } from "lib/ai/prompts";
 import { chatApiSchemaRequestBodySchema, ChatMetadata } from "app-types/chat";
+import {
+  PLAN_CONFIGS,
+  calculateCreditCost,
+  type PlanName,
+} from "app-types/plans";
+import { CHAT_ERROR_CODE } from "app-types/errors";
 
 import {
   handleError,
@@ -51,6 +57,33 @@ export async function POST(request: Request) {
 
     const model = customModelProvider.getModel(chatModel);
     const thinkingConfig = customModelProvider.getThinkingConfig(chatModel);
+
+    // ── Credit & plan gate ──
+    const { balance, plan } = await creditRepository.getBalance(
+      session.user.id,
+    );
+    const planConfig = PLAN_CONFIGS[plan as PlanName];
+    const requestedModel = chatModel?.model;
+
+    // Check model access
+    if (
+      requestedModel &&
+      planConfig &&
+      !planConfig.allowedModels.includes(requestedModel as any)
+    ) {
+      return Response.json(
+        { code: CHAT_ERROR_CODE.MODEL_NOT_ALLOWED },
+        { status: 403 },
+      );
+    }
+
+    // Check credit balance
+    if (balance <= 0) {
+      return Response.json(
+        { code: CHAT_ERROR_CODE.INSUFFICIENT_CREDITS },
+        { status: 402 },
+      );
+    }
 
     let thread = await chatRepository.selectThreadDetails(id);
 
@@ -253,6 +286,7 @@ export async function POST(request: Request) {
 
       generateId: generateUUID,
       onFinish: async ({ responseMessage }) => {
+        // Save messages
         if (responseMessage.id == message.id) {
           await chatRepository.upsertMessage({
             threadId: thread!.id,
@@ -274,6 +308,34 @@ export async function POST(request: Request) {
             parts: responseMessage.parts.map(convertToSavePart),
             metadata,
           });
+        }
+
+        // Deduct credits based on actual token usage
+        if (metadata.usage && requestedModel) {
+          const inputTokens = metadata.usage.inputTokens ?? 0;
+          const outputTokens = metadata.usage.outputTokens ?? 0;
+          const cost = calculateCreditCost(
+            requestedModel,
+            inputTokens,
+            outputTokens,
+          );
+
+          if (cost > 0) {
+            const result = await creditRepository.adjustCredits({
+              userId: session.user.id,
+              amount: -cost,
+              type: "usage",
+              model: requestedModel,
+              inputTokens,
+              outputTokens,
+              description: `Chat: ${inputTokens} in / ${outputTokens} out`,
+            });
+            if (result) {
+              logger.info(
+                `Credits deducted: ${cost.toFixed(2)} from user ${session.user.id}, new balance: ${result.newBalance.toFixed(2)}`,
+              );
+            }
+          }
         }
       },
       onError: handleError,

@@ -16,7 +16,6 @@ import {
 import { AvatarFallback, AvatarImage, Avatar } from "ui/avatar";
 import { SidebarMenuButton, SidebarMenuItem, SidebarMenu } from "ui/sidebar";
 import {
-  ChevronsUpDown,
   Command,
   LogOutIcon,
   Settings2,
@@ -26,6 +25,8 @@ import {
   MoonStar,
   ChevronRight,
   Settings,
+  Coins,
+  Crown,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { appStore } from "@/app/store";
@@ -67,17 +68,20 @@ export function AppSidebarUserInner(props: {
 
   if (!user) return null;
 
+  const creditBalance = Number(user?.creditBalance || 0);
+  const planLabel = user?.plan || "Free";
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground bg-input/30 border"
+              className="data-[state=open]:bg-popover data-[state=open]:text-popover-foreground data-[state=open]:rounded-t-none hover:bg-popover hover:text-popover-foreground transition-colors cursor-pointer bg-input/30 border"
               size={"lg"}
               data-testid="sidebar-user-button"
             >
-              <Avatar className="rounded-full size-8 border">
+              <Avatar className="rounded-full size-7 border shrink-0">
                 <AvatarImage
                   className="object-cover"
                   src={getUserAvatar(user)}
@@ -87,45 +91,58 @@ export function AppSidebarUserInner(props: {
                   {user?.name?.slice(0, 1)?.toUpperCase() || "?"}
                 </AvatarFallback>
               </Avatar>
-              <span
-                className="truncate font-medium"
-                data-testid="sidebar-user-email"
-              >
-                {user?.name || user?.email}
-              </span>
-              <ChevronsUpDown className="ml-auto" />
+              <div className="flex flex-col min-w-0 -space-y-0.5">
+                <span
+                  className="truncate text-sm font-medium"
+                  data-testid="sidebar-user-email"
+                >
+                  {user?.name || user?.email}
+                </span>
+                <span className="truncate text-xs text-muted-foreground capitalize">
+                  {planLabel} · {creditBalance.toFixed(0)} credits
+                </span>
+              </div>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             side="top"
-            className="bg-background w-[--radix-dropdown-menu-trigger-width] min-w-60 rounded-lg"
-            align="center"
+            className="bg-popover w-[--radix-dropdown-menu-trigger-width] min-w-60 rounded-t-md rounded-b-none"
+            align="start"
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-full">
-                  <AvatarImage
-                    src={getUserAvatar(user)}
-                    alt={user?.name || "User"}
-                  />
-                  <AvatarFallback className="rounded-lg">
-                    {user?.name?.slice(0, 1) || ""}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span
-                    className="truncate font-medium"
-                    data-testid="sidebar-user-name"
-                  >
-                    {user?.name}
-                  </span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    {user?.email}
+            {/* Credits section */}
+            <div className="px-2 pb-2 mb-1 border-b border-border/40">
+              <button
+                type="button"
+                className="w-full rounded-md p-2.5 text-left transition-colors cursor-pointer hover:bg-sidebar-accent"
+                onClick={() => appStoreMutate({ openPlanModal: true })}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2 text-xs font-medium">
+                    <Coins className="size-3.5 text-primary" />
+                    Credits
+                  </div>
+                  <span className="text-xs font-semibold tabular-nums">
+                    {creditBalance.toFixed(0)} left
                   </span>
                 </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
+                <div className="h-1.5 rounded-full overflow-hidden bg-primary/20">
+                  <div
+                    className="h-full transition-all duration-300 rounded-full bg-primary"
+                    style={{
+                      width: `${Math.min(100, (creditBalance / 1000) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </button>
+              <button
+                type="button"
+                className="w-full flex items-center gap-2 rounded-md px-2.5 py-1.5 mt-1 text-xs font-medium cursor-pointer transition-colors text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                onClick={() => appStoreMutate({ openPlanModal: true })}
+              >
+                <Crown className="size-3.5 shrink-0" />
+                Upgrade plan
+              </button>
+            </div>
 
             <DropdownMenuItem
               className="cursor-pointer"

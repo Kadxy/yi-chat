@@ -3,9 +3,12 @@
 import { appStore } from "@/app/store";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
 import { ChatModel } from "app-types/chat";
-import { cn } from "lib/utils";
-import { CheckIcon, ChevronDown } from "lucide-react";
+import { PLAN_CONFIGS, type PlanName } from "app-types/plans";
+import { BasicUser } from "app-types/user";
+import { cn, fetcher } from "lib/utils";
+import { CheckIcon, ChevronDown, LockIcon } from "lucide-react";
 import { PropsWithChildren, useEffect, useState } from "react";
+import useSWR from "swr";
 import { Button } from "ui/button";
 import { ModelProviderIcon } from "ui/model-provider-icon";
 import { Popover, PopoverContent, PopoverTrigger } from "ui/popover";
@@ -20,7 +23,11 @@ interface SelectModelProps {
 export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
   const [open, setOpen] = useState(false);
   const { data: providers } = useChatModels();
+  const { data: user } = useSWR<BasicUser>("/api/user/details", fetcher);
   const [model, setModel] = useState(props.currentModel);
+
+  const userPlan = (user?.plan as PlanName) || "free";
+  const allowedModels = PLAN_CONFIGS[userPlan]?.allowedModels ?? [];
 
   const modelDisplayName = providers
     ?.find((p) => p.provider === model?.provider)
@@ -76,6 +83,9 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
           {flatModels?.map((item) => {
             const isSelected =
               model?.provider === item.provider && model?.model === item.name;
+            const isLocked =
+              !allowedModels.includes(item.name as any) && item.hasAPIKey;
+
             return (
               <button
                 key={`${item.provider}-${item.name}`}
@@ -84,8 +94,14 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
                   "flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm cursor-pointer transition-colors",
                   "hover:bg-accent",
                   !item.hasAPIKey && "opacity-40 cursor-not-allowed",
+                  isLocked && "opacity-60",
                 )}
                 onClick={() => {
+                  if (isLocked) {
+                    appStore.getState().mutate({ openPlanModal: true });
+                    setOpen(false);
+                    return;
+                  }
                   setModel({ provider: item.provider, model: item.name });
                   props.onSelect({ provider: item.provider, model: item.name });
                   setOpen(false);
@@ -97,11 +113,15 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
                   className="size-4 shrink-0"
                 />
                 <span className="flex-1 text-left">{item.displayName}</span>
-                {isSelected && (
-                  <CheckIcon
-                    className="size-4 text-muted-foreground shrink-0"
-                    data-testid="selected-model-check"
-                  />
+                {isLocked ? (
+                  <LockIcon className="size-3.5 text-muted-foreground/50 shrink-0" />
+                ) : (
+                  isSelected && (
+                    <CheckIcon
+                      className="size-4 text-muted-foreground shrink-0"
+                      data-testid="selected-model-check"
+                    />
+                  )
                 )}
               </button>
             );

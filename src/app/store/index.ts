@@ -28,6 +28,7 @@ export interface AppState {
   chatModel?: ChatModel;
   thinkingEnabled: boolean;
   openShortcutsPopup: boolean;
+  openPlanModal: boolean;
 }
 
 export interface AppDispatch {
@@ -44,6 +45,7 @@ const initialState: AppState = {
   chatModel: undefined,
   thinkingEnabled: false,
   openShortcutsPopup: false,
+  openPlanModal: false,
 };
 
 export const appStore = create<AppState & AppDispatch>()(
