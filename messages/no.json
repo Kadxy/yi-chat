@@ -73,8 +73,22 @@
   },
   "Chat": {
     "Error": "Chatfeil",
+    "Usage": {
+      "title": "Forbruk",
+      "input": "Inndata-tokens",
+      "output": "Utdata-tokens"
+    },
+    "Errors": {
+      "insufficientCredits": "Kreditter brukt opp",
+      "insufficientCreditsDesc": "Kredittsaldoen din er tom. Fyll på eller oppgrader abonnementet for å fortsette å chatte.",
+      "modelNotAllowed": "Modell ikke tilgjengelig",
+      "modelNotAllowedDesc": "Ditt nåværende abonnement inkluderer ikke denne modellen. Oppgrader for å låse den opp.",
+      "viewPlans": "Se abonnementer"
+    },
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "Denne meldingen ble ikke lagret. Prøv chatten på nytt.",
     "uploadFile": "Last opp fil",
+    "captureScreen": "Ta skjermbilde",
+    "maxFilesPerMessage": "Maksimalt {count} filer per melding",
     "generateImage": "Generer bilde",
     "imageUploadedSuccessfully": "Bilde lastet opp",
     "pleaseUploadImageFile": "Vennligst last opp en bildefil",
@@ -96,7 +110,11 @@
     "Tool": {
       "webSearching": "Søker på nettet...",
       "searchedTheWeb": "Søkte på nettet",
-      "toolsSetupDescription": "Select MCP tools that the chatbot can use.\nThe chatbot will use selected tools based on its own judgment.",
+      "webSearchError": "Søkefeil",
+      "academicSearching": "Søker i akademiske artikler...",
+      "searchedAcademic": "Søkte i akademiske artikler",
+      "academicSearchError": "Akademisk søkefeil",
+      "toolsSetupDescription": "Velg MCP-verktøy som chatboten kan bruke.\nChatboten vil bruke valgte verktøy basert på egen vurdering.",
       "toolsSetup": "Verktøyoppsett",
       "searchOptions": "Søkealternativer",
       "searchOptionsDescription": "Du kan sende søkealternativer til chatboten, som maksimalt antall søkeresultater, søkedato osv.",
@@ -107,7 +125,19 @@
       "error": "feil",
       "authorizationRequired": "Autorisasjon kreves",
       "clickToAuthorize": "Klikk her for å autorisere denne MCP-serveren og få tilgang til verktøyene.",
-      "noToolsAvailable": "Ingen verktøy tilgjengelig"
+      "noToolsAvailable": "Ingen verktøy tilgjengelig",
+      "builtInTools": "Innebygde verktøy",
+      "toolkitVisualization": "Visualisering",
+      "toolkitWebSearch": "Nettsøk",
+      "toolkitAcademicSearch": "Akademisk søk",
+      "toolkitHttp": "HTTP-forespørsel",
+      "toolkitCode": "Kodekjøring",
+      "toolkitFile": "Fil"
+    },
+    "Thinking": {
+      "selectThinkingMode": "Tenkning",
+      "on": "Tenkning på",
+      "off": "Tenkning av"
     },
     "VoiceChat": {
       "title": "Talechat-modus",
@@ -210,7 +240,34 @@
     "reportAnIssue": "Rapporter et problem",
     "joinCommunity": "Bli med i fellesskapet",
     "userSettings": "Brukerinnstillinger",
+    "usageRecords": "Forbrukshistorikk",
     "yourPublicLinks": "Dine offentlige lenker"
+  },
+  "Usage": {
+    "title": "Forbrukshistorikk",
+    "description": "Se historikken over kredittforbruket ditt",
+    "currentBalance": "Nåværende saldo",
+    "currentPlan": "Nåværende abonnement",
+    "credits": "kreditter",
+    "time": "Tidspunkt",
+    "type": "Type",
+    "details": "Detaljer",
+    "model": "Modell",
+    "tokens": "Tokens",
+    "inputTokens": "Inn",
+    "outputTokens": "Ut",
+    "amount": "Beløp",
+    "balance": "Saldo",
+    "noRecords": "Ingen forbruksposter ennå",
+    "noRecordsDescription": "Kreditttransaksjonene dine vil vises her når du begynner å bruke tjenesten.",
+    "loadMore": "Last inn mer",
+    "typeSignup": "Registreringsbonus",
+    "typeSignIn": "Innloggingsbonus",
+    "typeSubscription": "Abonnement",
+    "typeTopup": "Påfyll",
+    "typeUsage": "Forbruk",
+    "typeAdminGrant": "Tildelt av admin",
+    "typeAdminDeduct": "Trukket av admin"
   },
   "Archive": {
     "archive": "Arkiver",
@@ -231,7 +288,8 @@
     "openChatPreferences": "Åpne chatpreferanser",
     "deleteThread": "Slett chat",
     "openShortcutsPopup": "Åpne snarveier-popup",
-    "toggleVoiceChat": "Åpne talechat"
+    "toggleVoiceChat": "Åpne talechat",
+    "thinkingMode": "Veksle tenkning"
   },
   "User": {
     "Profile": {
@@ -508,9 +566,42 @@
       "roleUpdatedSuccessfullyTo": "Brukerrolle oppdatert til {role}"
     }
   },
+  "PlanModal": {
+    "title": "Velg ditt abonnement",
+    "current": "Nåværende",
+    "annual": "Årlig",
+    "monthly": "Månedlig",
+    "creditsIncluded": "{count} kreditter inkludert",
+    "signupCredits": "300 registreringskreditter",
+    "modelAccess": {
+      "free": "Grunnleggende modeller",
+      "plus": "Avanserte modeller",
+      "pro": "Alle modeller",
+      "max": "Alle modeller"
+    },
+    "free": "Gratis",
+    "perMonth": " /md",
+    "compareTitle": "Sammenlign funksjoner",
+    "compare": {
+      "models": "Modeller",
+      "basicModels": "Grunnleggende",
+      "advancedModels": "Avanserte",
+      "allModels": "Alle",
+      "contextLength": "Kontekstlengde",
+      "thinking": "Utvidet tenkning",
+      "fileAnalysis": "Fil- og bildeanalyse",
+      "uploadSize": "Opplastingsfilstørrelse",
+      "fileUploads": "Filer per melding",
+      "mcpTools": "MCP-tilkoblinger",
+      "unlimited": "Ubegrenset",
+      "signInRewards": "Innloggingsbelønninger",
+      "priorityAndEarly": "Prioritet og tidlig tilgang"
+    },
+    "next": "Neste"
+  },
   "MCP": {
-    "marketplace": "Markedsplass",
     "addMcpServer": "Legg til server",
+    "mcpLimitReached": "MCP-grensen er nådd ({count}). Oppgrader for å legge til flere.",
     "addCustomServer": "Legg til tilpasset server",
     "configureYourMcpServerConnectionSettings": "Konfigurer MCP-serverens tilkoblingsinnstillinger",
     "mcpConfiguration": "MCP konfigurasjon",
@@ -519,28 +610,17 @@
     "configurationSavedSuccessfully": "Konfigurasjon lagret",
     "enterMcpServerName": "Skriv inn MCP-servernavn",
     "saveConfiguration": "Lagre konfigurasjon",
-    "toolsTest": "Verktøytest",
     "refresh": "Oppdater",
     "delete": "Slett",
-    "edit": "Rediger",
-    "configuration": "Konfigurasjon",
+    "authorize": "Autoriser",
     "availableTools": "Tilgjengelige verktøy",
     "noToolsAvailable": "Ingen verktøy tilgjengelig",
     "overviewTitle": "Koble til din første server",
     "overviewDescription": "Legg til MCP-servere for å låse opp kraftige AI-integrasjoner",
-    "mcpServers": "MCP-servere",
-    "availableMcpServers": "Tilgjengelige MCP-servere",
     "noMcpServersAvailable": "Ingen MCP-servere tilgjengelig",
     "noMcpServersAvailableDescription": "Be administratoren din om å konfigurere MCP-servere for deg",
-    "myMcpServers": "Mine MCP-servere",
-    "featuredMcpServers": "Utvalgte MCP-servere",
-    "searchTools": "Søk etter verktøy",
-    "detail": "Detaljer",
-    "noSchemaPropertiesAvailable": "Ingen skjemaegenskaper tilgjengelig",
-    "createInputWithAI": "Opprett inndata med AI",
-    "generateExampleInputJSON": "Generer eksempel-JSON for inndata",
-    "enterPromptToGenerateExampleInputJSON": "Skriv inn en ledetekst for å generere eksempel-JSON for inndata for det valgte verktøyet.",
-    "callTool": "Kall verktøy",
+    "availableIntegrations": "Tilgjengelige integrasjoner",
+    "installed": "Installert",
     "customInstructions": "Egendefinerte instruksjoner",
     "serverCustomInstructionsPlaceholder": "Disse linjene vil bli lagt til AI-systemledeteksten når et verktøy fra denne serveren er tilgjengelig.",
     "nameAlreadyExists": "Navnet finnes allerede",
@@ -551,14 +631,6 @@
     "mcpServerCustomizationDescription": "MCP-servertilpasningsinstruksjoner vil bli lagt til systemledeteksten når MCP-serveren er tilgjengelig.",
     "toolCustomizationInstructionsPlaceholder": "Verktøytilpasningsinstruksjoner er ikke tilgjengelig.",
     "mcpServerCustomizationPlaceholder": "f.eks. hvis inndataverdien er e-post, skriv alltid inn e-posten i formatet eksempel@eksempel.com.",
-    "private": "Privat",
-    "privateDescription": "Bare du kan bruke denne MCP-serveren",
-    "readonly": "Skrivebeskyttet",
-    "readonlyDescription": "Andre kan se, men ikke endre denne MCP-serveren",
-    "public": "Offentlig",
-    "publicDescription": "Offentlig for alle brukere",
-    "featured": "Fremhevet",
-    "featuredDescription": "Fremhevet for alle brukere",
     "noInstructions": "Ingen"
   }
 }

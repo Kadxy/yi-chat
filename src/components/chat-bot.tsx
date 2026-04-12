@@ -192,7 +192,7 @@ export default function ChatBot({
     }),
     messages: initialMessages,
     generateId: generateUUID,
-    experimental_throttle: 100,
+    experimental_throttle: 50,
     onFinish,
   });
   const [isDeleteThreadPopupOpen, setIsDeleteThreadPopupOpen] = useState(false);
