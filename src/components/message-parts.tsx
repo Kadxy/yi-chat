@@ -728,10 +728,7 @@ export const ToolMessagePart = memo(
     }, [isCompleted, output, state, errorText]);
 
     const CustomToolComponent = useMemo(() => {
-      if (
-        toolName === DefaultToolName.WebSearch ||
-        toolName === DefaultToolName.WebContent
-      ) {
+      if (toolName === DefaultToolName.WebSearch) {
         return <WebSearchToolInvocation part={part} />;
       }
 

@@ -2,7 +2,6 @@ import { MCPToolInfo } from "app-types/mcp";
 
 import { UserPreferences } from "app-types/user";
 import { User } from "better-auth";
-import { format } from "date-fns";
 
 export const CREATE_THREAD_TITLE_PROMPT = `
 Generate a short, specific chat title from the conversation below.
@@ -30,7 +29,18 @@ export const buildUserSystemPrompt = (
   userPreferences?: UserPreferences,
 ) => {
   const assistantName = userPreferences?.botName || "yi.chat";
-  const currentTime = format(new Date(), "EEEE, MMMM d, yyyy 'at' h:mm:ss a");
+  const currentTime =
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "UTC",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    }).format(new Date()) + " (UTC)";
 
   let prompt = `You are ${assistantName}`;
 
@@ -99,7 +109,18 @@ export const buildSpeechSystemPrompt = (
   userPreferences?: UserPreferences,
 ) => {
   const assistantName = userPreferences?.botName || "Assistant";
-  const currentTime = format(new Date(), "EEEE, MMMM d, yyyy 'at' h:mm:ss a");
+  const currentTime =
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "UTC",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    }).format(new Date()) + " (UTC)";
 
   let prompt = `You are ${assistantName}`;
 

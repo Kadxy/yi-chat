@@ -94,8 +94,9 @@
     },
     "placeholder": "Ask anything",
     "Tool": {
-      "webSearching": "Searching the Web...",
-      "searchedTheWeb": "Searched the Web",
+      "webSearching": "Searching the web...",
+      "searchedTheWeb": "Searched the web",
+      "webSearchError": "Search error",
       "toolsSetupDescription": "Select MCP tools that the chatbot can use.\nThe chatbot will use selected tools based on its own judgment.",
       "selectToolMode": "Select a tool mode",
       "autoToolModeDescription": "Decides when to use tools without asking you",

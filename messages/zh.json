@@ -90,8 +90,9 @@
     },
     "placeholder": "询问任何问题",
     "Tool": {
-      "webSearching": "正在搜索网络...",
-      "searchedTheWeb": "搜索网络",
+      "webSearching": "正在搜索...",
+      "searchedTheWeb": "已搜索",
+      "webSearchError": "搜索出错",
       "toolModeDescription": "选择工具使用方式:\n• 自动: AI 自动决定何时使用工具\n• 手动: 使用工具前询问许可\n• 无: 禁用所有工具",
       "toolsSetupDescription": "Select MCP tools that the chatbot can use.\nThe chatbot will use selected tools based on its own judgment.",
       "selectToolMode": "选择工具模式",
