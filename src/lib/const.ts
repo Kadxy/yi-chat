@@ -20,23 +20,12 @@ export const BASE_URL = (() => {
 export const BASE_THEMES = [
   "default",
   "zinc",
-  "slate",
-  "stone",
-  "gray",
   "blue",
   "orange",
   "pink",
-  "bubblegum-pop",
   "cyberpunk-neon",
-  "retro-arcade",
-  "tropical-paradise",
-  "steampunk-cogs",
-  "neon-synthwave",
-  "pastel-kawaii",
-  "space-odyssey",
-  "vintage-vinyl",
-  "misty-harbor",
   "zen-garden",
+  "pastel-kawaii",
 ];
 
 export const OAUTH_REQUIRED_CODE = "OAUTH_REQUIRED";
@@ -44,32 +33,31 @@ export const OAUTH_REQUIRED_CODE = "OAUTH_REQUIRED";
 export const SUPPORTED_LOCALES = [
   {
     code: "en",
-    name: "English 🇺🇸",
-  },
-  {
-    code: "ko",
-    name: "Korean 🇰🇷",
-  },
-
-  {
-    code: "es",
-    name: "Spanish 🇪🇸",
-  },
-  {
-    code: "fr",
-    name: "French 🇫🇷",
-  },
-  {
-    code: "ja",
-    name: "Japanese 🇯🇵",
+    name: "English",
   },
   {
     code: "zh",
-    name: "Chinese 🇨🇳",
+    name: "简体中文",
+  },
+  {
+    code: "ja",
+    name: "日本語",
+  },
+  {
+    code: "ko",
+    name: "한국어",
+  },
+  {
+    code: "es",
+    name: "Español",
+  },
+  {
+    code: "fr",
+    name: "Français",
   },
   {
     code: "no",
-    name: "Norwegian 🇳🇴",
+    name: "Norsk",
   },
 ];
 

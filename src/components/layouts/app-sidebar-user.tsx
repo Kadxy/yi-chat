@@ -87,8 +87,11 @@ export function AppSidebarUserInner(props: {
                   {user?.name?.slice(0, 1)?.toUpperCase() || "?"}
                 </AvatarFallback>
               </Avatar>
-              <span className="truncate" data-testid="sidebar-user-email">
-                {user?.email}
+              <span
+                className="truncate font-medium"
+                data-testid="sidebar-user-email"
+              >
+                {user?.name || user?.email}
               </span>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>

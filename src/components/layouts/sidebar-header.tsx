@@ -6,7 +6,6 @@ import { useEffect, useRef } from "react";
 import {
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "ui/sidebar";
@@ -67,25 +66,27 @@ export function SidebarHeaderShared({
     <SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem className="flex items-center gap-0.5 mb-1">
-          <SidebarMenuButton asChild className="hover:bg-transparent">
-            <Link href={href} onClick={handleLinkClick}>
-              <h4 className="font-bold">{title}</h4>
-              {showMobileToggle && (
-                <div
-                  className="ml-auto block sm:hidden"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setOpenMobile(false);
-                  }}
-                  data-state={open ? "open" : "closed"}
-                  data-testid="sidebar-header-toggle-mobile"
-                >
-                  <PanelLeft className="size-4" />
-                </div>
-              )}
-            </Link>
-          </SidebarMenuButton>
+          <Link
+            href={href}
+            onClick={handleLinkClick}
+            className="flex items-center gap-2 px-2 py-1.5"
+          >
+            <span className="text-lg font-bold">{title}</span>
+            {showMobileToggle && (
+              <div
+                className="ml-auto block sm:hidden"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setOpenMobile(false);
+                }}
+                data-state={open ? "open" : "closed"}
+                data-testid="sidebar-header-toggle-mobile"
+              >
+                <PanelLeft className="size-4" />
+              </div>
+            )}
+          </Link>
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarHeader>

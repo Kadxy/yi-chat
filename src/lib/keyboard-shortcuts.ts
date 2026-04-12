@@ -19,29 +19,12 @@ const openNewChatShortcut: Shortcut = {
   },
 };
 
-const toggleVoiceChatShortcut: Shortcut = {
-  description: "toggleVoiceChat",
-  shortcut: {
-    key: "I",
-    command: true,
-    shift: true,
-  },
-};
-
 const toggleSidebarShortcut: Shortcut = {
   description: "toggleSidebar",
   shortcut: {
     key: "S",
     command: true,
     shift: true,
-  },
-};
-
-const toolModeShortcut: Shortcut = {
-  description: "toolMode",
-  shortcut: {
-    key: "P",
-    command: true,
   },
 };
 
@@ -90,11 +73,9 @@ const openShortcutsPopupShortcut: Shortcut = {
 export const Shortcuts = {
   openNewChat: openNewChatShortcut,
   openChatPreferences: openChatPreferencesShortcut,
-  toggleVoiceChat: toggleVoiceChatShortcut,
   toggleSidebar: toggleSidebarShortcut,
   lastMessageCopy: lastMessageCopyShortcut,
   deleteThread: deleteThreadShortcut,
-  toolMode: toolModeShortcut,
   thinkingMode: thinkingModeShortcut,
   openShortcutsPopup: openShortcutsPopupShortcut,
 };
