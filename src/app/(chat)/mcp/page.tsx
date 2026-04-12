@@ -11,5 +11,5 @@ export default async function Page() {
     return redirect("/login");
   }
 
-  return <MCPDashboard user={session?.user} />;
+  return <MCPDashboard />;
 }

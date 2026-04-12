@@ -13,7 +13,6 @@ export interface BetterAuthRole {
   statements: {
     user?: readonly string[];
     session?: readonly string[];
-    agent?: readonly PermissionType[];
     mcp?: readonly PermissionType[];
     chat?: readonly PermissionType[];
     [key: string]: readonly string[] | undefined;
