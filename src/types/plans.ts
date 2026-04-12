@@ -68,6 +68,42 @@ export const PLAN_CONFIGS: Record<PlanName, PlanConfig> = {
 
 export const DEFAULT_PLAN: PlanName = PLANS.FREE;
 
+// ── Plan limits (enforced on frontend) ──
+
+export type PlanLimits = {
+  maxFilesPerMessage: number;
+  maxFileSizeMB: number;
+  maxMcpServers: number; // -1 = unlimited
+  contextLength: string; // display label
+};
+
+export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
+  free: {
+    maxFilesPerMessage: 3,
+    maxFileSizeMB: 1,
+    maxMcpServers: 1,
+    contextLength: "64K",
+  },
+  plus: {
+    maxFilesPerMessage: 3,
+    maxFileSizeMB: 10,
+    maxMcpServers: 3,
+    contextLength: "128K",
+  },
+  pro: {
+    maxFilesPerMessage: 5,
+    maxFileSizeMB: 10,
+    maxMcpServers: 5,
+    contextLength: "1M",
+  },
+  max: {
+    maxFilesPerMessage: 10,
+    maxFileSizeMB: 10,
+    maxMcpServers: -1,
+    contextLength: "1M",
+  },
+};
+
 // ── Global credit settings ──
 
 export const SIGNUP_CREDITS = 2_000;

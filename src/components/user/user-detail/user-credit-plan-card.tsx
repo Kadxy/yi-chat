@@ -29,7 +29,7 @@ export function UserCreditPlanCard({
   const [isChangingPlan, setIsChangingPlan] = useState(false);
 
   const currentPlan = (user.plan as PlanName) || "free";
-  const currentBalance = Number(user.creditBalance || 0);
+  const currentBalance = user.creditBalance ?? 0;
 
   const handleAdjustCredits = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +48,7 @@ export function UserCreditPlanCard({
     if (result?.success) {
       toast.success(result.message);
       onUserDetailsUpdate({
-        creditBalance: String(result.newBalance ?? currentBalance + amount),
+        creditBalance: result.newBalance ?? currentBalance + amount,
       });
       setCreditAmount("");
       setCreditReason("");

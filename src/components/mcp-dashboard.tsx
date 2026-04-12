@@ -7,6 +7,7 @@ import { ScrollArea } from "ui/scroll-area";
 import { useTranslations } from "next-intl";
 import { MCPIcon } from "ui/mcp-icon";
 import { useMcpList } from "@/hooks/queries/use-mcp-list";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, PlusIcon } from "lucide-react";
@@ -39,6 +40,10 @@ export default function MCPDashboard({ message }: MCPDashboardProps) {
 
   const [showValidating, setShowValidating] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const planLimits = usePlanLimits();
+  const mcpCount = mcpList?.length ?? 0;
+  const atMcpLimit =
+    planLimits.maxMcpServers !== -1 && mcpCount >= planLimits.maxMcpServers;
 
   useEffect(() => {
     if (isValidating) {
@@ -71,7 +76,17 @@ export default function MCPDashboard({ message }: MCPDashboardProps) {
           <div className="flex-1" />
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                disabled={atMcpLimit}
+                title={
+                  atMcpLimit
+                    ? t("mcpLimitReached", { count: planLimits.maxMcpServers })
+                    : undefined
+                }
+              >
                 <PlusIcon className="fill-foreground size-3" />
                 {t("addMcpServer")}
               </Button>

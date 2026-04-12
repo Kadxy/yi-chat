@@ -68,7 +68,7 @@ export function AppSidebarUserInner(props: {
 
   if (!user) return null;
 
-  const creditBalance = Number(user?.creditBalance || 0);
+  const creditBalance = user?.creditBalance ?? 0;
   const planLabel = user?.plan || "Free";
 
   return (
@@ -99,7 +99,7 @@ export function AppSidebarUserInner(props: {
                   {user?.name || user?.email}
                 </span>
                 <span className="truncate text-xs text-muted-foreground capitalize">
-                  {planLabel} · {creditBalance.toFixed(0)} credits
+                  {planLabel} · {creditBalance} credits
                 </span>
               </div>
             </SidebarMenuButton>
@@ -122,7 +122,7 @@ export function AppSidebarUserInner(props: {
                     Credits
                   </div>
                   <span className="text-xs font-semibold tabular-nums">
-                    {creditBalance.toFixed(0)} left
+                    {creditBalance} left
                   </span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden bg-primary/20">

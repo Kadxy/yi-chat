@@ -35,7 +35,7 @@ export type BasicUser = Omit<
   banReason?: string | null;
   banExpires?: Date | null;
   plan?: string | null;
-  creditBalance?: string | null;
+  creditBalance?: number | null;
 };
 
 export interface BasicUserWithLastLogin extends BasicUser {

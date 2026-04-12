@@ -56,6 +56,15 @@ export default function AuthForm({
   }, []);
 
   useEffect(() => {
+    // Suppress GSI FedCM AbortError that Next.js dev overlay catches
+    // as unhandled rejection — this is a Google GSI internal issue
+    const handleRejection = (e: PromiseRejectionEvent) => {
+      if (e.reason instanceof DOMException && e.reason.name === "AbortError") {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("unhandledrejection", handleRejection);
+
     let cancelled = false;
 
     authClient
@@ -71,10 +80,7 @@ export default function AuthForm({
       .catch((error: unknown) => {
         // Ignore AbortError caused by React Strict Mode double-mount
         // or component unmount triggering FedCM request cancellation
-        if (
-          error instanceof DOMException &&
-          error.name === "AbortError"
-        ) {
+        if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
         if (
@@ -88,6 +94,7 @@ export default function AuthForm({
 
     return () => {
       cancelled = true;
+      window.removeEventListener("unhandledrejection", handleRejection);
     };
   }, []);
 

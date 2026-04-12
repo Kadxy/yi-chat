@@ -82,7 +82,7 @@ const options = {
               name,
               role,
               plan: DEFAULT_PLAN,
-              creditBalance: String(SIGNUP_CREDITS),
+              creditBalance: SIGNUP_CREDITS,
             },
           };
         },

@@ -43,12 +43,17 @@ export const pgChatShareRepository: ChatShareRepository = {
     return await pgChatShareRepository.insert({
       sharerId: sharerId ?? thread.userId,
       title: thread.title,
-      messages: messages.map((m) => ({
-        id: m.id,
-        role: m.role,
-        parts: m.parts,
-        metadata: m.metadata,
-      })),
+      messages: messages.map((m) => {
+        // Strip sensitive fields from metadata before sharing
+        const { creditCost, usage, ...safeMetadata } = m.metadata ?? {};
+        return {
+          id: m.id,
+          role: m.role,
+          parts: m.parts,
+          metadata:
+            Object.keys(safeMetadata).length > 0 ? safeMetadata : undefined,
+        };
+      }),
       originalThreadId: threadId,
       expiresAt,
     });

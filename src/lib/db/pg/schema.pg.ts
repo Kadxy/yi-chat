@@ -11,7 +11,6 @@ import {
   varchar,
   index,
   integer,
-  numeric,
 } from "drizzle-orm/pg-core";
 import { isNotNull } from "drizzle-orm";
 import { UIMessage } from "ai";
@@ -70,9 +69,7 @@ export const UserTable = pgTable("user", {
   banExpires: timestamp("ban_expires"),
   role: text("role").notNull().default("user"),
   plan: text("plan").notNull().default("free"),
-  creditBalance: numeric("credit_balance", { precision: 12, scale: 2 })
-    .notNull()
-    .default("0"),
+  creditBalance: integer("credit_balance").notNull().default(0),
 });
 
 // Role tables removed - using Better Auth's built-in role system
@@ -85,11 +82,8 @@ export const CreditTransactionTable = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => UserTable.id, { onDelete: "cascade" }),
-    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(), // positive = credit, negative = debit
-    balanceAfter: numeric("balance_after", {
-      precision: 12,
-      scale: 2,
-    }).notNull(),
+    amount: integer("amount").notNull(),
+    balanceAfter: integer("balance_after").notNull(),
     type: varchar("type", {
       enum: [
         "signup",

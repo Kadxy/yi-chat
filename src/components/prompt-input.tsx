@@ -42,6 +42,7 @@ import {
   isUploadBlocked,
 } from "@/lib/ai/file-support";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { FileTypeIcon } from "./file-type-icon";
 
 interface PromptInputProps {
@@ -77,6 +78,7 @@ export default function PromptInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { uploadFiles } = useThreadFileUploader(threadId);
   const { data: providers } = useChatModels();
+  const planLimits = usePlanLimits();
 
   const [globalModel, threadFiles, appStoreMutate] = appStore(
     useShallow((state) => [state.chatModel, state.threadFiles, state.mutate]),
@@ -153,9 +155,9 @@ export default function PromptInput({
         }
         return true;
       });
-      const MAX_FILES = 10;
-      if (uploadedFiles.length + files.length > MAX_FILES) {
-        toast.error(t("maxFilesPerMessage", { count: MAX_FILES }));
+      const maxFiles = planLimits.maxFilesPerMessage;
+      if (uploadedFiles.length + files.length > maxFiles) {
+        toast.error(t("maxFilesPerMessage", { count: maxFiles }));
         if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
@@ -274,6 +276,35 @@ export default function PromptInput({
     }));
   };
 
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+      const items = e.clipboardData?.items;
+      if (!items || !threadId) return;
+
+      const files: File[] = [];
+      for (const item of Array.from(items)) {
+        if (item.kind === "file") {
+          const file = item.getAsFile();
+          if (file && !isUploadBlocked(file.name)) {
+            files.push(file);
+          }
+        }
+      }
+
+      if (files.length === 0) return;
+      e.preventDefault();
+
+      const maxFiles = planLimits.maxFilesPerMessage;
+      if (uploadedFiles.length + files.length > maxFiles) {
+        toast.error(t("maxFilesPerMessage", { count: maxFiles }));
+        return;
+      }
+
+      uploadFiles(files);
+    },
+    [threadId, uploadedFiles, uploadFiles, t],
+  );
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (
@@ -311,7 +342,7 @@ export default function PromptInput({
                         {isImage ? (
                           <div
                             className={cn(
-                              "w-16 h-16 rounded-xl overflow-hidden border border-border",
+                              "w-14 h-14 rounded-xl overflow-hidden border border-border",
                               file.isUploading && "opacity-50",
                             )}
                           >
@@ -423,10 +454,13 @@ export default function PromptInput({
 
               <textarea
                 ref={textareaRef}
+                id="chat-input"
+                name="chat-input"
                 className="w-full max-h-80 min-h-[24px] [field-sizing:content] break-words overflow-y-auto no-scrollbar resize-none focus:outline-none px-3 py-2 text-sm bg-transparent mb-2"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
                 onFocus={onFocus}
                 placeholder={
                   placeholder ??
@@ -441,6 +475,8 @@ export default function PromptInput({
               <div className="flex w-full items-center">
                 <input
                   ref={fileInputRef}
+                  id="file-upload"
+                  name="file-upload"
                   type="file"
                   multiple
                   className="hidden"

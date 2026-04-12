@@ -231,6 +231,7 @@ export const AssistMessagePart = memo(function AssistMessagePart({
   const { copied, copy } = useCopy();
   const [isLoading, setIsLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const t = useTranslations();
   const metadata = message.metadata as ChatMetadata | undefined;
   const { data: providers } = useChatModels();
 
@@ -349,85 +350,41 @@ export const AssistMessagePart = memo(function AssistMessagePart({
                 <div className="space-y-4">
                   {metadata.chatModel && (
                     <>
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-semibold text-foreground">
-                          Model
-                        </h4>
-                        <div className="flex gap-3 items-center">
-                          <ModelProviderIcon
-                            provider={metadata.chatModel.provider}
-                            className="size-5 flex-shrink-0"
-                          />
-                          <div className="space-y-0.5 flex-1">
-                            <div className="text-sm font-medium text-foreground">
-                              {modelDisplayInfo?.providerName}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {modelDisplayInfo?.modelName}
-                              {metadata.toolCount !== undefined &&
-                                metadata.toolCount > 0 && (
-                                  <span className="ml-2">
-                                    • {metadata.toolCount} tools
-                                  </span>
-                                )}
-                            </div>
+                      <div className="flex gap-3 items-center">
+                        <ModelProviderIcon
+                          provider={metadata.chatModel.provider}
+                          className="size-5 flex-shrink-0"
+                        />
+                        <div className="space-y-0.5 flex-1">
+                          <div className="text-sm font-medium text-foreground">
+                            {modelDisplayInfo?.providerName}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {modelDisplayInfo?.modelName}
+                            {metadata.toolCount !== undefined &&
+                              metadata.toolCount > 0 && (
+                                <span className="ml-2">
+                                  • {metadata.toolCount} tools
+                                </span>
+                              )}
                           </div>
                         </div>
                       </div>
-                      <div className="border-t border-border/50" />
+                      {metadata.creditCost !== undefined && (
+                        <div className="border-t border-border/50" />
+                      )}
                     </>
                   )}
 
-                  {metadata.usage && (
+                  {metadata.creditCost !== undefined && (
                     <>
-                      <div className="flex flex-col gap-2">
-                        <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                          Token Usage
-                          <span className="text-xs text-muted-foreground font-normal">
-                            {
-                              message.parts.filter(
-                                (v) => v.type != "step-start",
-                              ).length
-                            }{" "}
-                            Steps
-                          </span>
-                        </h4>
-                        <p className="px-2 mb-2 text-xs text-muted-foreground">
-                          High input token usage may occur when many tools are
-                          available.
-                        </p>
-                        <div className="space-y-2">
-                          {metadata.usage.inputTokens !== undefined && (
-                            <div className="flex items-center justify-between py-1 px-2 rounded-md bg-muted/30">
-                              <span className="text-xs text-muted-foreground">
-                                Input
-                              </span>
-                              <span className="text-xs font-mono font-medium">
-                                {metadata.usage.inputTokens.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                          {metadata.usage.outputTokens !== undefined && (
-                            <div className="flex items-center justify-between py-1 px-2 rounded-md bg-muted/30">
-                              <span className="text-xs text-muted-foreground">
-                                Output
-                              </span>
-                              <span className="text-xs font-mono font-medium">
-                                {metadata.usage.outputTokens.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                          {metadata.usage.totalTokens !== undefined && (
-                            <div className="flex items-center justify-between py-1.5 px-2 rounded-md bg-primary/10 border border-primary/20">
-                              <span className="text-xs font-medium text-primary">
-                                Total
-                              </span>
-                              <span className="text-xs font-mono font-bold text-primary">
-                                {metadata.usage.totalTokens.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                      <div className="flex items-center justify-between py-1 px-1">
+                        <span className="text-xs text-muted-foreground">
+                          {t("Chat.Usage.title")}
+                        </span>
+                        <span className="text-xs font-mono font-medium">
+                          {metadata.creditCost.toLocaleString()} credits
+                        </span>
                       </div>
                     </>
                   )}

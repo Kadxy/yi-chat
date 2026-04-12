@@ -3,23 +3,27 @@
 import { useCallback } from "react";
 import { appStore, UploadedFile } from "@/app/store";
 import { useFileUpload } from "@/hooks/use-presigned-upload";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { generateUUID } from "@/lib/utils";
 import { toast } from "sonner";
 
 export function useThreadFileUploader(threadId?: string) {
   const appStoreMutate = appStore((s) => s.mutate);
   const { upload } = useFileUpload();
+  const planLimits = usePlanLimits();
 
   const uploadFiles = useCallback(
     async (files: File[]) => {
       if (!threadId || files.length === 0) return;
-      const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB per file
+      const maxSizeBytes = planLimits.maxFileSizeMB * 1024 * 1024;
 
       // Filter valid files and prepare all at once
       const validFiles: { file: File; entry: UploadedFile }[] = [];
       for (const file of files) {
-        if (file.size > MAX_SIZE_BYTES) {
-          toast.error(`${file.name}: file too large (>10MB)`);
+        if (file.size > maxSizeBytes) {
+          toast.error(
+            `${file.name}: file too large (>${planLimits.maxFileSizeMB}MB)`,
+          );
           continue;
         }
 
@@ -102,7 +106,7 @@ export function useThreadFileUploader(threadId?: string) {
         }),
       );
     },
-    [threadId, appStoreMutate, upload],
+    [threadId, appStoreMutate, upload, planLimits],
   );
 
   return { uploadFiles };
