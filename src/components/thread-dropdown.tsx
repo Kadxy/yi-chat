@@ -40,7 +40,7 @@ import {
 } from "ui/command";
 import { useTranslations } from "next-intl";
 import { useShallow } from "zustand/shallow";
-import { ChatExportPopup } from "./export/chat-export-popup";
+import { ChatSharePopup } from "./share/chat-share-popup";
 
 type Props = PropsWithChildren<{
   threadId: string;
@@ -142,12 +142,12 @@ export function ThreadDropdown({
           <CommandList>
             <CommandGroup>
               <CommandItem className="cursor-pointer p-0">
-                <ChatExportPopup threadId={threadId}>
+                <ChatSharePopup threadId={threadId}>
                   <div className="flex items-center gap-2 w-full px-2 py-1 rounded">
                     <UploadIcon className="text-foreground" />
-                    <span className="mr-4">{t("Chat.Thread.exportChat")}</span>
+                    <span className="mr-4">{t("Chat.Thread.shareChat")}</span>
                   </div>
-                </ChatExportPopup>
+                </ChatSharePopup>
               </CommandItem>
               <CommandItem className="cursor-pointer p-0">
                 <UpdateThreadNameDialog

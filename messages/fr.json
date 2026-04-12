@@ -69,7 +69,7 @@
   "Chat": {
     "Error": "Erreur de Chat",
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "Ce message n'a pas été enregistré. Veuillez réessayer le chat.",
-    "uploadImage": "Téléverser un fichier",
+    "uploadFile": "Téléverser un fichier",
     "generateImage": "Générer une Image",
     "imageUploadedSuccessfully": "Image téléchargée avec succès",
     "pleaseUploadImageFile": "Veuillez télécharger un fichier image",
@@ -87,7 +87,7 @@
       "whereWouldYouLikeToStart": "Par où aimeriez-vous commencer ?",
       "whatAreYouThinking": "À quoi pensez-vous, {name} ?"
     },
-    "placeholder": "Posez n'importe quelle question",
+    "placeholder": "Demandez à {appName}",
     "Tool": {
       "webSearching": "Recherche sur le web...",
       "searchedTheWeb": "Recherché sur le web",

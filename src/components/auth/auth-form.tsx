@@ -56,13 +56,39 @@ export default function AuthForm({
   }, []);
 
   useEffect(() => {
-    authClient.oneTap({
-      fetchOptions: {
-        onSuccess: () => {
-          window.location.href = "/";
+    let cancelled = false;
+
+    authClient
+      .oneTap({
+        fetchOptions: {
+          onSuccess: () => {
+            if (!cancelled) {
+              window.location.href = "/";
+            }
+          },
         },
-      },
-    });
+      })
+      .catch((error: unknown) => {
+        // Ignore AbortError caused by React Strict Mode double-mount
+        // or component unmount triggering FedCM request cancellation
+        if (
+          error instanceof DOMException &&
+          error.name === "AbortError"
+        ) {
+          return;
+        }
+        if (
+          error instanceof Error &&
+          error.message?.includes("signal is aborted")
+        ) {
+          return;
+        }
+        console.error("Google One Tap error:", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const startCooldown = () => {

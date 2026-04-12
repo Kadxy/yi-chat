@@ -3,15 +3,13 @@ import { getSession } from "auth/server";
 import { serverFileStorage } from "lib/file-storage";
 import globalLogger from "lib/logger";
 import { colorize } from "consola/utils";
-import { DEFAULT_FILE_PART_MIME_TYPES } from "lib/ai/file-support";
+import { isUploadBlocked } from "lib/ai/file-support";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", "[S3 Upload URL API]"),
 });
 
 const DEFAULT_UPLOAD_EXPIRES_SECONDS = 3600; // 1 hour
-
-const ALLOWED_CONTENT_TYPES = new Set<string>(DEFAULT_FILE_PART_MIME_TYPES);
 
 interface UploadUrlRequest {
   filename?: string;
@@ -37,13 +35,10 @@ export async function POST(request: Request) {
 
   const contentType = body.contentType || "application/octet-stream";
 
-  // Validate content type against whitelist
-  if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
+  // Block potentially dangerous file types
+  if (body.filename && isUploadBlocked(body.filename)) {
     return NextResponse.json(
-      {
-        error: `Unsupported file type: ${contentType}`,
-        allowedTypes: [...ALLOWED_CONTENT_TYPES],
-      },
+      { error: `File type not allowed: ${body.filename}` },
       { status: 400 },
     );
   }

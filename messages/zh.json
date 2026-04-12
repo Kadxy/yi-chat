@@ -70,7 +70,7 @@
   "Chat": {
     "Error": "聊天错误",
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "此消息未保存。请重试聊天。",
-    "uploadImage": "上传文件",
+    "uploadFile": "上传文件",
     "generateImage": "生成图片",
     "imageUploadedSuccessfully": "图片上传成功",
     "pleaseUploadImageFile": "请上传图片文件",
@@ -88,7 +88,7 @@
       "whereWouldYouLikeToStart": "您想从哪里开始？",
       "whatAreYouThinking": "您在想什么，{name}？"
     },
-    "placeholder": "询问任何问题",
+    "placeholder": "问问 {appName}",
     "Tool": {
       "webSearching": "正在搜索...",
       "searchedTheWeb": "已搜索",
@@ -137,6 +137,7 @@
     "Thread": {
       "chat": "聊天",
       "renameChat": "重命名",
+      "shareChat": "分享链接",
       "deleteChat": "删除聊天",
       "failedToDeleteThread": "删除线程失败",
       "threadDeleted": "线程已删除",
@@ -174,6 +175,21 @@
       "userSettings": "用户设置"
     }
   },
+  "Share": {
+    "title": "你的公开链接",
+    "description": "分享的链接在删除前将一直保持公开可访问。",
+    "deleteAllLinks": "删除所有链接",
+    "noShares": "暂无分享链接",
+    "noSharesHint": "分享聊天来创建你的第一个公开链接。",
+    "linkCopied": "链接已复制到剪贴板",
+    "copyLink": "复制链接",
+    "confirmDeleteShare": "确定要删除此链接吗？此操作无法撤销。",
+    "shareDeleted": "链接已删除",
+    "failedToDeleteShare": "删除链接失败",
+    "confirmDeleteAll": "确定要删除所有分享链接吗？此操作无法撤销。",
+    "allDeleted": "所有链接已删除",
+    "continueConversation": "继续此对话"
+  },
   "Layout": {
     "toggleSidebar": "切换侧边栏",
     "newChat": "新聊天",
@@ -201,7 +217,8 @@
     "showLessChats": "显示更少",
     "reportAnIssue": "报告问题",
     "joinCommunity": "加入社区",
-    "userSettings": "用户设置"
+    "userSettings": "用户设置",
+    "yourPublicLinks": "你的公开链接"
   },
   "Archive": {
     "archive": "归档",

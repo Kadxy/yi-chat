@@ -153,10 +153,10 @@ export type ChatMessageEntity = typeof ChatMessageTable.$inferSelect;
 
 export type UserEntity = typeof UserTable.$inferSelect;
 
-export const ChatExportTable = pgTable("chat_export", {
+export const ChatShareTable = pgTable("chat_share", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   title: text("title").notNull(),
-  exporterId: uuid("exporter_id")
+  sharerId: uuid("sharer_id")
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
   originalThreadId: uuid("original_thread_id"),
@@ -168,8 +168,6 @@ export const ChatExportTable = pgTable("chat_export", {
       metadata?: ChatMetadata;
     }>
   >(),
-  exportedAt: timestamp("exported_at")
-    .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
+  sharedAt: timestamp("shared_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   expiresAt: timestamp("expires_at"),
 });

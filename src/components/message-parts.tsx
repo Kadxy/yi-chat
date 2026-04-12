@@ -14,11 +14,15 @@ import {
   TriangleAlert,
   EllipsisIcon,
   FileIcon,
-  Download,
+  FileTextIcon,
+  FileSpreadsheetIcon,
+  FileCodeIcon,
+  FileArchiveIcon,
+  FileImageIcon,
+  PresentationIcon,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { Button } from "ui/button";
-import { Badge } from "ui/badge";
 import { Markdown } from "./markdown";
 import { cn, safeJSONParse, truncateString } from "lib/utils";
 import { useMemo, useState, memo, useEffect, useRef, useCallback } from "react";
@@ -974,8 +978,51 @@ export const ToolMessagePart = memo(
 ToolMessagePart.displayName = "ToolMessagePart";
 
 // File Message Part Component
+function getFileTypeIcon(mimeType: string, filename: string) {
+  const ext = filename.split(".").pop()?.toLowerCase() || "";
+  if (mimeType.startsWith("image/")) return FileImageIcon;
+  if (
+    mimeType.includes("spreadsheet") ||
+    mimeType.includes("excel") ||
+    ["xlsx", "xls", "csv", "tsv"].includes(ext)
+  )
+    return FileSpreadsheetIcon;
+  if (
+    mimeType.includes("presentation") ||
+    mimeType.includes("powerpoint") ||
+    ["pptx", "ppt", "key"].includes(ext)
+  )
+    return PresentationIcon;
+  if (
+    mimeType === "application/pdf" ||
+    mimeType.includes("word") ||
+    mimeType.includes("document") ||
+    ["pdf", "doc", "docx", "txt", "rtf", "md"].includes(ext)
+  )
+    return FileTextIcon;
+  if (
+    mimeType.includes("zip") ||
+    mimeType.includes("compressed") ||
+    mimeType.includes("archive") ||
+    ["zip", "rar", "7z", "tar", "gz"].includes(ext)
+  )
+    return FileArchiveIcon;
+  if (
+    mimeType.includes("javascript") ||
+    mimeType.includes("json") ||
+    mimeType.includes("xml") ||
+    mimeType.includes("html") ||
+    [
+      "js", "ts", "jsx", "tsx", "py", "java", "c", "cpp", "go", "rs",
+      "rb", "php", "html", "css", "json", "xml", "yaml", "yml", "sh",
+    ].includes(ext)
+  )
+    return FileCodeIcon;
+  return FileIcon;
+}
+
 interface FileMessagePartProps {
-  part: FileUIPart; // FileUIPart from AI SDK
+  part: FileUIPart;
   isUserMessage: boolean;
 }
 
@@ -990,16 +1037,19 @@ export const FileMessagePart = memo(
     const fileUrl = part.url;
     const filename =
       part.filename || part.url?.split("/").pop() || "Attachment";
-    const secondaryLabel =
-      part.mediaType && part.mediaType !== "application/octet-stream"
-        ? part.mediaType
-        : undefined;
+    const TypeIcon = getFileTypeIcon(
+      part.mediaType || "",
+      part.filename || "",
+    );
 
     if (isImage && fileUrl) {
       return (
-        <div
+        <a
+          href={fileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
           className={cn(
-            "max-w-md rounded-lg overflow-hidden border border-border",
+            "block w-16 h-16 rounded-xl overflow-hidden border border-border hover:opacity-80 transition-opacity",
             isUserMessage ? "ml-auto" : "mr-auto",
           )}
         >
@@ -1007,111 +1057,40 @@ export const FileMessagePart = memo(
           <img
             src={fileUrl}
             alt={part.filename || "Uploaded image"}
-            className="w-full h-auto"
+            className="w-full h-full object-cover"
           />
-          {part.filename && (
-            <div className="px-3 py-2 bg-muted text-sm text-muted-foreground">
-              {part.filename}
-            </div>
-          )}
-        </div>
+        </a>
       );
     }
 
-    // Non-image file
+    // Non-image file — compact chip, clickable to open in new tab
     return (
-      <div
-        className={cn(
-          "max-w-md rounded-2xl border border-border/80 p-4 shadow-sm backdrop-blur-sm",
-          isUserMessage
-            ? "ml-auto bg-accent text-accent-foreground border-accent/40"
-            : "mr-auto bg-muted/60 text-foreground",
-        )}
-      >
-        <div className="flex items-start gap-4">
-          <div
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <a
+            href={fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className={cn(
-              "flex-shrink-0 rounded-xl p-3",
-              isUserMessage ? "bg-accent-foreground/10" : "bg-muted",
+              "w-44 h-16 inline-flex items-center gap-2.5 rounded-xl border border-border px-3 hover:bg-accent/60 transition-colors",
+              isUserMessage ? "ml-auto bg-accent/40" : "mr-auto bg-muted/60",
             )}
           >
-            <FileIcon
-              className={cn(
-                "size-6",
-                isUserMessage
-                  ? "text-accent-foreground/80"
-                  : "text-muted-foreground",
-              )}
-            />
-          </div>
-          <div className="flex-1 min-w-0 space-y-1 pr-3">
-            <p
-              className={cn(
-                "text-sm font-medium line-clamp-1",
-                isUserMessage ? "text-accent-foreground" : "text-foreground",
-              )}
-              title={filename}
-            >
-              {filename}
-            </p>
-            <div
-              className={cn(
-                "flex flex-wrap items-center gap-2 text-xs",
-                isUserMessage
-                  ? "text-accent-foreground/70"
-                  : "text-muted-foreground",
-              )}
-            >
-              <Badge
-                variant="outline"
-                className={cn(
-                  "uppercase tracking-wide px-2 py-0.5",
-                  isUserMessage &&
-                    "border-accent-foreground/30 text-accent-foreground/90",
-                )}
-              >
+            <TypeIcon className="size-5 text-muted-foreground shrink-0" />
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-xs font-medium truncate">
+                {filename}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
                 {fileExtension}
-              </Badge>
-              {secondaryLabel && (
-                <span
-                  className={cn(
-                    "truncate max-w-[10rem]",
-                    isUserMessage
-                      ? "text-accent-foreground/70"
-                      : "text-muted-foreground",
-                  )}
-                  title={secondaryLabel}
-                >
-                  {secondaryLabel}
-                </span>
-              )}
+              </span>
             </div>
-          </div>
-          {fileUrl && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  asChild
-                  size="icon"
-                  variant="ghost"
-                  className={cn(
-                    "size-9 flex-shrink-0 hover:text-foreground",
-                    isUserMessage
-                      ? "text-accent-foreground/70 hover:text-accent-foreground"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  <a href={fileUrl} download={part.filename ?? filename}>
-                    <Download className="size-4" />
-                    <span className="sr-only">Download {filename}</span>
-                  </a>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Download</TooltipContent>
-            </Tooltip>
-          )}
-        </div>
-      </div>
+          </a>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs">
+          {filename}
+        </TooltipContent>
+      </Tooltip>
     );
   },
 );
@@ -1128,95 +1107,33 @@ export function SourceUrlMessagePart({
 }) {
   const name = part.title || part.url?.split("/").pop() || "attachment";
   const ext = name.split(".").pop()?.toUpperCase() || "FILE";
-  const mediaType =
-    part.mediaType && part.mediaType !== "application/octet-stream"
-      ? part.mediaType
-      : undefined;
+  const TypeIcon = getFileTypeIcon(part.mediaType || "", name);
   return (
-    <div
-      className={cn(
-        "max-w-md rounded-2xl border border-border/80 p-4 backdrop-blur-sm shadow-sm",
-        isUserMessage
-          ? "ml-auto bg-accent text-accent-foreground border-accent/40"
-          : "mr-auto bg-muted/60 text-foreground",
-      )}
-    >
-      <div className="flex items-start gap-4 max-w-sm">
-        <div
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <a
+          href={part.url}
+          target="_blank"
+          rel="noopener noreferrer"
           className={cn(
-            "flex-shrink-0 rounded-xl p-3",
-            isUserMessage ? "bg-accent-foreground/10" : "bg-muted",
+            "w-44 h-16 inline-flex items-center gap-2.5 rounded-xl border border-border px-3 hover:bg-accent/60 transition-colors",
+            isUserMessage ? "ml-auto bg-accent/40" : "mr-auto bg-muted/60",
           )}
         >
-          <FileIcon
-            className={cn(
-              "size-6",
-              isUserMessage
-                ? "text-accent-foreground/80"
-                : "text-muted-foreground",
-            )}
-          />
-        </div>
-        <div className="flex-1 min-w-0 space-y-1 pr-3">
-          <a
-            href={part.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              "text-sm font-medium hover:underline line-clamp-1",
-              isUserMessage ? "text-accent-foreground" : "text-foreground",
-            )}
-            title={name}
-          >
-            {name}
-          </a>
-          <div
-            className={cn(
-              "flex flex-wrap items-center gap-2 text-xs",
-              isUserMessage
-                ? "text-accent-foreground/70"
-                : "text-muted-foreground",
-            )}
-          >
-            <Badge
-              variant="outline"
-              className={cn(
-                "uppercase tracking-wide px-2 py-0.5",
-                isUserMessage &&
-                  "border-accent-foreground/30 text-accent-foreground/90",
-              )}
-            >
+          <TypeIcon className="size-5 text-muted-foreground shrink-0" />
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-xs font-medium truncate">
+              {name}
+            </span>
+            <span className="text-[10px] text-muted-foreground">
               {ext}
-            </Badge>
-            {mediaType && (
-              <span className="truncate max-w-[10rem]" title={mediaType}>
-                {mediaType}
-              </span>
-            )}
+            </span>
           </div>
-        </div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              asChild
-              size="icon"
-              variant="ghost"
-              className={cn(
-                "size-9 flex-shrink-0 hover:text-foreground",
-                isUserMessage
-                  ? "text-accent-foreground/70 hover:text-accent-foreground"
-                  : "text-muted-foreground",
-              )}
-            >
-              <a href={part.url} target="_blank" rel="noopener noreferrer">
-                <Download className="size-4" />
-                <span className="sr-only">Open attachment</span>
-              </a>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Open attachment</TooltipContent>
-        </Tooltip>
-      </div>
-    </div>
+        </a>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs">
+        {name}
+      </TooltipContent>
+    </Tooltip>
   );
 }

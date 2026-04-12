@@ -70,7 +70,7 @@
   "Chat": {
     "Error": "채팅 오류",
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "이 메시지는 저장되지 않았습니다. 다시 시도해주세요.",
-    "uploadImage": "파일 업로드",
+    "uploadFile": "파일 업로드",
     "generateImage": "이미지 만들기",
     "imageUploadedSuccessfully": "이미지가 성공적으로 업로드되었습니다",
     "pleaseUploadImageFile": "이미지 파일을 업로드해주세요",
@@ -88,7 +88,7 @@
       "whereWouldYouLikeToStart": "어디서부터 시작할까요?",
       "whatAreYouThinking": "{name}님, 무엇을 생각하고 있어요?"
     },
-    "placeholder": "무엇이든 물어보세요",
+    "placeholder": "{appName}에게 물어보기",
     "Tool": {
       "webSearching": "웹에서 찾아보는 중...",
       "searchedTheWeb": "참고한 웹 사이트",
@@ -165,21 +165,23 @@
       "userInstructionsDescription": "자기소개를 하고 보다 내게 맞춰진 응답을 받으세요.",
       "mcpInstructions": "MCP 지침사항",
       "mcpInstructionsDescription": "MCP 서버 지침을 설정하세요.",
-      "myExports": "내 공유 목록",
-      "myExportsDescription": "공유한 채팅 내용을 관리하고 정리하세요.",
-      "noExportsYet": "아직 공유한 채팅이 없습니다",
-      "exportHint": "채팅 스레드를 공유하여 첫 번째 export를 생성하세요.",
-      "exported": "공유됨",
-      "expires": "만료",
-      "messages": "메시지",
-      "copyLink": "링크 복사",
-      "openInNewTab": "새 탭에서 열기",
-      "linkCopied": "링크가 클립보드에 복사되었습니다",
-      "confirmDeleteExport": "이 공유를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
-      "exportDeleted": "공유가 성공적으로 삭제되었습니다",
-      "failedToDeleteExport": "공유 삭제에 실패했습니다",
       "userSettings": "사용자 설정"
     }
+  },
+  "Share": {
+    "title": "공개 링크",
+    "description": "공유된 링크는 삭제할 때까지 공개적으로 접근 가능합니다.",
+    "deleteAllLinks": "모든 링크 삭제",
+    "noShares": "공유된 링크가 없습니다",
+    "noSharesHint": "채팅을 공유하여 첫 번째 공개 링크를 만드세요.",
+    "linkCopied": "링크가 클립보드에 복사되었습니다",
+    "copyLink": "링크 복사",
+    "confirmDeleteShare": "이 링크를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    "shareDeleted": "링크가 삭제되었습니다",
+    "failedToDeleteShare": "링크 삭제에 실패했습니다",
+    "confirmDeleteAll": "모든 공유 링크를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    "allDeleted": "모든 링크가 삭제되었습니다",
+    "continueConversation": "이 대화 계속하기"
   },
   "Layout": {
     "toggleSidebar": "사이드바 토글",
@@ -208,7 +210,8 @@
     "showLessChats": "간략히 보기",
     "reportAnIssue": "도움 받기",
     "joinCommunity": "커뮤니티 가입",
-    "userSettings": "사용자 설정"
+    "userSettings": "사용자 설정",
+    "yourPublicLinks": "공개 링크"
   },
   "Archive": {
     "archive": "Archive",

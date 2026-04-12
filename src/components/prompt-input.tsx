@@ -2,9 +2,14 @@
 
 import {
   ChevronDown,
-  CornerRightUp,
+  SendIcon,
   FileIcon,
+  FileSpreadsheetIcon,
   FileTextIcon,
+  FileCodeIcon,
+  FileArchiveIcon,
+  FileImageIcon,
+  PresentationIcon,
   Loader2,
   PaperclipIcon,
   PlusIcon,
@@ -22,6 +27,7 @@ import { ToolModeDropdown } from "./tool-mode-dropdown";
 
 import { ToolSelectDropdown } from "./tool-select-dropdown";
 import { ThinkingToggle } from "./thinking-mode-dropdown";
+
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { useTranslations } from "next-intl";
 import { ClaudeIcon } from "ui/claude-icon";
@@ -36,8 +42,55 @@ import { useThreadFileUploader } from "@/hooks/use-thread-file-uploader";
 
 import { FileUIPart, TextUIPart } from "ai";
 import { toast } from "sonner";
-import { isFilePartSupported, isIngestSupported } from "@/lib/ai/file-support";
+import {
+  isFilePartSupported,
+  isIngestSupported,
+  isUploadBlocked,
+} from "@/lib/ai/file-support";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
+
+function getFileTypeIcon(mimeType: string, filename: string) {
+  const ext = filename.split(".").pop()?.toLowerCase() || "";
+  if (mimeType.startsWith("image/")) return FileImageIcon;
+  if (
+    mimeType.includes("spreadsheet") ||
+    mimeType.includes("excel") ||
+    ["xlsx", "xls", "csv", "tsv"].includes(ext)
+  )
+    return FileSpreadsheetIcon;
+  if (
+    mimeType.includes("presentation") ||
+    mimeType.includes("powerpoint") ||
+    ["pptx", "ppt", "key"].includes(ext)
+  )
+    return PresentationIcon;
+  if (
+    mimeType === "application/pdf" ||
+    mimeType.includes("word") ||
+    mimeType.includes("document") ||
+    ["pdf", "doc", "docx", "txt", "rtf", "md"].includes(ext)
+  )
+    return FileTextIcon;
+  if (
+    mimeType.includes("zip") ||
+    mimeType.includes("compressed") ||
+    mimeType.includes("archive") ||
+    ["zip", "rar", "7z", "tar", "gz"].includes(ext)
+  )
+    return FileArchiveIcon;
+  if (
+    mimeType.includes("javascript") ||
+    mimeType.includes("json") ||
+    mimeType.includes("xml") ||
+    mimeType.includes("html") ||
+    [
+      "js", "ts", "jsx", "tsx", "py", "java", "c", "cpp", "go", "rs",
+      "rb", "php", "html", "css", "json", "xml", "yaml", "yml", "sh",
+    ].includes(ext)
+  )
+    return FileCodeIcon;
+  return FileIcon;
+}
 
 interface PromptInputProps {
   placeholder?: string;
@@ -88,8 +141,6 @@ export default function PromptInput({
   }, [providers, globalModel]);
 
   const supportedFileMimeTypes = modelInfo?.supportedFileMimeTypes;
-  const canUploadImages =
-    supportedFileMimeTypes?.some((mime) => mime.startsWith("image/")) ?? true;
 
   const uploadedFiles = useMemo<UploadedFile[]>(() => {
     if (!threadId) return [];
@@ -143,8 +194,14 @@ export default function PromptInput({
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const list = e.target.files;
       if (!list) return;
-      await uploadFiles(Array.from(list));
-      // Reset input
+      const files = Array.from(list).filter((file) => {
+        if (isUploadBlocked(file.name)) {
+          toast.error(`${file.name}: file type not allowed`);
+          return false;
+        }
+        return true;
+      });
+      if (files.length > 0) await uploadFiles(files);
       if (fileInputRef.current) fileInputRef.current.value = "";
       setIsUploadDropdownOpen(false);
     },
@@ -244,25 +301,148 @@ export default function PromptInput({
   );
 
   return (
-    <div className="max-w-3xl mx-auto fade-in animate-in">
+    <div className="max-w-3xl mx-auto">
       <div className="z-10 mx-auto w-full max-w-3xl relative">
         <fieldset className="flex w-full min-w-0 max-w-full flex-col px-4">
-          <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm transition-all duration-200 bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted focus-within:ring-muted hover:ring-muted">
-            <div className="flex flex-col gap-3.5 px-5 pt-2 pb-4">
-              <div className="relative min-h-[2rem]">
-                <textarea
-                  ref={textareaRef}
-                  className="w-full max-h-80 min-h-[2rem] break-words overflow-y-auto resize-none focus:outline-none px-2 py-1 text-sm bg-transparent"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onFocus={onFocus}
-                  placeholder={placeholder ?? t("placeholder")}
-                  rows={1}
-                  autoFocus
-                />
-              </div>
-              <div className="flex w-full items-center z-30">
+          <div className="shadow-lg rounded-4xl backdrop-blur-sm bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted">
+            <div className="px-6 pt-4 pb-3">
+              {/* Uploaded Files Preview - Above Input (Gemini style) */}
+              {uploadedFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {uploadedFiles.map((file) => {
+                    const isImage = file.mimeType.startsWith("image/");
+                    const imageSrc =
+                      file.previewUrl || file.url || file.dataUrl || "";
+                    const displayName = file.name;
+                    const displayExt =
+                      file.name.split(".").pop()?.toUpperCase() || "FILE";
+                    const isSummarizable = isIngestSupported(file.mimeType);
+                    const TypeIcon = getFileTypeIcon(file.mimeType, file.name);
+                    return (
+                      <div
+                        key={file.id}
+                        className="relative group"
+                      >
+                        {isImage ? (
+                          <div className="w-16 h-16 rounded-xl overflow-hidden border border-border">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={imageSrc}
+                              alt={file.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="w-44 h-16 flex items-center gap-2.5 px-3 rounded-xl border border-border bg-accent/40">
+                                <TypeIcon className="size-5 text-muted-foreground shrink-0" />
+                                <div className="flex flex-col min-w-0 flex-1">
+                                  <span className="text-xs font-medium text-foreground truncate">
+                                    {displayName}
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {displayExt}
+                                  </span>
+                                </div>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">
+                              {displayName}
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+
+                        {/* Upload Progress Overlay */}
+                        {file.isUploading && (
+                          <div className="absolute inset-0 bg-background/90 flex rounded-xl flex-col items-center justify-center backdrop-blur-sm">
+                            <Loader2 className="size-4 animate-spin text-foreground mb-1" />
+                            <span className="text-foreground text-[10px]">
+                              {file.progress || 0}%
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Delete Button */}
+                        <button
+                          className={cn(
+                            "absolute top-1 right-1 size-5 rounded-full bg-foreground/80 text-background flex items-center justify-center transition-opacity",
+                            file.isUploading
+                              ? "opacity-100"
+                              : "opacity-0 group-hover:opacity-100",
+                          )}
+                          onClick={() => deleteFile(file.id)}
+                        >
+                          <XIcon className="size-3" />
+                        </button>
+
+                        {/* Summarize overlay for non-uploading files */}
+                        {!file.isUploading && isSummarizable && !isImage && (
+                          <div
+                            className="absolute inset-0 bg-background/70 rounded-xl backdrop-blur-sm transition-opacity flex items-center justify-center opacity-0 group-hover:opacity-100"
+                          >
+                            <Button
+                              variant="secondary"
+                              size="icon"
+                              className="rounded-full size-7"
+                              onClick={async () => {
+                                try {
+                                  const url = file.url || file.dataUrl;
+                                  if (!url) {
+                                    toast.error("No file URL available");
+                                    return;
+                                  }
+                                  const res = await fetch(
+                                    "/api/storage/ingest",
+                                    {
+                                      method: "POST",
+                                      headers: {
+                                        "Content-Type": "application/json",
+                                      },
+                                      body: JSON.stringify({ url }),
+                                    },
+                                  );
+                                  if (!res.ok) {
+                                    const e = await res
+                                      .json()
+                                      .catch(() => ({}));
+                                    toast.error(
+                                      e.error || "Failed to ingest file",
+                                    );
+                                    return;
+                                  }
+                                  const data = await res.json();
+                                  setInput(
+                                    `${input ? input + "\n\n" : ""}${data.text}`,
+                                  );
+                                } catch (_err) {
+                                  toast.error("Failed to ingest file");
+                                }
+                              }}
+                            >
+                              <FileTextIcon className="size-3.5" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <textarea
+                ref={textareaRef}
+                className="w-full max-h-80 min-h-[1.5rem] break-words overflow-y-auto no-scrollbar resize-none focus:outline-none text-sm bg-transparent mb-3"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={onFocus}
+                placeholder={placeholder ?? t("placeholder", { appName: process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat" })}
+                rows={1}
+                autoFocus
+              />
+
+              <div className="flex w-full items-center">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -289,11 +469,10 @@ export default function PromptInput({
                   <DropdownMenuContent align="start" side="top">
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      disabled={!canUploadImages}
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <PaperclipIcon className="mr-2 size-4" />
-                      {t("uploadImage")}
+                      {t("uploadFile")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -347,155 +526,20 @@ export default function PromptInput({
                       submit();
                     }
                   }}
-                  className="fade-in animate-in cursor-pointer text-muted-foreground rounded-full p-2 bg-secondary hover:bg-accent hover:text-accent-foreground transition-all duration-200"
+                  className={cn(
+                    "cursor-pointer rounded-full p-2 transition-colors duration-150",
+                    input.trim().length > 0 || isLoading
+                      ? "bg-foreground text-background hover:bg-foreground/80"
+                      : "text-muted-foreground bg-secondary hover:bg-accent hover:text-accent-foreground",
+                  )}
                 >
                   {isLoading ? (
                     <Square size={16} className="fill-current" />
                   ) : (
-                    <CornerRightUp size={16} />
+                    <SendIcon size={16} />
                   )}
                 </div>
               </div>
-
-              {/* Uploaded Files Preview - Below Input */}
-              {uploadedFiles.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {uploadedFiles.map((file) => {
-                    const isImage = file.mimeType.startsWith("image/");
-                    const imageSrc =
-                      file.previewUrl || file.url || file.dataUrl || "";
-                    const displayName = file.name;
-                    const displayExt =
-                      file.name.split(".").pop()?.toUpperCase() || "FILE";
-                    const isSummarizable = isIngestSupported(file.mimeType);
-                    return (
-                      <div
-                        key={file.id}
-                        className="relative group rounded-lg overflow-hidden border-2 border-border hover:border-primary transition-all"
-                      >
-                        {isImage ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={imageSrc}
-                            alt={file.name}
-                            className="w-24 h-24 object-cover"
-                          />
-                        ) : (
-                          <div className="w-32 h-28 flex flex-col items-center justify-center bg-muted px-2 py-3 text-center">
-                            <FileIcon className="size-8 text-muted-foreground mb-1" />
-                            <span className="text-xs font-medium text-muted-foreground line-clamp-2 w-full">
-                              {displayName}
-                            </span>
-                            <span className="text-[11px] text-muted-foreground/80">
-                              {displayExt}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Upload Progress Overlay */}
-                        {file.isUploading && (
-                          <div className="absolute inset-0 bg-background/90 flex rounded-lg flex-col items-center justify-center backdrop-blur-sm">
-                            <Loader2 className="size-6 animate-spin text-foreground mb-2" />
-                            <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary transition-all duration-300"
-                                style={{ width: `${file.progress || 0}%` }}
-                              />
-                            </div>
-                            <span className="text-foreground text-xs mt-1">
-                              {file.progress || 0}%
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Hover Actions */}
-                        <div
-                          className={cn(
-                            "absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity flex items-center justify-center rounded-lg",
-                            file.isUploading
-                              ? "opacity-0"
-                              : "opacity-0 group-hover:opacity-100",
-                          )}
-                        >
-                          <div className="flex gap-2 items-center">
-                            {isSummarizable && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="secondary"
-                                    size="icon"
-                                    className="rounded-full"
-                                    onClick={async () => {
-                                      try {
-                                        const url = file.url || file.dataUrl;
-                                        if (!url) {
-                                          toast.error("No file URL available");
-                                          return;
-                                        }
-                                        const res = await fetch(
-                                          "/api/storage/ingest",
-                                          {
-                                            method: "POST",
-                                            headers: {
-                                              "Content-Type":
-                                                "application/json",
-                                            },
-                                            body: JSON.stringify({ url }),
-                                          },
-                                        );
-                                        if (!res.ok) {
-                                          const e = await res
-                                            .json()
-                                            .catch(() => ({}));
-                                          toast.error(
-                                            e.error || "Failed to ingest file",
-                                          );
-                                          return;
-                                        }
-                                        const data = await res.json();
-                                        setInput(
-                                          `${input ? input + "\n\n" : ""}${data.text}`,
-                                        );
-                                      } catch (_err) {
-                                        toast.error("Failed to ingest file");
-                                      }
-                                    }}
-                                  >
-                                    <FileTextIcon className="size-4" />
-                                    <span className="sr-only">Summarize</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Summarize</TooltipContent>
-                              </Tooltip>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="rounded-full bg-background/80 hover:bg-background"
-                              onClick={() => deleteFile(file.id)}
-                              disabled={file.isUploading}
-                            >
-                              <XIcon className="size-4" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Cancel Upload Button (Top Right) */}
-                        {file.isUploading && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-1 right-1 size-6 rounded-full bg-background/60 hover:bg-background/80 backdrop-blur-sm"
-                            onClick={() => deleteFile(file.id)}
-                          >
-                            <XIcon className="size-3" />
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
             </div>
           </div>
         </fieldset>

@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { MCPIcon } from "ui/mcp-icon";
 import { WriteIcon } from "ui/write-icon";
-import { ArchiveIcon } from "lucide-react";
+import { ArchiveIcon, Share2 } from "lucide-react";
 import { getIsUserAdmin } from "lib/user/utils";
 import { BasicUser } from "app-types/user";
 import { AppSidebarAdmin } from "./app-sidebar-menu-admin";
@@ -67,6 +67,18 @@ export function AppSidebarMenus({ user }: { user?: BasicUser }) {
           </Tooltip>
         </SidebarMenu>
         {getIsUserAdmin(user) && <AppSidebarAdmin />}
+        <SidebarMenu>
+          <Tooltip>
+            <SidebarMenuItem>
+              <Link href="/shares">
+                <SidebarMenuButton className="font-semibold">
+                  <Share2 className="size-4" />
+                  {t("Layout.yourPublicLinks")}
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          </Tooltip>
+        </SidebarMenu>
         <SidebarMenu>
           <Tooltip>
             <SidebarMenuItem>

@@ -69,7 +69,7 @@
   "Chat": {
     "Error": "チャットエラー",
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "このメッセージは保存されませんでした。もう一度チャットをお試しください。",
-    "uploadImage": "ファイルをアップロード",
+    "uploadFile": "ファイルをアップロード",
     "generateImage": "画像を生成",
     "imageUploadedSuccessfully": "画像が正常にアップロードされました",
     "pleaseUploadImageFile": "画像ファイルをアップロードしてください",
@@ -87,7 +87,7 @@
       "whereWouldYouLikeToStart": "どこから始めたいですか？",
       "whatAreYouThinking": "何を考えていますか、{name}さん？"
     },
-    "placeholder": "何でも聞いてください",
+    "placeholder": "{appName} に聞く",
     "Tool": {
       "webSearching": "ウェブを検索中...",
       "searchedTheWeb": "ウェブを検索しました",

@@ -74,7 +74,7 @@
   "Chat": {
     "Error": "Chatfeil",
     "thisMessageWasNotSavedPleaseTryTheChatAgain": "Denne meldingen ble ikke lagret. Prøv chatten på nytt.",
-    "uploadImage": "Last opp fil",
+    "uploadFile": "Last opp fil",
     "generateImage": "Generer bilde",
     "imageUploadedSuccessfully": "Bilde lastet opp",
     "pleaseUploadImageFile": "Vennligst last opp en bildefil",
@@ -92,7 +92,7 @@
       "whereWouldYouLikeToStart": "Hvor vil du begynne?",
       "whatAreYouThinking": "Hva tenker du på, {name}?"
     },
-    "placeholder": "Spør om hva som helst",
+    "placeholder": "Spør {appName}",
     "Tool": {
       "webSearching": "Søker på nettet...",
       "searchedTheWeb": "Søkte på nettet",
@@ -134,7 +134,7 @@
     "Thread": {
       "chat": "Chat",
       "renameChat": "Gi nytt navn",
-      "exportChat": "Del lenke",
+      "shareChat": "Del lenke",
       "deleteChat": "Slett chat",
       "failedToDeleteThread": "Kunne ikke slette chat",
       "threadDeleted": "Chat slettet",
@@ -169,21 +169,23 @@
       "userInstructionsDescription": "Introduser deg selv og få et mer personlig svar.",
       "mcpInstructions": "MCP-instruksjoner",
       "mcpInstructionsDescription": "Tilpass MCP-serverinstruksjonene.",
-      "userSettings": "Brukerinnstillinger",
-      "myExports": "Mine eksporterte chatter",
-      "myExportsDescription": "Administrer og organiser dine delte chateksporter.",
-      "noExportsYet": "Ingen eksporter ennå",
-      "exportHint": "Del en chat for å opprette din første eksport.",
-      "exported": "Eksportert",
-      "expires": "Utløper",
-      "messages": "meldinger",
-      "copyLink": "Kopier lenke",
-      "openInNewTab": "Åpne i ny fane",
-      "linkCopied": "Lenke kopiert til utklippstavlen",
-      "confirmDeleteExport": "Er du sikker på at du vil slette denne eksporten? Denne handlingen kan ikke angres.",
-      "exportDeleted": "Eksport slettet",
-      "failedToDeleteExport": "Kunne ikke slette eksport"
+      "userSettings": "Brukerinnstillinger"
     }
+  },
+  "Share": {
+    "title": "Dine offentlige lenker",
+    "description": "Delte lenker forblir offentlig tilgjengelige til du sletter dem.",
+    "deleteAllLinks": "Slett alle lenker",
+    "noShares": "Ingen delte lenker ennå",
+    "noSharesHint": "Del en chat for å opprette din første offentlige lenke.",
+    "linkCopied": "Lenke kopiert til utklippstavlen",
+    "copyLink": "Kopier lenke",
+    "confirmDeleteShare": "Er du sikker på at du vil slette denne lenken? Denne handlingen kan ikke angres.",
+    "shareDeleted": "Lenke slettet",
+    "failedToDeleteShare": "Kunne ikke slette lenke",
+    "confirmDeleteAll": "Er du sikker på at du vil slette alle delte lenker? Denne handlingen kan ikke angres.",
+    "allDeleted": "Alle lenker slettet",
+    "continueConversation": "Fortsett denne samtalen"
   },
   "Layout": {
     "admin": "Admin",
@@ -214,7 +216,8 @@
     "showLessChats": "Vis færre",
     "reportAnIssue": "Rapporter et problem",
     "joinCommunity": "Bli med i fellesskapet",
-    "userSettings": "Brukerinnstillinger"
+    "userSettings": "Brukerinnstillinger",
+    "yourPublicLinks": "Dine offentlige lenker"
   },
   "Archive": {
     "archive": "Archive",

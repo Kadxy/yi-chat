@@ -15,7 +15,7 @@ import {
 
 import type { ChatModel, ChatThread } from "app-types/chat";
 
-import { chatExportRepository, chatRepository } from "lib/db/repository";
+import { chatShareRepository, chatRepository } from "lib/db/repository";
 import { customModelProvider } from "lib/ai/models";
 import { toAny } from "lib/utils";
 import { MCPToolInfo } from "app-types/mcp";
@@ -161,7 +161,7 @@ export async function generateObjectAction({
   return result.object;
 }
 
-export async function exportChatAction({
+export async function shareChatAction({
   threadId,
   expiresAt,
 }: {
@@ -175,9 +175,39 @@ export async function exportChatAction({
     return new Response("Unauthorized", { status: 401 });
   }
 
-  return await chatExportRepository.exportChat({
+  return await chatShareRepository.shareChat({
     threadId,
-    exporterId: userId,
+    sharerId: userId,
     expiresAt: expiresAt ?? undefined,
   });
+}
+
+export async function continueSharedChatAction(shareId: string) {
+  const userId = await getUserId();
+
+  const shared = await chatShareRepository.selectById(shareId);
+  if (!shared) {
+    throw new Error("Shared chat not found");
+  }
+
+  const threadId = crypto.randomUUID();
+  await chatRepository.insertThread({
+    id: threadId,
+    title: shared.title,
+    userId,
+  });
+
+  if (shared.messages.length > 0) {
+    await chatRepository.insertMessages(
+      shared.messages.map((m) => ({
+        id: crypto.randomUUID(),
+        threadId,
+        role: m.role,
+        parts: m.parts,
+        metadata: m.metadata,
+      })),
+    );
+  }
+
+  return threadId;
 }
