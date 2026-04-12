@@ -3,60 +3,29 @@ import { JSONSchema7 } from "json-schema";
 import { jsonSchemaToZod } from "lib/json-schema-to-zod";
 import { safe } from "ts-safe";
 
-// Exa API Types
-export interface ExaSearchRequest {
-  query: string;
-  type: string;
-  category?: string;
-  includeDomains?: string[];
-  excludeDomains?: string[];
-  startPublishedDate?: string;
-  endPublishedDate?: string;
-  numResults: number;
-  contents: {
-    text:
-      | {
-          maxCharacters?: number;
-        }
-      | boolean;
-    livecrawl?: "always" | "fallback" | "preferred";
-    subpages?: number;
-    subpageTarget?: string[];
-  };
-}
-
-export interface ExaSearchResult {
-  id: string;
+// Jina API Types
+export interface JinaSearchResult {
   title: string;
   url: string;
-  publishedDate: string;
-  author: string;
-  text: string;
-  image?: string;
-  favicon?: string;
-  score?: number;
+  description: string;
+  content: string;
 }
 
-export interface ExaSearchResponse {
-  requestId: string;
-  autopromptString: string;
-  resolvedSearchType: string;
-  results: ExaSearchResult[];
+export interface JinaSearchResponse {
+  code: number;
+  data: JinaSearchResult[];
 }
 
-export interface ExaContentsRequest {
-  ids: string[];
-  contents: {
-    text:
-      | {
-          maxCharacters?: number;
-        }
-      | boolean;
-    livecrawl?: "always" | "fallback" | "preferred";
+export interface JinaReaderResponse {
+  code: number;
+  data: {
+    title: string;
+    url: string;
+    content: string;
   };
 }
 
-export const exaSearchSchema: JSONSchema7 = {
+export const jinaSearchSchema: JSONSchema7 = {
   type: "object",
   properties: {
     query: {
@@ -68,153 +37,84 @@ export const exaSearchSchema: JSONSchema7 = {
       description: "Number of search results to return",
       default: 5,
       minimum: 1,
-      maximum: 20,
-    },
-    type: {
-      type: "string",
-      enum: ["auto", "keyword", "neural"],
-      description:
-        "Search type - auto lets Exa decide, keyword for exact matches, neural for semantic search",
-      default: "auto",
-    },
-    category: {
-      type: "string",
-      enum: [
-        "company",
-        "research paper",
-        "news",
-        "linkedin profile",
-        "github",
-        "tweet",
-        "movie",
-        "song",
-        "personal site",
-        "pdf",
-      ],
-      description: "Category to focus the search on",
-    },
-    includeDomains: {
-      type: "array",
-      items: { type: "string" },
-      description: "List of domains to specifically include in search results",
-      default: [],
-    },
-    excludeDomains: {
-      type: "array",
-      items: { type: "string" },
-      description:
-        "List of domains to specifically exclude from search results",
-      default: [],
-    },
-    startPublishedDate: {
-      type: "string",
-      description: "Start date for published content (YYYY-MM-DD format)",
-    },
-    endPublishedDate: {
-      type: "string",
-      description: "End date for published content (YYYY-MM-DD format)",
-    },
-    maxCharacters: {
-      type: "number",
-      description: "Maximum characters to extract from each result",
-      default: 3000,
-      minimum: 100,
-      maximum: 10000,
+      maximum: 10,
     },
   },
   required: ["query"],
 };
 
-export const exaContentsSchema: JSONSchema7 = {
+export const jinaContentsSchema: JSONSchema7 = {
   type: "object",
   properties: {
-    urls: {
-      type: "array",
-      items: { type: "string" },
-      description: "List of URLs to extract content from",
-    },
-    maxCharacters: {
-      type: "number",
-      description: "Maximum characters to extract from each URL",
-      default: 3000,
-      minimum: 100,
-      maximum: 10000,
-    },
-    livecrawl: {
+    url: {
       type: "string",
-      enum: ["always", "fallback", "preferred"],
-      description:
-        "Live crawling preference - always forces live crawl, fallback uses cache first, preferred tries live first",
-      default: "preferred",
+      description: "The URL to extract content from",
     },
   },
-  required: ["urls"],
+  required: ["url"],
 };
 
-const API_KEY = process.env.EXA_API_KEY;
-const BASE_URL = "https://api.exa.ai";
+const API_KEYS = (process.env.JINA_API_KEY || "")
+  .split(",")
+  .map((k) => k.trim())
+  .filter(Boolean);
+const SEARCH_URL = "https://s.jina.ai";
+const READER_URL = "https://r.jina.ai";
 
-const fetchExa = async (endpoint: string, body: any): Promise<any> => {
-  if (!API_KEY) {
-    throw new Error("EXA_API_KEY is not configured");
+const getRandomKey = () => {
+  if (API_KEYS.length === 0) {
+    throw new Error("JINA_API_KEY is not configured");
   }
-
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": API_KEY,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (response.status === 401) {
-    throw new Error("Invalid EXA API key");
-  }
-  if (response.status === 429) {
-    throw new Error("Exa API usage limit exceeded");
-  }
-
-  if (!response.ok) {
-    throw new Error(`Exa API error: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json();
+  return API_KEYS[Math.floor(Math.random() * API_KEYS.length)];
 };
 
-export const exaSearchTool = createTool({
+const buildHeaders = (
+  extra?: Record<string, string>,
+): Record<string, string> => {
+  return {
+    Accept: "application/json",
+    Authorization: `Bearer ${getRandomKey()}`,
+    ...extra,
+  };
+};
+
+export const jinaSearchTool = createTool({
   description:
-    "Search the web using Exa AI - performs real-time web searches with semantic and neural search capabilities. Returns high-quality, relevant results with full content extraction.",
-  inputSchema: jsonSchemaToZod(exaSearchSchema),
+    "Search the web using Jina AI - performs real-time web searches and returns high-quality, relevant results with full content extraction optimized for LLMs.",
+  inputSchema: jsonSchemaToZod(jinaSearchSchema),
   execute: (params) => {
     return safe(async () => {
-      const searchRequest: ExaSearchRequest = {
-        query: params.query,
-        type: params.type || "auto",
-        numResults: params.numResults || 5,
-        contents: {
-          text: {
-            maxCharacters: params.maxCharacters || 3000,
-          },
-          livecrawl: "preferred",
-        },
-      };
+      const query = encodeURIComponent(params.query);
+      const num = params.numResults || 5;
 
-      // Add optional parameters if provided
-      if (params.category) searchRequest.category = params.category;
-      if (params.includeDomains?.length)
-        searchRequest.includeDomains = params.includeDomains;
-      if (params.excludeDomains?.length)
-        searchRequest.excludeDomains = params.excludeDomains;
-      if (params.startPublishedDate)
-        searchRequest.startPublishedDate = params.startPublishedDate;
-      if (params.endPublishedDate)
-        searchRequest.endPublishedDate = params.endPublishedDate;
+      const response = await fetch(`${SEARCH_URL}/${query}`, {
+        method: "GET",
+        headers: buildHeaders({
+          "X-Retain-Images": "none",
+        }),
+      });
 
-      const result = await fetchExa("/search", searchRequest);
+      if (response.status === 429) {
+        throw new Error(
+          "Jina API rate limit exceeded. Consider setting JINA_API_KEY for higher limits.",
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          `Jina Search API error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result = (await response.json()) as JinaSearchResponse;
 
       return {
-        ...result,
+        results: (result.data || []).slice(0, num).map((item) => ({
+          title: item.title,
+          url: item.url,
+          description: item.description,
+          content: item.content,
+        })),
         guide: `Use the search results to answer the user's question. Summarize the content and ask if they have any additional questions about the topic.`,
       };
     })
@@ -230,23 +130,36 @@ export const exaSearchTool = createTool({
   },
 });
 
-export const exaContentsTool = createTool({
+export const jinaContentsTool = createTool({
   description:
-    "Extract detailed content from specific URLs using Exa AI - retrieves full text content, metadata, and structured information from web pages with live crawling capabilities.",
-  inputSchema: jsonSchemaToZod(exaContentsSchema),
+    "Extract detailed content from a specific URL using Jina Reader - converts any web page into clean, LLM-friendly markdown text with full content extraction.",
+  inputSchema: jsonSchemaToZod(jinaContentsSchema),
   execute: async (params) => {
     return safe(async () => {
-      const contentsRequest: ExaContentsRequest = {
-        ids: params.urls,
-        contents: {
-          text: {
-            maxCharacters: params.maxCharacters || 3000,
-          },
-          livecrawl: params.livecrawl || "preferred",
-        },
-      };
+      const response = await fetch(`${READER_URL}/${params.url}`, {
+        method: "GET",
+        headers: buildHeaders(),
+      });
 
-      return await fetchExa("/contents", contentsRequest);
+      if (response.status === 429) {
+        throw new Error(
+          "Jina API rate limit exceeded. Consider setting JINA_API_KEY for higher limits.",
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          `Jina Reader API error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result = (await response.json()) as JinaReaderResponse;
+
+      return {
+        title: result.data?.title,
+        url: result.data?.url,
+        content: result.data?.content,
+      };
     })
       .ifFail((e) => {
         return {
