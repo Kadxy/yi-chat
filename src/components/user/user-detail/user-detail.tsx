@@ -16,7 +16,6 @@ interface UserDetailProps {
     hasPassword: boolean;
     oauthProviders: string[];
   };
-  userStatsSlot?: React.ReactNode;
   view?: "admin" | "user";
 }
 
@@ -25,7 +24,6 @@ export function UserDetail({
   user: initialUser,
   currentUserId,
   userAccountInfo,
-  userStatsSlot,
 }: UserDetailProps) {
   const { open: sidebarOpen } = useSidebar();
   const userDetailRoute =
@@ -91,14 +89,6 @@ export function UserDetail({
             onUserDetailsUpdate={handleUserUpdate}
           />
         )}
-
-        <div
-          className={cn("col-span-1 md:col-span-2", {
-            "col-span-1 md:col-span-1 lg:col-span-2": sidebarOpen,
-          })}
-        >
-          {userStatsSlot}
-        </div>
       </div>
     </div>
   );

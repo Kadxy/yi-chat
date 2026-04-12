@@ -190,6 +190,13 @@ export function AppSidebarUserInner(props: {
               <Settings className="size-4 text-foreground" />
               <span>{t("userSettings")}</span>
             </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => router.push("/usage")}
+              className="cursor-pointer"
+            >
+              <Coins className="size-4 text-foreground" />
+              <span>{t("usageRecords")}</span>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="cursor-pointer">
               <LogOutIcon className="size-4 text-foreground" />
