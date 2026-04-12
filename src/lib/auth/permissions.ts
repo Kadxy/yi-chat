@@ -220,21 +220,6 @@ export async function canEditMCP(): Promise<boolean> {
 }
 
 /**
- * Check if user can change visibility of MCP connections
- */
-export async function canChangeVisibilityMCP(): Promise<boolean> {
-  try {
-    const session = await getSession();
-    if (!session?.user) return false;
-
-    return hasPermission(session.user.role, "share", "mcp");
-  } catch (error) {
-    console.error("Error checking MCP visibility change permission:", error);
-    return false;
-  }
-}
-
-/**
  * Check if user can delete MCP connections
  */
 export async function canDeleteMCP(): Promise<boolean> {
@@ -261,36 +246,4 @@ export async function requireEditorPermission(
       `Unauthorized: Editor or Admin access required to ${action}`,
     );
   }
-}
-
-/**
- * Check if user can manage a specific MCP server
- * Users can manage their own servers, admins can manage all
- */
-export async function canManageMCPServer(
-  mcpOwnerId: string,
-  visibility: string = "private",
-): Promise<boolean> {
-  try {
-    const session = await getSession();
-    if (!session?.user) return false;
-
-    // Admins can manage all MCP servers
-    if (session.user.role === "admin") return true;
-
-    // Users can only manage their own private MCP servers
-    if (session.user.id === mcpOwnerId && visibility === "private") return true;
-
-    return false;
-  } catch (error) {
-    console.error("Error checking MCP management permission:", error);
-    return false;
-  }
-}
-
-/**
- * Check if user can share MCP servers (admin only)
- */
-export async function canShareMCPServer(): Promise<boolean> {
-  return await hasAdminPermission();
 }

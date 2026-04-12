@@ -1,21 +1,17 @@
 "use client";
 import {
-  ChevronRight,
-  FlaskConical,
-  ShieldAlertIcon,
   Loader,
   RotateCw,
-  Settings,
-  Settings2,
+  ShieldAlertIcon,
+  Trash2,
   Wrench,
+  CheckCircle2,
+  WifiOff,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { Button } from "ui/button";
-import { Card, CardContent, CardHeader } from "ui/card";
-import JsonView from "ui/json-view";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { memo, useCallback, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSWRConfig } from "swr";
 import { safe } from "ts-safe";
 
@@ -23,63 +19,46 @@ import { handleErrorWithToast } from "ui/shared-toast";
 import {
   refreshMcpClientAction,
   removeMcpClientAction,
-  shareMcpServerAction,
 } from "@/app/api/mcp/actions";
-import { ShareableActions, type Visibility } from "./shareable-actions";
 
 import type { MCPServerInfo, MCPToolInfo } from "app-types/mcp";
 
-import { ToolDetailPopup } from "./tool-detail-popup";
 import { useTranslations } from "next-intl";
-import { Separator } from "ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
-import { appStore } from "@/app/store";
 import { isString } from "lib/utils";
 import { redriectMcpOauth } from "lib/ai/mcp/oauth-redirect";
-import { BasicUser } from "app-types/user";
-import { canChangeVisibilityMCP } from "lib/auth/client-permissions";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "ui/dialog";
+import { RECOMMENDED_MCPS } from "./mcp-overview";
 
-// Main MCPCard component
 export const MCPCard = memo(function MCPCard({
   id,
-  config,
   error,
   status,
   name,
   toolInfo,
-  visibility,
-  enabled,
-  userId,
-  user,
-  userName,
-  userAvatar,
-}: MCPServerInfo & { user: BasicUser }) {
+}: MCPServerInfo) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [visibilityChangeLoading, setVisibilityChangeLoading] = useState(false);
   const t = useTranslations("MCP");
-  const appStoreMutate = appStore((state) => state.mutate);
   const { mutate } = useSWRConfig();
-  const isOwner = userId === user?.id;
-  const canChangeVisibility = useMemo(
-    () => canChangeVisibilityMCP(user?.role),
-    [user?.role],
-  );
 
-  const isLoading = useMemo(() => {
-    return isProcessing || status === "loading";
-  }, [isProcessing, status]);
-
+  const isLoading = isProcessing || status === "loading";
   const needsAuthorization = status === "authorizing";
-  const isDisabled = isLoading || needsAuthorization;
-
-  // Check permissions (kept for potential future use)
 
   const errorMessage = useMemo(() => {
-    if (error) {
-      return isString(error) ? error : JSON.stringify(error);
-    }
+    if (error) return isString(error) ? error : JSON.stringify(error);
     return null;
   }, [error]);
+
+  const presetMcp = useMemo(
+    () => RECOMMENDED_MCPS.find((m) => m.name === name),
+    [name],
+  );
+  const PresetIcon = presetMcp?.icon;
 
   const pipeProcessing = useCallback(
     async (fn: () => Promise<any>) =>
@@ -96,295 +75,185 @@ export const MCPCard = memo(function MCPCard({
     [id],
   );
 
-  const handleDelete = useCallback(async () => {
-    await pipeProcessing(() => removeMcpClientAction(id));
-  }, [id]);
+  const handleDelete = useCallback(
+    () => pipeProcessing(() => removeMcpClientAction(id)),
+    [id],
+  );
 
   const handleAuthorize = useCallback(
     () => pipeProcessing(() => redriectMcpOauth(id)),
     [id],
   );
 
-  const handleVisibilityChange = useCallback(
-    async (newVisibility: Visibility) => {
-      // Map visibility for MCP (public becomes featured)
-      const mcpVisibility = newVisibility === "public" ? "public" : "private";
-      safe(() => setVisibilityChangeLoading(true))
-        .map(async () => shareMcpServerAction(id, mcpVisibility))
-        .ifOk(() => {
-          mutate("/api/mcp/list");
-        })
-        .ifFail((e) => {
-          handleErrorWithToast(e);
-        })
-        .watch(() => setVisibilityChangeLoading(false));
-    },
-    [id],
-  );
-
   return (
-    <Card
-      key={`mcp-card-${id}-${status}`}
-      className="relative hover:border-foreground/20 transition-colors bg-secondary/40"
-      data-testid="mcp-server-card"
-      data-featured={visibility === "public"}
-    >
-      {isLoading && (
-        <div className="animate-pulse z-10 absolute inset-0 bg-background/50 flex items-center justify-center w-full h-full" />
-      )}
-      <CardHeader
-        key={`header-${status}-${needsAuthorization}`}
-        className="flex items-center gap-1 mb-2"
-      >
-        {isLoading && <Loader className="size-4 z-20 animate-spin mr-1" />}
-
-        <h4 className="font-bold text-xs sm:text-lg flex items-center gap-1">
-          {name}
-        </h4>
-
-        <div className="flex-1" />
-
-        {needsAuthorization && (
-          <>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleAuthorize}
-                  disabled={isProcessing}
-                >
-                  <ShieldAlertIcon className="size-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Authorize</p>
-              </TooltipContent>
-            </Tooltip>
-            <div className="h-4">
-              <Separator orientation="vertical" />
-            </div>
-          </>
-        )}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={isDisabled}
-              onClick={() =>
-                appStoreMutate({
-                  mcpCustomizationPopup: {
-                    id,
-                    name,
-                    config,
-                    status,
-                    toolInfo,
-                    error,
-                    visibility,
-                    enabled,
-                    userId,
-                  },
-                })
-              }
-            >
-              <Settings2 className="size-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{t("mcpServerCustomization")}</p>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {isDisabled ? (
-              <div className="cursor-pointer hidden sm:block">
-                <Button variant="ghost" size="icon" disabled>
-                  <FlaskConical className="size-3.5" />
-                </Button>
-              </div>
-            ) : (
-              <Link
-                href={`/mcp/test/${encodeURIComponent(id)}`}
-                className="cursor-pointer hidden sm:block"
-              >
-                <Button variant="ghost" size="icon">
-                  <FlaskConical className="size-3.5" />
-                </Button>
-              </Link>
-            )}
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{t("toolsTest")}</p>
-          </TooltipContent>
-        </Tooltip>
-        <div className="h-4">
-          <Separator orientation="vertical" />
-        </div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={isLoading}
-            >
-              <RotateCw className="size-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{t("refresh")}</p>
-          </TooltipContent>
-        </Tooltip>
-        {/* Add sharing actions for owners or visibility indicator for featured servers */}
-        <ShareableActions
-          type="mcp"
-          visibility={visibility === "public" ? "public" : "private"}
-          isOwner={isOwner}
-          canChangeVisibility={canChangeVisibility}
-          editHref={
-            isOwner ? `/mcp/modify/${encodeURIComponent(id)}` : undefined
-          }
-          onVisibilityChange={
-            canChangeVisibility ? handleVisibilityChange : undefined
-          }
-          onDelete={isOwner ? handleDelete : undefined}
-          isVisibilityChangeLoading={visibilityChangeLoading}
-          isDeleteLoading={isProcessing}
-          disabled={isLoading}
-          renderActions={() => null}
-        />
-        {/* Show user info for featured servers */}
-        {!isOwner && userName && (
-          <>
-            <div className="h-4">
-              <Separator orientation="vertical" />
-            </div>
-            <div className="flex items-center gap-1.5 ml-2">
-              <Avatar className="size-4 ring shrink-0 rounded-full">
-                <AvatarImage src={userAvatar || undefined} />
-                <AvatarFallback className="text-xs">
-                  {userName[0]?.toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-xs text-muted-foreground font-medium">
-                {userName}
-              </span>
-            </div>
-          </>
-        )}
-      </CardHeader>
-
-      {errorMessage && <ErrorAlert error={errorMessage} />}
-
-      {needsAuthorization && (
-        <div className="px-6 pb-2">
-          <Alert
-            className="cursor-pointer hover:bg-accent/10 transition-colors"
-            onClick={handleAuthorize}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                handleAuthorize();
-              }
-            }}
-          >
-            <ShieldAlertIcon />
-            <AlertTitle>Authorization Required</AlertTitle>
-            <AlertDescription>
-              Click here to authorize this MCP server and access its tools.
-            </AlertDescription>
-          </Alert>
-        </div>
-      )}
-
-      <div className="relative hidden sm:flex w-full">
-        <CardContent className="flex min-w-0 w-full flex-row text-sm max-h-[320px] overflow-hidden border-r-0">
-          {/* Only show config to owners to prevent credential exposure */}
-          {isOwner && config && (
-            <div className="w-1/2 min-w-0 flex flex-col pr-2 border-r border-border">
-              <div className="flex items-center gap-2 mb-2 pt-2 pb-1 z-10">
-                <Settings size={14} className="text-muted-foreground" />
-                <h5 className="text-muted-foreground text-sm font-medium">
-                  {t("configuration")}
-                </h5>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <JsonView data={config} />
-              </div>
-            </div>
+    <div className="group relative flex flex-col gap-2 rounded-lg border bg-card p-3 transition-colors hover:border-foreground/20">
+      {/* Main row */}
+      <div className="flex items-center gap-3 min-w-0">
+        {/* Icon */}
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-secondary">
+          {PresetIcon ? (
+            <PresetIcon className="size-4" />
+          ) : (
+            <Wrench className="size-4 text-muted-foreground" />
           )}
+        </div>
 
-          <div
-            className={`${isOwner && config ? "w-1/2" : "w-full"} min-w-0 flex flex-col ${isOwner && config ? "pl-4" : ""}`}
-          >
-            <div className="flex items-center gap-2 mb-4 pt-2 pb-1 z-10">
-              <Wrench size={14} className="text-muted-foreground" />
-              <h5 className="text-muted-foreground text-sm font-medium">
-                {t("availableTools")}
-              </h5>
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-              {toolInfo.length > 0 ? (
-                <ToolsList tools={toolInfo} serverId={id} />
-              ) : (
-                <div className="bg-secondary/30 rounded-md p-3 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    {t("noToolsAvailable")}
-                  </p>
-                </div>
-              )}
-            </div>
+        {/* Name + status */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-sm truncate">
+              {presetMcp?.label ?? name}
+            </span>
+            <StatusDot status={status} />
           </div>
-        </CardContent>
+        </div>
+
+        {/* Tools count badge → opens dialog */}
+        {toolInfo.length > 0 && (
+          <ToolsDialog tools={toolInfo} count={toolInfo.length} />
+        )}
+
+        {/* Loading indicator */}
+        {isLoading && (
+          <Loader className="size-3.5 animate-spin text-muted-foreground" />
+        )}
+
+        {/* Authorization button */}
+        {needsAuthorization && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAuthorize}
+            disabled={isProcessing}
+            className="h-7 text-xs gap-1"
+          >
+            <ShieldAlertIcon className="size-3" />
+            {t("authorize")}
+          </Button>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-0.5">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                onClick={handleRefresh}
+                disabled={isLoading}
+              >
+                <RotateCw className="size-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t("refresh")}</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 text-muted-foreground hover:text-destructive"
+                onClick={handleDelete}
+                disabled={isLoading}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t("delete")}</TooltipContent>
+          </Tooltip>
+        </div>
       </div>
-    </Card>
+
+      {/* Error row */}
+      {errorMessage && (
+        <Alert variant="destructive" className="border-destructive py-2">
+          <AlertTitle className="text-xs">Error</AlertTitle>
+          <AlertDescription className="text-xs whitespace-pre-wrap break-words">
+            {errorMessage}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Authorization prompt */}
+      {needsAuthorization && !errorMessage && (
+        <div
+          className="flex items-center gap-2 rounded-md bg-accent/50 px-3 py-2 text-xs text-muted-foreground cursor-pointer hover:bg-accent transition-colors"
+          onClick={handleAuthorize}
+        >
+          <ShieldAlertIcon className="size-3.5 shrink-0" />
+          <span>Click to authorize this MCP server and access its tools.</span>
+        </div>
+      )}
+    </div>
   );
 });
 
-// Tools list component
-const ToolsList = memo(
-  ({ tools, serverId }: { tools: MCPToolInfo[]; serverId: string }) => (
-    <div className="space-y-2 pr-2">
-      {tools.map((tool) => (
-        <div
-          key={tool.name}
-          className="flex items-start gap-2 bg-secondary rounded-md p-2 hover:bg-input transition-colors"
-        >
-          <ToolDetailPopup tool={tool} serverId={serverId}>
-            <div className="flex-1 min-w-0 cursor-pointer">
-              <p className="font-medium text-sm mb-1 truncate">{tool.name}</p>
-              <p className="text-xs text-muted-foreground line-clamp-1">
-                {tool.description}
-              </p>
+function StatusDot({ status }: { status: MCPServerInfo["status"] }) {
+  if (status === "connected") {
+    return (
+      <Tooltip>
+        <TooltipTrigger>
+          <CheckCircle2 className="size-3 text-emerald-500" />
+        </TooltipTrigger>
+        <TooltipContent>Connected</TooltipContent>
+      </Tooltip>
+    );
+  }
+  if (status === "loading") {
+    return <Loader className="size-3 animate-spin text-muted-foreground" />;
+  }
+  if (status === "authorizing") {
+    return (
+      <Tooltip>
+        <TooltipTrigger>
+          <ShieldAlertIcon className="size-3 text-amber-500" />
+        </TooltipTrigger>
+        <TooltipContent>Authorization required</TooltipContent>
+      </Tooltip>
+    );
+  }
+  return (
+    <Tooltip>
+      <TooltipTrigger>
+        <WifiOff className="size-3 text-muted-foreground" />
+      </TooltipTrigger>
+      <TooltipContent>Disconnected</TooltipContent>
+    </Tooltip>
+  );
+}
+
+function ToolsDialog({
+  tools,
+  count,
+}: { tools: MCPToolInfo[]; count: number }) {
+  const t = useTranslations("MCP");
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button className="flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs text-muted-foreground hover:bg-accent transition-colors">
+          <Wrench className="size-3" />
+          {count} tools
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("availableTools")}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1">
+          {tools.map((tool) => (
+            <div key={tool.name} className="rounded-md bg-secondary p-2.5">
+              <p className="font-medium text-sm truncate">{tool.name}</p>
+              {tool.description && (
+                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                  {tool.description}
+                </p>
+              )}
             </div>
-          </ToolDetailPopup>
-
-          <div className="flex items-center px-1 justify-center self-stretch">
-            <ChevronRight size={16} />
-          </div>
+          ))}
         </div>
-      ))}
-    </div>
-  ),
-);
-
-ToolsList.displayName = "ToolsList";
-
-// Error alert component
-const ErrorAlert = memo(({ error }: { error: string }) => (
-  <div className="px-6 pb-2">
-    <Alert variant="destructive" className="border-destructive">
-      <AlertTitle>Error</AlertTitle>
-      <AlertDescription className="whitespace-pre-wrap break-words">
-        {error}
-      </AlertDescription>
-    </Alert>
-  </div>
-));
-
-ErrorAlert.displayName = "ErrorAlert";
+      </DialogContent>
+    </Dialog>
+  );
+}

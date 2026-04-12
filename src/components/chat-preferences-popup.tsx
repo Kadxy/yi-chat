@@ -14,14 +14,12 @@ import {
   DrawerTitle,
 } from "ui/drawer";
 import {
-  MCPInstructionsContent,
   UserInstructionsContent,
   ExportsManagementContent,
 } from "./chat-preferences-content";
 import { UserIcon, X, Share2 } from "lucide-react";
 import { Button } from "ui/button";
 import { useTranslations } from "next-intl";
-import { MCPIcon } from "ui/mcp-icon";
 
 export function ChatPreferencesPopup() {
   const [openChatPreferences, appStoreMutate] = appStore(
@@ -35,10 +33,6 @@ export function ChatPreferencesPopup() {
       {
         label: t("Chat.ChatPreferences.userInstructions"),
         icon: <UserIcon className="w-4 h-4" />,
-      },
-      {
-        label: t("Chat.ChatPreferences.mcpInstructions"),
-        icon: <MCPIcon className="w-4 h-4 fill-muted-foreground" />,
       },
       {
         label: t("Chat.ChatPreferences.myExports"),
@@ -154,8 +148,6 @@ export function ChatPreferencesPopup() {
                         {tab == 0 ? (
                           <UserInstructionsContent />
                         ) : tab == 1 ? (
-                          <MCPInstructionsContent />
-                        ) : tab == 2 ? (
                           <ExportsManagementContent />
                         ) : null}
                       </>

@@ -18,7 +18,6 @@ import { errorToString, exclude, objectFlow } from "lib/utils";
 import logger from "logger";
 import {
   AllowedMCPServer,
-  McpServerCustomizationsPrompt,
   VercelAIMcpTool,
   VercelAIMcpToolTag,
 } from "app-types/mcp";
@@ -157,48 +156,6 @@ export function extractInProgressToolPart(message: UIMessage): ToolUIPart[] {
       part.state == "output-available" &&
       ManualToolConfirmTag.isMaybe(part.output),
   ) as ToolUIPart[];
-}
-
-export function filterMcpServerCustomizations(
-  tools: Record<string, VercelAIMcpTool>,
-  mcpServerCustomization: Record<string, McpServerCustomizationsPrompt>,
-): Record<string, McpServerCustomizationsPrompt> {
-  const toolNamesByServerId = Object.values(tools).reduce(
-    (acc, tool) => {
-      if (!acc[tool._mcpServerId]) acc[tool._mcpServerId] = [];
-      acc[tool._mcpServerId].push(tool._originToolName);
-      return acc;
-    },
-    {} as Record<string, string[]>,
-  );
-
-  return Object.entries(mcpServerCustomization).reduce(
-    (acc, [serverId, mcpServerCustomization]) => {
-      if (!(serverId in toolNamesByServerId)) return acc;
-
-      if (
-        !mcpServerCustomization.prompt &&
-        !Object.keys(mcpServerCustomization.tools ?? {}).length
-      )
-        return acc;
-
-      const prompts: McpServerCustomizationsPrompt = {
-        id: serverId,
-        name: mcpServerCustomization.name,
-        prompt: mcpServerCustomization.prompt,
-        tools: mcpServerCustomization.tools
-          ? objectFlow(mcpServerCustomization.tools).filter((_, key) => {
-              return toolNamesByServerId[serverId].includes(key as string);
-            })
-          : {},
-      };
-
-      acc[serverId] = prompts;
-
-      return acc;
-    },
-    {} as Record<string, McpServerCustomizationsPrompt>,
-  );
 }
 
 export const loadMcpTools = (opt?: {

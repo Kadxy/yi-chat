@@ -1,6 +1,6 @@
 import { pgDb as db } from "../db.pg";
-import { McpServerTable, UserTable } from "../schema.pg";
-import { eq, or, desc } from "drizzle-orm";
+import { McpServerTable } from "../schema.pg";
+import { eq, desc } from "drizzle-orm";
 import { generateUUID } from "lib/utils";
 import type { MCPRepository } from "app-types/mcp";
 
@@ -13,7 +13,6 @@ export const pgMcpRepository: MCPRepository = {
         name: server.name,
         config: server.config,
         userId: server.userId,
-        visibility: server.visibility ?? "private",
         enabled: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -44,38 +43,12 @@ export const pgMcpRepository: MCPRepository = {
   },
 
   async selectAllForUser(userId) {
-    // Get user's own MCP servers and featured ones
     const results = await db
-      .select({
-        id: McpServerTable.id,
-        name: McpServerTable.name,
-        config: McpServerTable.config,
-        enabled: McpServerTable.enabled,
-        userId: McpServerTable.userId,
-        visibility: McpServerTable.visibility,
-        lastConnectionStatus: McpServerTable.lastConnectionStatus,
-        createdAt: McpServerTable.createdAt,
-        updatedAt: McpServerTable.updatedAt,
-        userName: UserTable.name,
-        userAvatar: UserTable.image,
-      })
+      .select()
       .from(McpServerTable)
-      .leftJoin(UserTable, eq(McpServerTable.userId, UserTable.id))
-      .where(
-        or(
-          eq(McpServerTable.userId, userId),
-          eq(McpServerTable.visibility, "public"),
-        ),
-      )
+      .where(eq(McpServerTable.userId, userId))
       .orderBy(desc(McpServerTable.createdAt));
     return results;
-  },
-
-  async updateVisibility(id, visibility) {
-    await db
-      .update(McpServerTable)
-      .set({ visibility, updatedAt: new Date() })
-      .where(eq(McpServerTable.id, id));
   },
 
   async deleteById(id) {
@@ -89,6 +62,7 @@ export const pgMcpRepository: MCPRepository = {
       .where(eq(McpServerTable.name, name));
     return result;
   },
+
   async updateToolInfo(id, toolInfo) {
     await db
       .update(McpServerTable)

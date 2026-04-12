@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { UIMessage } from "ai";
 import { ChatMetadata } from "./chat";
-import { TipTapMentionJsonContent } from "./util";
 
 export type ChatExport = {
   id: string;
@@ -38,37 +37,9 @@ export const ChatExportCreateSchema = z.object({
   expiresAt: z.date().nullish(),
 });
 
-export type ChatExportComment = {
-  id: string;
-  exportId: string;
-  authorId: string;
-  parentId?: string;
-  content: TipTapMentionJsonContent;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export const ChatExportCommentCreateSchema = z.object({
-  exportId: z.string(),
-  authorId: z.string(),
-  parentId: z.string().optional(),
-  content: z.any() as z.ZodType<TipTapMentionJsonContent>,
-});
-
-export const ChatExportCommentUpdateSchema = z.object({
-  content: z.any() as z.ZodType<TipTapMentionJsonContent>,
-});
-
 export type ChatExportWithUser = ChatExport & {
   exporterName: string | null;
   exporterImage?: string;
-};
-
-export type ChatExportCommentWithUser = ChatExportComment & {
-  authorName: string;
-  authorImage?: string;
-  isOwner?: boolean;
-  replies?: ChatExportCommentWithUser[];
 };
 
 export type ChatExportSummary = {
@@ -76,7 +47,6 @@ export type ChatExportSummary = {
   title: string;
   exporterId: string;
   originalThreadId?: string;
-  commentCount: number;
   exportedAt: Date;
   expiresAt?: Date;
 };
@@ -95,13 +65,4 @@ export type ChatExportRepository = {
   checkAccess(id: string, userId: string): Promise<boolean>;
   deleteById(id: string): Promise<void>;
   isExpired(id: string): Promise<boolean>;
-  insertComment(
-    data: z.infer<typeof ChatExportCommentCreateSchema>,
-  ): Promise<void>;
-  selectCommentsByExportId(
-    exportId: string,
-    userId?: string,
-  ): Promise<ChatExportCommentWithUser[]>;
-  checkCommentAccess(id: string, authorId: string): Promise<boolean>;
-  deleteComment(id: string, authorId: string): Promise<void>;
 };

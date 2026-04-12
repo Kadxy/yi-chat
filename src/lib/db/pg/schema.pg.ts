@@ -8,14 +8,12 @@ import {
   json,
   uuid,
   boolean,
-  unique,
   varchar,
   index,
 } from "drizzle-orm/pg-core";
 import { isNotNull } from "drizzle-orm";
 import { UIMessage } from "ai";
 import { ChatMetadata } from "app-types/chat";
-import { TipTapMentionJsonContent } from "@/types/util";
 
 export const ChatThreadTable = pgTable("chat_thread", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -46,11 +44,6 @@ export const McpServerTable = pgTable("mcp_server", {
   userId: uuid("user_id")
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
-  visibility: varchar("visibility", {
-    enum: ["public", "private"],
-  })
-    .notNull()
-    .default("private"),
   toolInfo: json("tool_info").$type<MCPToolInfo[]>(),
   toolInfoUpdatedAt: timestamp("tool_info_updated_at"),
   lastConnectionStatus: varchar("last_connection_status", {
@@ -125,108 +118,6 @@ export const VerificationTable = pgTable("verification", {
   ),
 });
 
-// Tool customization table for per-user additional instructions
-export const McpToolCustomizationTable = pgTable(
-  "mcp_server_tool_custom_instructions",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => UserTable.id, { onDelete: "cascade" }),
-    toolName: text("tool_name").notNull(),
-    mcpServerId: uuid("mcp_server_id")
-      .notNull()
-      .references(() => McpServerTable.id, { onDelete: "cascade" }),
-    prompt: text("prompt"),
-    createdAt: timestamp("created_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: timestamp("updated_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-  },
-  (table) => [unique().on(table.userId, table.toolName, table.mcpServerId)],
-);
-
-export const McpServerCustomizationTable = pgTable(
-  "mcp_server_custom_instructions",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => UserTable.id, { onDelete: "cascade" }),
-    mcpServerId: uuid("mcp_server_id")
-      .notNull()
-      .references(() => McpServerTable.id, { onDelete: "cascade" }),
-    prompt: text("prompt"),
-    createdAt: timestamp("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-  },
-  (table) => [unique().on(table.userId, table.mcpServerId)],
-);
-
-export const WorkflowTable = pgTable("workflow", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  version: text("version").notNull().default("0.1.0"),
-  name: text("name").notNull(),
-  icon: json("icon").$type<any>(),
-  description: text("description"),
-  isPublished: boolean("is_published").notNull().default(false),
-  visibility: varchar("visibility", {
-    enum: ["public", "private", "readonly"],
-  })
-    .notNull()
-    .default("private"),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => UserTable.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-});
-
-export const WorkflowNodeDataTable = pgTable(
-  "workflow_node",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-    version: text("version").notNull().default("0.1.0"),
-    workflowId: uuid("workflow_id")
-      .notNull()
-      .references(() => WorkflowTable.id, { onDelete: "cascade" }),
-    kind: text("kind").notNull(),
-    name: text("name").notNull(),
-    description: text("description"),
-    uiConfig: json("ui_config").$type<any>().default({}),
-    nodeConfig: json("node_config").$type<any>().default({}),
-    createdAt: timestamp("created_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: timestamp("updated_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-  },
-  (t) => [index("workflow_node_kind_idx").on(t.kind)],
-);
-
-export const WorkflowEdgeTable = pgTable("workflow_edge", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  version: text("version").notNull().default("0.1.0"),
-  workflowId: uuid("workflow_id")
-    .notNull()
-    .references(() => WorkflowTable.id, { onDelete: "cascade" }),
-  source: uuid("source")
-    .notNull()
-    .references(() => WorkflowNodeDataTable.id, { onDelete: "cascade" }),
-  target: uuid("target")
-    .notNull()
-    .references(() => WorkflowNodeDataTable.id, { onDelete: "cascade" }),
-  uiConfig: json("ui_config").$type<any>().default({}),
-  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-});
-
 export const McpOAuthSessionTable = pgTable(
   "mcp_oauth_session",
   {
@@ -261,12 +152,6 @@ export type ChatThreadEntity = typeof ChatThreadTable.$inferSelect;
 export type ChatMessageEntity = typeof ChatMessageTable.$inferSelect;
 
 export type UserEntity = typeof UserTable.$inferSelect;
-export type SessionEntity = typeof SessionTable.$inferSelect;
-
-export type ToolCustomizationEntity =
-  typeof McpToolCustomizationTable.$inferSelect;
-export type McpServerCustomizationEntity =
-  typeof McpServerCustomizationTable.$inferSelect;
 
 export const ChatExportTable = pgTable("chat_export", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -287,20 +172,4 @@ export const ChatExportTable = pgTable("chat_export", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   expiresAt: timestamp("expires_at"),
-});
-
-export const ChatExportCommentTable = pgTable("chat_export_comment", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  exportId: uuid("export_id")
-    .notNull()
-    .references(() => ChatExportTable.id, { onDelete: "cascade" }),
-  authorId: uuid("author_id")
-    .notNull()
-    .references(() => UserTable.id, { onDelete: "cascade" }),
-  parentId: uuid("parent_id").references(() => ChatExportCommentTable.id, {
-    onDelete: "cascade",
-  }),
-  content: json("content").notNull().$type<TipTapMentionJsonContent>(),
-  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });

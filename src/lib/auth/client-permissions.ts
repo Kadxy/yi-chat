@@ -68,15 +68,6 @@ export function canEditMCP(userRoleString?: string | null): boolean {
 }
 
 /**
- * Check if user can change visibility of MCP connections (client-side)
- */
-export function canChangeVisibilityMCP(
-  userRoleString?: string | null,
-): boolean {
-  return hasPermission(userRoleString, "share", "mcp");
-}
-
-/**
  * Check if user can delete MCP connections (client-side)
  */
 export function canDeleteMCP(userRoleString?: string | null): boolean {

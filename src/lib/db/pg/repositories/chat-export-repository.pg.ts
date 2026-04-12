@@ -1,18 +1,13 @@
 import {
   ChatExport,
-  ChatExportCommentWithUser,
   ChatExportCreateSchema,
   ChatExportRepository,
   ChatExportSummary,
   ChatExportWithUser,
 } from "app-types/chat-export";
 import { pgDb } from "../db.pg";
-import {
-  ChatExportCommentTable,
-  ChatExportTable,
-  UserTable,
-} from "../schema.pg";
-import { and, count, eq, sql } from "drizzle-orm";
+import { ChatExportTable, UserTable } from "../schema.pg";
+import { and, eq, sql } from "drizzle-orm";
 import z from "zod";
 import { pgChatRepository } from "./chat-repository.pg";
 
@@ -107,22 +102,15 @@ export const pgChatExportRepository: ChatExportRepository = {
         originalThreadId: ChatExportTable.originalThreadId,
         exportedAt: ChatExportTable.exportedAt,
         expiresAt: ChatExportTable.expiresAt,
-        commentCount: count(ChatExportCommentTable.id),
       })
       .from(ChatExportTable)
-      .leftJoin(
-        ChatExportCommentTable,
-        eq(ChatExportCommentTable.exportId, ChatExportTable.id),
-      )
       .where(eq(ChatExportTable.exporterId, exporterId))
-      .groupBy(ChatExportTable.id)
       .orderBy(sql`${ChatExportTable.exportedAt} DESC`);
 
     return result.map((row) => ({
       ...row,
       originalThreadId: row.originalThreadId ?? undefined,
       expiresAt: row.expiresAt ?? undefined,
-      commentCount: Number(row.commentCount) || 0,
     })) as ChatExportSummary[];
   },
   checkAccess: async (id, userId) => {
@@ -147,79 +135,5 @@ export const pgChatExportRepository: ChatExportRepository = {
       .from(ChatExportTable)
       .where(eq(ChatExportTable.id, id));
     return !!result?.expiresAt && result.expiresAt < new Date();
-  },
-  insertComment: async (data) => {
-    await pgDb.insert(ChatExportCommentTable).values(data);
-  },
-  selectCommentsByExportId: async (exportId, userId) => {
-    const result = await pgDb
-      .select({
-        id: ChatExportCommentTable.id,
-        exportId: ChatExportCommentTable.exportId,
-        authorId: ChatExportCommentTable.authorId,
-        parentId: ChatExportCommentTable.parentId,
-        content: ChatExportCommentTable.content,
-        createdAt: ChatExportCommentTable.createdAt,
-        updatedAt: ChatExportCommentTable.updatedAt,
-        authorName: UserTable.name,
-        authorImage: UserTable.image,
-      })
-      .from(ChatExportCommentTable)
-      .leftJoin(UserTable, eq(ChatExportCommentTable.authorId, UserTable.id))
-      .where(eq(ChatExportCommentTable.exportId, exportId))
-      .orderBy(ChatExportCommentTable.createdAt)
-      .then((result) => {
-        if (!userId) return result;
-        return result.map((comment) => ({
-          ...comment,
-          isOwner: comment.authorId === userId,
-        }));
-      });
-
-    const commentsById = new Map<string, ChatExportCommentWithUser>(
-      result.map((comment) => [
-        comment.id,
-        comment as ChatExportCommentWithUser,
-      ]),
-    );
-    result.forEach((comment) => {
-      if (comment.parentId) {
-        const parent = commentsById.get(comment.parentId);
-        if (parent) {
-          parent.replies = [
-            ...(parent.replies || []),
-            comment as ChatExportCommentWithUser,
-          ];
-        }
-      }
-    });
-
-    return result.filter(
-      (comment) => !comment.parentId,
-    ) as ChatExportCommentWithUser[];
-  },
-  checkCommentAccess: async (id, authorId) => {
-    const result = await pgDb
-      .select({
-        authorId: ChatExportCommentTable.authorId,
-      })
-      .from(ChatExportCommentTable)
-      .where(
-        and(
-          eq(ChatExportCommentTable.id, id),
-          eq(ChatExportCommentTable.authorId, authorId),
-        ),
-      );
-    return result.length > 0;
-  },
-  deleteComment: async (id, authorId) => {
-    await pgDb
-      .delete(ChatExportCommentTable)
-      .where(
-        and(
-          eq(ChatExportCommentTable.id, id),
-          eq(ChatExportCommentTable.authorId, authorId),
-        ),
-      );
   },
 };

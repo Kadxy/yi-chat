@@ -4,18 +4,14 @@ import { MCPServerConfig, MCPRemoteConfigZodSchema } from "app-types/mcp";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import JsonView from "./ui/json-view";
 import { toast } from "sonner";
 import { safe } from "ts-safe";
 import { useRouter } from "next/navigation";
-import { createDebounce, fetcher, isNull, safeJSONParse } from "lib/utils";
+import { fetcher, isNull } from "lib/utils";
 import { handleErrorWithToast } from "ui/shared-toast";
 import { mutate } from "swr";
-import { Loader } from "lucide-react";
-import { isMaybeMCPServerConfig } from "lib/ai/mcp/is-mcp-config";
+import { Loader, Plus, Trash2 } from "lucide-react";
 
-import { Alert, AlertDescription, AlertTitle } from "ui/alert";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { existMcpClientByServerNameAction } from "@/app/api/mcp/actions";
@@ -26,13 +22,6 @@ interface MCPEditorProps {
   id?: string;
 }
 
-const CONFIG_PLACEHOLDER = `{
-  "url": "https://mcp.example.com/mcp",
-  "headers": {
-    "Authorization": "Bearer sk-..."
-  }
-}`;
-
 export default function MCPEditor({
   initialConfig,
   name: initialName,
@@ -40,24 +29,23 @@ export default function MCPEditor({
 }: MCPEditorProps) {
   const t = useTranslations();
   const shouldInsert = useMemo(() => isNull(id), [id]);
+  const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [jsonError, setJsonError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
 
-  const errorDebounce = useMemo(() => createDebounce(), []);
-
-  // State for form fields
-  const [name, setName] = useState<string>(initialName ?? "");
-  const router = useRouter();
-  const [config, setConfig] = useState<MCPServerConfig>(
-    initialConfig as MCPServerConfig,
+  const [name, setName] = useState(initialName ?? "");
+  const [url, setUrl] = useState(initialConfig?.url ?? "");
+  const [headers, setHeaders] = useState<{ key: string; value: string }[]>(
+    () => {
+      if (!initialConfig?.headers) return [];
+      return Object.entries(initialConfig.headers).map(([key, value]) => ({
+        key,
+        value,
+      }));
+    },
   );
-  const [jsonString, setJsonString] = useState<string>(
-    initialConfig ? JSON.stringify(initialConfig, null, 2) : "",
-  );
 
-  // Name validation schema
   const nameSchema = z.string().regex(/^[a-zA-Z0-9\-]+$/, {
     message: t("MCP.nameMustContainOnlyAlphanumericCharactersAndHyphens"),
   });
@@ -74,59 +62,46 @@ export default function MCPEditor({
     return true;
   };
 
-  const saveDisabled = useMemo(() => {
-    return (
-      name.trim() === "" ||
-      isLoading ||
-      !!jsonError ||
-      !!nameError ||
-      !isMaybeMCPServerConfig(config)
+  const buildConfig = (): MCPServerConfig => {
+    const headersObj = headers.reduce(
+      (acc, { key, value }) => {
+        if (key.trim() && value.trim()) acc[key.trim()] = value.trim();
+        return acc;
+      },
+      {} as Record<string, string>,
     );
-  }, [isLoading, jsonError, nameError, config, name]);
-
-  const validateConfig = (jsonConfig: unknown): boolean => {
-    const result = MCPRemoteConfigZodSchema.safeParse(jsonConfig);
-    if (!result.success) {
-      handleErrorWithToast(result.error, "mcp-editor-error");
-    }
-    return result.success;
+    return {
+      url: url.trim(),
+      ...(Object.keys(headersObj).length > 0 && { headers: headersObj }),
+    };
   };
 
-  // Handle save button click
-  const handleSave = async () => {
-    // Perform validation
-    if (!validateConfig(config)) return;
-    if (!name) {
-      return handleErrorWithToast(
-        new Error(t("MCP.nameIsRequired")),
-        "mcp-editor-error",
-      );
-    }
+  const saveDisabled = useMemo(
+    () => !name.trim() || !url.trim() || isLoading || !!nameError,
+    [name, url, isLoading, nameError],
+  );
 
-    if (!validateName(name)) {
-      return handleErrorWithToast(
-        new Error(t("MCP.nameMustContainOnlyAlphanumericCharactersAndHyphens")),
-        "mcp-editor-error",
-      );
+  const handleSave = async () => {
+    if (!validateName(name)) return;
+
+    const config = buildConfig();
+    const result = MCPRemoteConfigZodSchema.safeParse(config);
+    if (!result.success) {
+      handleErrorWithToast(result.error, "mcp-editor-error");
+      return;
     }
 
     safe(() => setIsLoading(true))
       .map(async () => {
         if (shouldInsert) {
           const exist = await existMcpClientByServerNameAction(name);
-          if (exist) {
-            throw new Error(t("MCP.nameAlreadyExists"));
-          }
+          if (exist) throw new Error(t("MCP.nameAlreadyExists"));
         }
       })
       .map(() =>
         fetcher("/api/mcp", {
           method: "POST",
-          body: JSON.stringify({
-            name,
-            config,
-            id,
-          }),
+          body: JSON.stringify({ name, config, id }),
         }),
       )
       .ifOk(() => {
@@ -138,102 +113,97 @@ export default function MCPEditor({
       .watch(() => setIsLoading(false));
   };
 
-  const handleConfigChange = (data: string) => {
-    setJsonString(data);
-    const result = safeJSONParse(data);
-    errorDebounce.clear();
-    if (result.success) {
-      setConfig(result.value as MCPServerConfig);
-      setJsonError(null);
-    } else if (data.trim() !== "") {
-      errorDebounce(() => {
-        setJsonError(
-          (result.error as Error)?.message ??
-            JSON.stringify(result.error, null, 2),
-        );
-      }, 1000);
-    }
+  const addHeader = () => setHeaders([...headers, { key: "", value: "" }]);
+
+  const removeHeader = (index: number) =>
+    setHeaders(headers.filter((_, i) => i !== index));
+
+  const updateHeader = (index: number, field: "key" | "value", val: string) => {
+    const updated = [...headers];
+    updated[index][field] = val;
+    setHeaders(updated);
   };
 
   return (
-    <>
-      <div className="flex flex-col space-y-6">
-        {/* Name field */}
-        <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
-
-          <Input
-            id="name"
-            value={name}
-            disabled={!shouldInsert}
-            onChange={(e) => {
-              setName(e.target.value);
-              if (e.target.value) validateName(e.target.value);
-            }}
-            placeholder={t("MCP.enterMcpServerName")}
-            className={nameError ? "border-destructive" : ""}
-          />
-          {nameError && <p className="text-xs text-destructive">{nameError}</p>}
-        </div>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="config">Config</Label>
-          </div>
-
-          {/* Split view for config editor */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Left side: Textarea for editing */}
-            <div className="space-y-2">
-              <Textarea
-                id="config-editor"
-                value={jsonString}
-                onChange={(e) => handleConfigChange(e.target.value)}
-                data-testid="mcp-config-editor"
-                className="font-mono h-[40vh] resize-none overflow-y-auto"
-                placeholder={CONFIG_PLACEHOLDER}
-              />
-            </div>
-
-            {/* Right side: JSON view */}
-            <div className="space-y-2 hidden sm:block">
-              <div className="border border-input rounded-md p-4 h-[40vh] overflow-auto relative bg-secondary">
-                <Label
-                  htmlFor="config-view"
-                  className="text-xs text-muted-foreground mb-2"
-                >
-                  preview
-                </Label>
-                <JsonView
-                  data={config}
-                  initialExpandDepth={3}
-                  data-testid="mcp-config-view"
-                />
-                {jsonError && jsonString && (
-                  <div className="absolute w-full bottom-0 right-0 px-2 pb-2 animate-in fade-in-0 duration-300">
-                    <Alert variant="destructive" className="border-destructive">
-                      <AlertTitle className="text-xs font-semibold">
-                        Parsing Error
-                      </AlertTitle>
-                      <AlertDescription className="text-xs">
-                        {jsonError}
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Save button */}
-        <Button onClick={handleSave} className="w-full" disabled={saveDisabled}>
-          {isLoading ? (
-            <Loader className="size-4 animate-spin" />
-          ) : (
-            <span className="font-bold">{t("MCP.saveConfiguration")}</span>
-          )}
-        </Button>
+    <div className="flex flex-col space-y-6">
+      {/* Name */}
+      <div className="space-y-2">
+        <Label htmlFor="name">Name</Label>
+        <Input
+          id="name"
+          value={name}
+          disabled={!shouldInsert}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (e.target.value) validateName(e.target.value);
+          }}
+          placeholder={t("MCP.enterMcpServerName")}
+          className={nameError ? "border-destructive" : ""}
+        />
+        {nameError && <p className="text-xs text-destructive">{nameError}</p>}
       </div>
-    </>
+
+      {/* URL */}
+      <div className="space-y-2">
+        <Label htmlFor="url">URL</Label>
+        <Input
+          id="url"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://mcp.example.com/mcp"
+          type="url"
+        />
+      </div>
+
+      {/* Headers */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label>Headers</Label>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={addHeader}
+            className="h-7 text-xs gap-1"
+          >
+            <Plus className="size-3" />
+            Add Header
+          </Button>
+        </div>
+        {headers.map((header, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <Input
+              value={header.key}
+              onChange={(e) => updateHeader(index, "key", e.target.value)}
+              placeholder="Key (e.g. Authorization)"
+              className="flex-1"
+            />
+            <Input
+              value={header.value}
+              onChange={(e) => updateHeader(index, "value", e.target.value)}
+              placeholder="Value (e.g. Bearer sk-...)"
+              className="flex-1"
+              type="password"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+              onClick={() => removeHeader(index)}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      {/* Save */}
+      <Button onClick={handleSave} className="w-full" disabled={saveDisabled}>
+        {isLoading ? (
+          <Loader className="size-4 animate-spin" />
+        ) : (
+          <span className="font-bold">{t("MCP.saveConfiguration")}</span>
+        )}
+      </Button>
+    </div>
   );
 }

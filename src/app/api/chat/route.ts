@@ -13,7 +13,6 @@ import { customModelProvider, isToolCallUnsupportedModel } from "lib/ai/models";
 import { chatRepository } from "lib/db/repository";
 import globalLogger from "logger";
 import {
-  buildMcpServerCustomizationsSystemPrompt,
   buildUserSystemPrompt,
   buildToolCallUnsupportedModelSystemPrompt,
 } from "lib/ai/prompts";
@@ -27,12 +26,10 @@ import {
   manualToolExecuteByLastMessage,
   mergeSystemPrompt,
   extractInProgressToolPart,
-  filterMcpServerCustomizations,
   loadMcpTools,
   loadAppDefaultTools,
   convertToSavePart,
 } from "./shared.chat";
-import { rememberMcpServerCustomizationsAction } from "./actions";
 import { getSession } from "auth/server";
 import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
@@ -213,18 +210,8 @@ export async function POST(request: Request) {
 
         const userPreferences = thread?.userPreferences || undefined;
 
-        const mcpServerCustomizations = await safe()
-          .map(() => {
-            if (Object.keys(MCP_TOOLS ?? {}).length === 0)
-              throw new Error("No tools found");
-            return rememberMcpServerCustomizationsAction(session.user.id);
-          })
-          .map((v) => filterMcpServerCustomizations(MCP_TOOLS!, v))
-          .orElse({});
-
         const systemPrompt = mergeSystemPrompt(
           buildUserSystemPrompt(session.user, userPreferences),
-          buildMcpServerCustomizationsSystemPrompt(mcpServerCustomizations),
           !supportToolCall && buildToolCallUnsupportedModelSystemPrompt,
         );
 

@@ -121,7 +121,6 @@ export class MCPClient {
       status: this.status,
       error: this.error,
       toolInfo: this.toolInfo,
-      visibility: "private" as const,
       enabled: true,
       userId: "", // This will be filled by the manager
     };

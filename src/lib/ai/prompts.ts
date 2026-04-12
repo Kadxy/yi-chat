@@ -1,8 +1,7 @@
-import { McpServerCustomizationsPrompt, MCPToolInfo } from "app-types/mcp";
+import { MCPToolInfo } from "app-types/mcp";
 
 import { UserPreferences } from "app-types/user";
 import { User } from "better-auth";
-import { createMCPToolId } from "./mcp/mcp-tool-id";
 import { format } from "date-fns";
 
 export const CREATE_THREAD_TITLE_PROMPT = `
@@ -169,39 +168,6 @@ ${userPreferences.responseStyleExample}
 </voice_interaction_guidelines>`;
 
   return prompt.trim();
-};
-
-export const buildMcpServerCustomizationsSystemPrompt = (
-  instructions: Record<string, McpServerCustomizationsPrompt>,
-) => {
-  const prompt = Object.values(instructions).reduce((acc, v) => {
-    if (!v.prompt && !Object.keys(v.tools ?? {}).length) return acc;
-    acc += `
-<${v.name}>
-${v.prompt ? `- ${v.prompt}\n` : ""}
-${
-  v.tools
-    ? Object.entries(v.tools)
-        .map(
-          ([toolName, toolPrompt]) =>
-            `- **${createMCPToolId(v.name, toolName)}**: ${toolPrompt}`,
-        )
-        .join("\n")
-    : ""
-}
-</${v.name}>
-`.trim();
-    return acc;
-  }, "");
-  if (prompt) {
-    return `
-### Tool Usage Guidelines
-- When using tools, please follow the guidelines below unless the user provides specific instructions otherwise.
-- These customizations help ensure tools are used effectively and appropriately for the current context.
-${prompt}
-`.trim();
-  }
-  return prompt;
 };
 
 export const generateExampleToolSchemaPrompt = (options: {

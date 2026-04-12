@@ -19,11 +19,9 @@ export async function GET() {
     memoryClients.map(({ id, client }) => [id, client] as const),
   );
 
-  // Add servers that exist in DB but not yet in memory
   const addTargets = servers.filter((server) => !memoryMap.has(server.id));
 
   if (addTargets.length > 0) {
-    // no need to wait for this
     Promise.allSettled(
       addTargets.map((server) => mcpClientsManager.refreshClient(server.id)),
     );
@@ -32,11 +30,8 @@ export async function GET() {
   const result = servers.map((server) => {
     const mem = memoryMap.get(server.id);
     const info = mem?.getInfo();
-    const isOwner = server.userId === currentUser.id;
     const mcpInfo: MCPServerInfo = {
       ...server,
-      // Hide config from non-owners to prevent credential exposure
-      config: isOwner ? server.config : undefined,
       enabled: info?.enabled ?? true,
       status: info?.status ?? "disconnected",
       lastConnectionStatus: server.lastConnectionStatus,
