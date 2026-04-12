@@ -248,7 +248,9 @@ export async function POST(request: Request) {
           model,
           system: systemPrompt,
           messages: await convertToModelMessages(messages),
-          experimental_transform: smoothStream(),
+          experimental_transform: smoothStream({
+            chunking: new Intl.Segmenter("zh", { granularity: "word" }),
+          }),
           maxRetries: 0,
           maxOutputTokens: thinkingMaxOutput,
           tools:

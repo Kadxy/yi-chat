@@ -37,7 +37,9 @@ export async function POST(request: Request) {
       model: customModelProvider.getModel(MODEL_IDS[MODEL_ID.HAIKU]),
       system: CREATE_THREAD_TITLE_PROMPT,
       maxOutputTokens: 80,
-      experimental_transform: smoothStream(),
+      experimental_transform: smoothStream({
+        chunking: new Intl.Segmenter("zh", { granularity: "word" }),
+      }),
       prompt: message,
       abortSignal: request.signal,
       onFinish: (ctx) => {

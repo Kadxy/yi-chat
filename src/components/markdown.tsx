@@ -10,6 +10,7 @@ import { isJson } from "lib/utils";
 import JsonView from "ui/json-view";
 
 const plugins = { code, math, mermaid, cjk };
+const animated = { animation: "fadeIn" as const, duration: 300, stagger: 1 };
 
 const NonMemoizedMarkdown = ({
   children,
@@ -31,6 +32,7 @@ const NonMemoizedMarkdown = ({
       className="max-w-none"
       plugins={plugins}
       isAnimating={isAnimating}
+      animated={isAnimating ? animated : undefined}
       linkSafety={{ enabled: false }}
     >
       {children}
