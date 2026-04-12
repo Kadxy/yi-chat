@@ -145,7 +145,7 @@ export const adjustCreditsAction = validatedActionWithAdminPermission(
 
       return {
         success: true,
-        message: `Credits adjusted by ${amount > 0 ? "+" : ""}${amount}. New balance: ${result.newBalance.toFixed(2)}`,
+        message: `Credits adjusted by ${amount > 0 ? "+" : ""}${amount}. New balance: ${result.newBalance}`,
         newBalance: result.newBalance,
       };
     } catch (error) {
@@ -164,6 +164,14 @@ export const updateUserPlanAction = validatedActionWithAdminPermission(
     const { userId, plan } = data;
     try {
       await creditRepository.setPlan(userId, plan);
+      // Log the plan change (amount=0, just for audit trail)
+      await creditRepository.logTransaction({
+        userId,
+        amount: 0,
+        balanceAfter: (await creditRepository.getBalance(userId)).balance,
+        type: "subscription",
+        description: `Plan changed to ${plan}`,
+      });
       return {
         success: true,
         message: `Plan updated to ${plan}.`,

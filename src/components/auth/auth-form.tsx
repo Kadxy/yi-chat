@@ -65,15 +65,11 @@ export default function AuthForm({
     };
     window.addEventListener("unhandledrejection", handleRejection);
 
-    let cancelled = false;
-
     authClient
       .oneTap({
         fetchOptions: {
           onSuccess: () => {
-            if (!cancelled) {
-              window.location.href = "/";
-            }
+            window.location.href = "/";
           },
         },
       })
@@ -93,7 +89,6 @@ export default function AuthForm({
       });
 
     return () => {
-      cancelled = true;
       window.removeEventListener("unhandledrejection", handleRejection);
     };
   }, []);

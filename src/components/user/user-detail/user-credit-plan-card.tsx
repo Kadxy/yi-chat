@@ -95,7 +95,7 @@ export function UserCreditPlanCard({
           <div className="text-right">
             <p className="text-sm text-muted-foreground">Credits</p>
             <p className="text-lg font-semibold tabular-nums">
-              {currentBalance.toFixed(2)}
+              {currentBalance.toLocaleString()}
             </p>
           </div>
         </div>

@@ -248,7 +248,7 @@ export async function POST(request: Request) {
           model,
           system: systemPrompt,
           messages: await convertToModelMessages(messages),
-          experimental_transform: smoothStream({ chunking: "word" }),
+          experimental_transform: smoothStream(),
           maxRetries: 0,
           maxOutputTokens: thinkingMaxOutput,
           tools:
@@ -344,7 +344,7 @@ export async function POST(request: Request) {
             });
             if (result) {
               logger.info(
-                `Credits deducted: ${cost.toFixed(2)} from user ${session.user.id}, new balance: ${result.newBalance.toFixed(2)}`,
+                `Credits deducted: ${cost} from user ${session.user.id}, new balance: ${result.newBalance}`,
               );
             }
           }

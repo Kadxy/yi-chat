@@ -255,6 +255,7 @@
     "balance": "余额",
     "noRecords": "暂无消费记录",
     "noRecordsDescription": "你的积分交易记录将在你开始使用服务后出现在这里。",
+    "loadMore": "加载更多",
     "typeSignup": "注册奖励",
     "typeSignIn": "签到奖励",
     "typeSubscription": "订阅",

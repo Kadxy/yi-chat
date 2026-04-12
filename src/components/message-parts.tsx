@@ -219,6 +219,7 @@ UserMessagePart.displayName = "UserMessagePart";
 
 export const AssistMessagePart = memo(function AssistMessagePart({
   part,
+  isLast,
   showActions,
   message,
   prevMessage,
@@ -292,7 +293,7 @@ export const AssistMessagePart = memo(function AssistMessagePart({
           "opacity-50 border border-destructive bg-card rounded-lg": isError,
         })}
       >
-        <Markdown>{part.text}</Markdown>
+        <Markdown isAnimating={isLast && !showActions}>{part.text}</Markdown>
       </div>
       {showActions && (
         <div className="flex w-full">
@@ -492,7 +493,7 @@ export const ReasoningPart = memo(function ReasoningPart({
       >
         <div className="overflow-hidden">
           <div className="flex flex-col gap-4 pt-2">
-            <Markdown>
+            <Markdown isAnimating={isThinking}>
               {reasoningText || (isThinking ? "" : "Hmm, let's see...🤔")}
             </Markdown>
           </div>

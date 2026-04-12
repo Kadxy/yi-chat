@@ -103,12 +103,13 @@ export const pgCreditRepository = {
     });
   },
 
-  getTransactions: async (userId: string, limit = 50) => {
+  getTransactions: async (userId: string, limit = 50, offset = 0) => {
     return db
       .select()
       .from(CreditTransactionTable)
       .where(eq(CreditTransactionTable.userId, userId))
       .orderBy(desc(CreditTransactionTable.createdAt))
-      .limit(limit);
+      .limit(limit)
+      .offset(offset);
   },
 };

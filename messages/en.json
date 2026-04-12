@@ -260,6 +260,7 @@
     "balance": "Balance",
     "noRecords": "No usage records yet",
     "noRecordsDescription": "Your credit transactions will appear here once you start using the service.",
+    "loadMore": "Load more",
     "typeSignup": "Signup Bonus",
     "typeSignIn": "Sign-in Bonus",
     "typeSubscription": "Subscription",
