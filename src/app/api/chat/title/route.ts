@@ -1,6 +1,7 @@
 import { smoothStream, streamText } from "ai";
 
 import { customModelProvider, MODEL_IDS } from "lib/ai/models";
+import { MODEL_ID } from "app-types/models";
 import { CREATE_THREAD_TITLE_PROMPT } from "lib/ai/prompts";
 import globalLogger from "logger";
 import { chatRepository } from "lib/db/repository";
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     logger.info(`threadId: ${threadId}`);
 
     const result = streamText({
-      model: customModelProvider.getModel(MODEL_IDS["haiku-4.5"]),
+      model: customModelProvider.getModel(MODEL_IDS[MODEL_ID.HAIKU]),
       system: CREATE_THREAD_TITLE_PROMPT,
       maxOutputTokens: 80,
       experimental_transform: smoothStream({ chunking: "word" }),
