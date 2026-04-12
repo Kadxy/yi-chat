@@ -16,7 +16,6 @@ export interface BetterAuthRole {
     agent?: readonly PermissionType[];
     mcp?: readonly PermissionType[];
     chat?: readonly PermissionType[];
-    temporaryChat?: readonly PermissionType[];
     [key: string]: readonly string[] | undefined;
   };
 }

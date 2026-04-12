@@ -9,7 +9,6 @@ const permissions = {
   // Add our app-specific resources
   mcp: [...Object.values(PERMISSION_TYPES)],
   chat: [...Object.values(PERMISSION_TYPES)],
-  temporaryChat: [...Object.values(PERMISSION_TYPES)],
 };
 
 // Create access control with all permissions
@@ -21,7 +20,6 @@ export const user = ac.newRole({
   session: [],
   mcp: ["create", "view", "update", "delete", "use", "list"],
   chat: [...Object.values(PERMISSION_TYPES)],
-  temporaryChat: [...Object.values(PERMISSION_TYPES)],
 });
 
 // Admin role: full permissions including user management
@@ -32,5 +30,4 @@ export const admin = ac.newRole({
   // Full app permissions
   mcp: [...Object.values(PERMISSION_TYPES)],
   chat: [...Object.values(PERMISSION_TYPES)],
-  temporaryChat: [...Object.values(PERMISSION_TYPES)],
 });

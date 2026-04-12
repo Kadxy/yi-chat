@@ -40,11 +40,6 @@ export interface AppState {
   openShortcutsPopup: boolean;
   openChatPreferences: boolean;
   openUserSettings: boolean;
-  temporaryChat: {
-    isOpen: boolean;
-    instructions: string;
-    chatModel?: ChatModel;
-  };
   pendingThreadMention?: ChatMention;
 }
 
@@ -71,10 +66,6 @@ const initialState: AppState = {
   chatModel: undefined,
   openShortcutsPopup: false,
   openChatPreferences: false,
-  temporaryChat: {
-    isOpen: false,
-    instructions: "",
-  },
   pendingThreadMention: undefined,
 };
 
@@ -95,11 +86,6 @@ export const appStore = create<AppState & AppDispatch>()(
           state.allowedAppDefaultToolkit ??
           initialState.allowedAppDefaultToolkit
         )?.filter((v) => Object.values(AppDefaultToolkit).includes(v)),
-        temporaryChat: {
-          ...initialState.temporaryChat,
-          ...state.temporaryChat,
-          isOpen: false,
-        },
         toolPresets: state.toolPresets || initialState.toolPresets,
       }),
     },

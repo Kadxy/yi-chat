@@ -1,7 +1,6 @@
 export const RESOURCES = {
   MCP: "mcp",
   CHAT: "chat",
-  TEMPORARY_CHAT: "temporaryChat",
 } as const;
 
 export type Resource = (typeof RESOURCES)[keyof typeof RESOURCES];
