@@ -2,6 +2,7 @@
 
 import {
   ChevronDown,
+  MonitorIcon,
   SendIcon,
   FileTextIcon,
   Loader2,
@@ -164,6 +165,45 @@ export default function PromptInput({
     },
     [uploadFiles, uploadedFiles],
   );
+
+  const handleCaptureScreen = useCallback(async () => {
+    setIsUploadDropdownOpen(false);
+    let stream: MediaStream | null = null;
+    try {
+      const captureController =
+        "CaptureController" in window
+          ? new (window as any).CaptureController()
+          : null;
+      if (captureController) {
+        captureController.setFocusBehavior("no-focus-change");
+      }
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { displaySurface: "browser" },
+        audio: false,
+        controller: captureController,
+      } as any);
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      await video.play();
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d")!.drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL("image/png");
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `screenshot-${Date.now()}.png`, {
+        type: "image/png",
+      });
+      await uploadFiles([file]);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "NotAllowedError") return;
+      console.error("Screenshot failed:", err);
+    } finally {
+      if (stream) stream.getTracks().forEach((t) => t.stop());
+      window.focus();
+    }
+  }, [uploadFiles]);
 
   const submit = () => {
     if (isLoading) return;
@@ -429,6 +469,13 @@ export default function PromptInput({
                     >
                       <PaperclipIcon className="mr-2 size-4" />
                       {t("uploadFile")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={handleCaptureScreen}
+                    >
+                      <MonitorIcon className="mr-2 size-4" />
+                      {t("captureScreen")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

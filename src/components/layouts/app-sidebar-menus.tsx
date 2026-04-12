@@ -36,6 +36,7 @@ export function AppSidebarMenus({ user }: { user?: BasicUser }) {
                   // If already on new chat page, do nothing — preserve input and files
                   if (pathname === "/") return;
                   router.push("/");
+                  router.refresh();
                 }}
               >
                 <SidebarMenuButton className="flex font-semibold group/new-chat bg-input/20 border border-border/40">

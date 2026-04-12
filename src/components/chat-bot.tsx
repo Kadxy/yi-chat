@@ -443,6 +443,7 @@ function DeleteThreadPopup({
       .ifOk(() => {
         toast.success(t("Chat.Thread.threadDeleted"));
         router.push("/");
+        router.refresh();
       })
       .ifFail(() => toast.error(t("Chat.Thread.failedToDeleteThread")))
       .watch(() => onClose());

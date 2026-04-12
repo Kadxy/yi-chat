@@ -166,6 +166,7 @@ export function AppSidebarThreads() {
       success: () => {
         mutate("/api/thread");
         router.push("/");
+        router.refresh();
         return t("allChatsDeleted");
       },
       error: t("failedToDeleteAllChats"),
@@ -178,6 +179,7 @@ export function AppSidebarThreads() {
       success: () => {
         mutate("/api/thread");
         router.push("/");
+        router.refresh();
         return t("allChatsArchived");
       },
       error: t("failedToArchiveAllChats"),

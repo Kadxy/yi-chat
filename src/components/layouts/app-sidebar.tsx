@@ -26,6 +26,7 @@ export function AppSidebar({
         // If already on new chat page, do nothing — preserve input and files
         if (window.location.pathname === "/") return;
         router.push("/");
+        router.refresh();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
