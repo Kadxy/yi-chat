@@ -12,6 +12,7 @@ import { Toaster } from "ui/sonner";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import { BASE_URL } from "lib/const";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +24,8 @@ const geistMono = Geist_Mono({
 });
 
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat";
-const APP_DESCRIPTION = "A powerful AI chatbot for intelligent conversations.";
+const APP_DESCRIPTION =
+  "Yi Chat is a powerful AI chatbot that helps you with intelligent conversations, creative writing, code generation, and knowledge Q&A. Start chatting now!";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -35,11 +37,24 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: APP_NAME,
+    default: `${APP_NAME} - AI Chatbot for Intelligent Conversations`,
     template: `%s - ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
-  keywords: ["AI", "chatbot", "AI chat", "LLM", APP_NAME],
+  keywords: [
+    "AI",
+    "chatbot",
+    "AI chat",
+    "LLM",
+    "AI assistant",
+    "intelligent conversation",
+    "code generation",
+    "creative writing",
+    APP_NAME,
+  ],
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -87,6 +102,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <GoogleAnalytics gaId="G-BRT60TY291" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

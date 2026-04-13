@@ -42,6 +42,9 @@ export async function generateMetadata({
   return {
     title: thread.title,
     description,
+    alternates: {
+      canonical: `/share/${id}`,
+    },
     openGraph: {
       title: `${thread.title} - ${APP_NAME}`,
       description,

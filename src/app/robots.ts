@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/share/"],
+        allow: ["/", "/share/"],
         disallow: [
           "/chat/",
           "/settings",

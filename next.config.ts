@@ -29,6 +29,7 @@ export default () => {
       {
         source: "/(.*)",
         headers: [
+          { key: "X-Robots-Tag", value: "index, follow" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           {
