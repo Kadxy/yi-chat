@@ -9,6 +9,12 @@ export default () => {
   const nextConfig: NextConfig = {
     output: BUILD_OUTPUT,
     cleanDistDir: true,
+    compiler: {
+      removeConsole:
+        process.env.NODE_ENV === "production"
+          ? { exclude: ["error", "warn"] }
+          : false,
+    },
     devIndicators: {
       position: "bottom-right",
     },
