@@ -10,6 +10,8 @@ import {
 import { Toaster } from "ui/sonner";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+import { BASE_URL } from "lib/const";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -19,9 +21,47 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat";
+const APP_DESCRIPTION =
+  process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
+  "A powerful AI chatbot for intelligent conversations.";
+
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat",
-  description: "Powerful online chatbot.",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: APP_NAME,
+    template: `%s - ${APP_NAME}`,
+  },
+  description: APP_DESCRIPTION,
+  keywords: ["AI", "chatbot", "AI chat", "LLM", APP_NAME],
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+    siteName: APP_NAME,
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: APP_NAME,
+  description: APP_DESCRIPTION,
+  url: BASE_URL,
+  applicationCategory: "ChatApplication",
 };
 
 export default async function RootLayout({
@@ -36,6 +76,10 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

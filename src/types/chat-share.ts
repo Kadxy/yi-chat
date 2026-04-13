@@ -66,4 +66,5 @@ export type ChatShareRepository = {
   deleteById(id: string): Promise<void>;
   deleteAllBySharerId(sharerId: string): Promise<void>;
   isExpired(id: string): Promise<boolean>;
+  selectAllActiveIds(): Promise<{ id: string; sharedAt: Date }[]>;
 };

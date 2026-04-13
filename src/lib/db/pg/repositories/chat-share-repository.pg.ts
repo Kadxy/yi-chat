@@ -146,4 +146,17 @@ export const pgChatShareRepository: ChatShareRepository = {
       .where(eq(ChatShareTable.id, id));
     return !!result?.expiresAt && result.expiresAt < new Date();
   },
+  selectAllActiveIds: async () => {
+    const results = await pgDb
+      .select({
+        id: ChatShareTable.id,
+        sharedAt: ChatShareTable.sharedAt,
+      })
+      .from(ChatShareTable)
+      .where(
+        sql`${ChatShareTable.expiresAt} IS NULL OR ${ChatShareTable.expiresAt} > NOW()`,
+      )
+      .orderBy(sql`${ChatShareTable.sharedAt} DESC`);
+    return results;
+  },
 };

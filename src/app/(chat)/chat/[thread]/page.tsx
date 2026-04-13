@@ -23,6 +23,7 @@ export async function generateMetadata({
   const thread = await fetchThread(threadId);
   return {
     title: thread?.title ? `${thread.title} - ${APP_NAME}` : APP_NAME,
+    robots: { index: false, follow: false },
   };
 }
 
