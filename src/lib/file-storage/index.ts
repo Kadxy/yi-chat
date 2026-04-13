@@ -14,11 +14,14 @@ const createFileStorage = (): FileStorage => {
   return createS3FileStorage();
 };
 
-const serverFileStorage =
-  globalThis.__server__file_storage__ || createFileStorage();
+let _storage: FileStorage | undefined = globalThis.__server__file_storage__;
 
-if (IS_DEV) {
-  globalThis.__server__file_storage__ = serverFileStorage;
-}
-
-export { serverFileStorage };
+export const getFileStorage = (): FileStorage => {
+  if (!_storage) {
+    _storage = createFileStorage();
+    if (IS_DEV) {
+      globalThis.__server__file_storage__ = _storage;
+    }
+  }
+  return _storage;
+};

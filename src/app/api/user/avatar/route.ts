@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { getSession, auth } from "auth/server";
-import { serverFileStorage } from "lib/file-storage";
+import { getFileStorage } from "lib/file-storage";
 import { updateUserDetails } from "lib/user/server";
 import { headers } from "next/headers";
 import globalLogger from "lib/logger";
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       .toBuffer();
 
     // Upload to R2
-    const result = await serverFileStorage.upload(processedBuffer, {
+    const result = await getFileStorage().upload(processedBuffer, {
       filename: `avatar-${userId}.webp`,
       contentType: "image/webp",
     });

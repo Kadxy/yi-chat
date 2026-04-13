@@ -31,7 +31,7 @@ import { getSession } from "auth/server";
 import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
 import { buildCsvIngestionPreviewParts } from "@/lib/ai/ingest/csv-ingest";
-import { serverFileStorage } from "lib/file-storage";
+import { getFileStorage } from "lib/file-storage";
 import { rateLimit } from "lib/rate-limit";
 import { NextRequest } from "next/server";
 
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     }
     const ingestionPreviewParts = await buildCsvIngestionPreviewParts(
       attachments,
-      (key) => serverFileStorage.download(key),
+      (key) => getFileStorage().download(key),
     );
     if (ingestionPreviewParts.length) {
       const baseParts = [...message.parts];

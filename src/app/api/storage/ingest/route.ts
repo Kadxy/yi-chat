@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { serverFileStorage } from "lib/file-storage";
+import { getFileStorage } from "lib/file-storage";
 import { parseCsvPreview, formatCsvPreviewText } from "lib/file-ingest/csv";
 import { storageKeyFromUrl } from "lib/file-storage/storage-utils";
 
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const buf = await serverFileStorage.download(key);
+  const buf = await getFileStorage().download(key);
   const preview = parseCsvPreview(buf, {
     maxRows: Math.min(200, Math.max(1, body.maxRows ?? 50)),
     maxCols: Math.min(40, Math.max(1, body.maxCols ?? 12)),

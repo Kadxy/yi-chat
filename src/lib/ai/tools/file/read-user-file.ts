@@ -1,6 +1,6 @@
 import { tool as createTool } from "ai";
 import { z } from "zod";
-import { serverFileStorage } from "lib/file-storage";
+import { getFileStorage } from "lib/file-storage";
 import { storageKeyFromUrl } from "lib/file-storage/storage-utils";
 
 const MAX_CONTENT_LENGTH = 200_000; // ~200KB text limit
@@ -322,7 +322,7 @@ export const readUserFileTool = createTool({
 
       // Handle binary document formats (DOCX, XLSX, XLS)
       if (isBinaryDoc(name)) {
-        const buffer = await serverFileStorage.download(key);
+        const buffer = await getFileStorage().download(key);
         const ext = getExtension(name);
         let text: string;
         let format: string;
@@ -354,12 +354,12 @@ export const readUserFileTool = createTool({
 
       // Handle Jupyter Notebook (.ipynb)
       if (isNotebookFile(name)) {
-        const buffer = await serverFileStorage.download(key);
+        const buffer = await getFileStorage().download(key);
         const text = buffer.toString("utf-8");
         return parseNotebook(text, name, offset, limit);
       }
 
-      const buffer = await serverFileStorage.download(key);
+      const buffer = await getFileStorage().download(key);
 
       // Known text extension → skip sniffing; unknown extension → sniff content
       if (!isTextFile(name)) {

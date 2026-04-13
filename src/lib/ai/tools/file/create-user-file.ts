@@ -1,6 +1,6 @@
 import { tool as createTool } from "ai";
 import { z } from "zod";
-import { serverFileStorage } from "lib/file-storage";
+import { getFileStorage } from "lib/file-storage";
 import { getContentTypeFromFilename } from "lib/file-storage/storage-utils";
 
 function withCharset(contentType: string): string {
@@ -35,7 +35,7 @@ export const createUserFileTool = createTool({
       const contentType = withCharset(getContentTypeFromFilename(filename));
       const buffer = Buffer.from(content, "utf-8");
 
-      const { sourceUrl } = await serverFileStorage.upload(buffer, {
+      const { sourceUrl } = await getFileStorage().upload(buffer, {
         filename,
         contentType,
       });

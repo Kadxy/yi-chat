@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { BASE_URL } from "lib/const";
 import { chatShareRepository } from "lib/db/repository";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const shares = await chatShareRepository.selectAllActiveIds();
 

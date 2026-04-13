@@ -12,6 +12,17 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY . .
 
+# Dummy env vars for Next.js build (page data collection loads server modules)
+# These are NOT real secrets, just placeholders to satisfy module validation at build time
+# hadolint ignore=DL3044
+ENV POSTGRES_URL="postgres://user:pass@localhost:5432/dummy" \
+    BETTER_AUTH_SECRET="dummy-build-secret-32chars-ok!!" \
+    R2_ACCOUNT_ID="dummy" \
+    R2_ACCESS_KEY_ID="dummy" \
+    R2_SECRET_ACCESS_KEY="dummy" \
+    R2_BUCKET_NAME="dummy" \
+    ALTCHA_HMAC_KEY="dummy"
+
 # Makes the next output standalone
 # https://github.com/vercel/next.js/discussions/65511
 ENV NEXT_STANDALONE_OUTPUT="true"

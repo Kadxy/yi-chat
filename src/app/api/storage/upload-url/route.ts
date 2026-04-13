@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "auth/server";
-import { serverFileStorage } from "lib/file-storage";
+import { getFileStorage } from "lib/file-storage";
 import globalLogger from "lib/logger";
 import { colorize } from "consola/utils";
 import { isUploadBlocked } from "lib/ai/file-support";
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const uploadUrl = await serverFileStorage.createUploadUrl!({
+    const uploadUrl = await getFileStorage().createUploadUrl!({
       filename: body.filename || "file",
       contentType,
       expiresInSeconds: DEFAULT_UPLOAD_EXPIRES_SECONDS,
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const sourceUrl = await serverFileStorage.getSourceUrl(uploadUrl.key);
+    const sourceUrl = await getFileStorage().getSourceUrl(uploadUrl.key);
 
     return NextResponse.json({
       ...uploadUrl,
