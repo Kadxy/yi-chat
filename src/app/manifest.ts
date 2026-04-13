@@ -2,9 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   const appName = process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat";
-  const appDescription =
-    process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
-    "A powerful AI chatbot for intelligent conversations.";
+  const appDescription = "A powerful AI chatbot for intelligent conversations.";
 
   return {
     name: appName,

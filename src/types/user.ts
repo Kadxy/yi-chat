@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { passwordSchema } from "lib/validations/password";
 
 import { UserEntity } from "lib/db/pg/schema.pg";
 import { getSession } from "auth/server";
@@ -80,12 +79,6 @@ export type UserRepository = {
     oauthProviders: string[];
   }>;
 };
-
-export const UserZodSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  password: passwordSchema,
-});
 
 export const UserPreferencesZodSchema = z.object({
   displayName: z.string().optional(),

@@ -23,9 +23,7 @@ const geistMono = Geist_Mono({
 });
 
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat";
-const APP_DESCRIPTION =
-  process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
-  "A powerful AI chatbot for intelligent conversations.";
+const APP_DESCRIPTION = "A powerful AI chatbot for intelligent conversations.";
 
 export const viewport: Viewport = {
   themeColor: [

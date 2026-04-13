@@ -3,6 +3,9 @@ services:
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
+      args:
+        - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+        - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
     ports:
       - '3000:3000'
     environment:

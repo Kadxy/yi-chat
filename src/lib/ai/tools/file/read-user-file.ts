@@ -163,14 +163,30 @@ async function parseDocx(buffer: Buffer): Promise<string> {
 }
 
 async function parseXlsx(buffer: Buffer): Promise<string> {
-  const XLSX = await import("xlsx");
-  const workbook = XLSX.read(buffer, { type: "buffer" });
+  const ExcelJS = await import("exceljs");
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer as unknown as ArrayBuffer);
   const sheets: string[] = [];
-  for (const name of workbook.SheetNames) {
-    const sheet = workbook.Sheets[name];
-    const csv = XLSX.utils.sheet_to_csv(sheet);
-    sheets.push(`--- Sheet: ${name} ---\n${csv}`);
-  }
+  workbook.eachSheet((sheet) => {
+    const rows: string[] = [];
+    sheet.eachRow((row) => {
+      const values = row.values as (
+        | string
+        | number
+        | boolean
+        | null
+        | undefined
+      )[];
+      // row.values is 1-indexed, first element is undefined
+      rows.push(
+        values
+          .slice(1)
+          .map((v) => (v == null ? "" : String(v)))
+          .join(","),
+      );
+    });
+    sheets.push(`--- Sheet: ${sheet.name} ---\n${rows.join("\n")}`);
+  });
   return sheets.join("\n\n");
 }
 

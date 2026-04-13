@@ -23,6 +23,13 @@ ENV POSTGRES_URL="postgres://user:pass@localhost:5432/dummy" \
     R2_BUCKET_NAME="dummy" \
     ALTCHA_HMAC_KEY="dummy"
 
+# NEXT_PUBLIC_* vars are inlined at build time by Next.js, so they must be
+# provided as build args (--build-arg) and converted to ENV before `next build`.
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ARG NEXT_PUBLIC_BASE_URL
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID \
+    NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
+
 # Makes the next output standalone
 # https://github.com/vercel/next.js/discussions/65511
 ENV NEXT_STANDALONE_OUTPUT="true"
