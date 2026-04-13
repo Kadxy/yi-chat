@@ -1,6 +1,20 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
+const SECURITY_HEADERS: Record<string, string> = {
+  "X-Robots-Tag": "index, follow",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "SAMEORIGIN",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+};
+
+function applyHeaders(response: NextResponse) {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -13,13 +27,17 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname === "/admin") {
-    return NextResponse.redirect(new URL("/admin/users", request.url));
+    return applyHeaders(
+      NextResponse.redirect(new URL("/admin/users", request.url)),
+    );
   }
 
   const sessionCookie = getSessionCookie(request);
 
   if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+    return applyHeaders(
+      NextResponse.redirect(new URL("/sign-in", request.url)),
+    );
   }
   return NextResponse.next();
 }

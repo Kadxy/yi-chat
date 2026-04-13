@@ -17,7 +17,6 @@ export default function robots(): MetadataRoute.Robots {
           "/shares",
           "/admin/",
           "/api/",
-          "/sign-in",
         ],
       },
     ],

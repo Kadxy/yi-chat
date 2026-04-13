@@ -1,3 +1,5 @@
+import "katex/dist/katex.min.css";
+import "streamdown/styles.css";
 import ShareError from "@/components/share/error";
 import { chatShareRepository } from "lib/db/repository";
 import ChatPreview from "@/components/share/chat-preview";

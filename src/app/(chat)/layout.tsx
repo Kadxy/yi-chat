@@ -1,3 +1,5 @@
+import "katex/dist/katex.min.css";
+import "streamdown/styles.css";
 import { SidebarProvider } from "ui/sidebar";
 import { AppSidebar } from "@/components/layouts/app-sidebar";
 import { AppHeader } from "@/components/layouts/app-header";
