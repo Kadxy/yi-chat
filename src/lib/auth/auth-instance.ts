@@ -89,20 +89,19 @@ const options = {
           };
         },
         after: async (user) => {
-          // Log the signup credit transaction
+          // Grant signup bonus credits (updates balance + logs transaction atomically)
           try {
             const { pgCreditRepository } = await import(
               "lib/db/pg/repositories/credit-repository.pg"
             );
-            await pgCreditRepository.logTransaction({
+            await pgCreditRepository.adjustCredits({
               userId: user.id,
               amount: SIGNUP_CREDITS,
-              balanceAfter: SIGNUP_CREDITS,
               type: "signup",
               description: "Signup bonus",
             });
           } catch (e) {
-            logger.error("Failed to log signup credit transaction:", e);
+            logger.error("Failed to grant signup credits:", e);
           }
         },
       },
