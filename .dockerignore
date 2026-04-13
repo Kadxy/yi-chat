@@ -26,6 +26,7 @@ compose.yml
 # env files
 .env
 .env.*
+!.env.example
 docker/.env
 
 # misc

@@ -1,5 +1,4 @@
 FROM node:23-alpine AS builder
-ARG DOCKER_BUILD="1"
 WORKDIR /app
 
 # Install pnpm
