@@ -23,6 +23,11 @@ compose.yml
 # production
 /build
 
+# env files
+.env
+.env.*
+docker/.env
+
 # misc
 .DS_Store
 *.pem

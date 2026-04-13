@@ -2,12 +2,16 @@ FROM node:23-alpine AS builder
 ARG DOCKER_BUILD="1"
 WORKDIR /app
 
-COPY . . 
-
 # Install pnpm
 RUN corepack enable pnpm
 
+# Copy dependency files first for better layer caching
+COPY package.json pnpm-lock.yaml ./
+
 RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
 
 # Makes the next output standalone
 # https://github.com/vercel/next.js/discussions/65511
