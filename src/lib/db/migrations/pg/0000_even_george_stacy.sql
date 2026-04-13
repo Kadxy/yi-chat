@@ -41,6 +41,19 @@ CREATE TABLE "chat_thread" (
 	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "credit_transaction" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" uuid NOT NULL,
+	"amount" integer NOT NULL,
+	"balance_after" integer NOT NULL,
+	"type" varchar NOT NULL,
+	"description" text,
+	"model" text,
+	"input_tokens" integer,
+	"output_tokens" integer,
+	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "mcp_oauth_session" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"mcp_server_id" uuid NOT NULL,
@@ -65,6 +78,25 @@ CREATE TABLE "mcp_server" (
 	"last_connection_status" varchar,
 	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "redemption_code" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"code" varchar(32) NOT NULL,
+	"type" varchar NOT NULL,
+	"credits" integer,
+	"plan" text,
+	"plan_days" integer,
+	"plan_credits" integer,
+	"is_used" boolean DEFAULT false NOT NULL,
+	"used_by" uuid,
+	"used_at" timestamp,
+	"expires_at" timestamp,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"description" text,
+	"created_by" uuid,
+	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	CONSTRAINT "redemption_code_code_unique" UNIQUE("code")
 );
 --> statement-breakpoint
 CREATE TABLE "session" (
@@ -94,6 +126,9 @@ CREATE TABLE "user" (
 	"ban_reason" text,
 	"ban_expires" timestamp,
 	"role" text DEFAULT 'user' NOT NULL,
+	"plan" text DEFAULT 'free' NOT NULL,
+	"plan_expires_at" timestamp,
+	"credit_balance" integer DEFAULT 0 NOT NULL,
 	CONSTRAINT "user_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
@@ -110,9 +145,17 @@ ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("
 ALTER TABLE "chat_message" ADD CONSTRAINT "chat_message_thread_id_chat_thread_id_fk" FOREIGN KEY ("thread_id") REFERENCES "public"."chat_thread"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chat_share" ADD CONSTRAINT "chat_share_sharer_id_user_id_fk" FOREIGN KEY ("sharer_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chat_thread" ADD CONSTRAINT "chat_thread_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "credit_transaction" ADD CONSTRAINT "credit_transaction_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "mcp_oauth_session" ADD CONSTRAINT "mcp_oauth_session_mcp_server_id_mcp_server_id_fk" FOREIGN KEY ("mcp_server_id") REFERENCES "public"."mcp_server"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "mcp_server" ADD CONSTRAINT "mcp_server_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "redemption_code" ADD CONSTRAINT "redemption_code_used_by_user_id_fk" FOREIGN KEY ("used_by") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "redemption_code" ADD CONSTRAINT "redemption_code_created_by_user_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "chat_message_thread_id_idx" ON "chat_message" USING btree ("thread_id");--> statement-breakpoint
+CREATE INDEX "chat_share_sharer_id_idx" ON "chat_share" USING btree ("sharer_id");--> statement-breakpoint
+CREATE INDEX "chat_thread_user_id_created_at_idx" ON "chat_thread" USING btree ("user_id","created_at");--> statement-breakpoint
+CREATE INDEX "credit_tx_user_id_idx" ON "credit_transaction" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "credit_tx_created_at_idx" ON "credit_transaction" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "mcp_oauth_session_server_id_idx" ON "mcp_oauth_session" USING btree ("mcp_server_id");--> statement-breakpoint
 CREATE INDEX "mcp_oauth_session_state_idx" ON "mcp_oauth_session" USING btree ("state");--> statement-breakpoint
 CREATE INDEX "mcp_oauth_session_tokens_idx" ON "mcp_oauth_session" USING btree ("mcp_server_id") WHERE "mcp_oauth_session"."tokens" is not null;
