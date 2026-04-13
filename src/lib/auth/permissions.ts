@@ -205,36 +205,6 @@ export async function canCreateMCP(): Promise<boolean> {
 }
 
 /**
- * Check if user can edit MCP connections
- */
-export async function canEditMCP(): Promise<boolean> {
-  try {
-    const session = await getSession();
-    if (!session?.user) return false;
-
-    return hasPermission(session.user.role, "update", "mcp");
-  } catch (error) {
-    console.error("Error checking MCP edit permission:", error);
-    return false;
-  }
-}
-
-/**
- * Check if user can delete MCP connections
- */
-export async function canDeleteMCP(): Promise<boolean> {
-  try {
-    const session = await getSession();
-    if (!session?.user) return false;
-
-    return hasPermission(session.user.role, "delete", "mcp");
-  } catch (error) {
-    console.error("Error checking MCP delete permission:", error);
-    return false;
-  }
-}
-
-/**
  * Require editor permissions or throw error
  */
 export async function requireEditorPermission(
