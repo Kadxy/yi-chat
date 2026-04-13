@@ -91,18 +91,14 @@ export function ToolSelectDropdown({
         variant="ghost"
         size={"sm"}
         className={cn(
-          "gap-0.5 bg-input/60 border rounded-full data-[state=open]:bg-input! hover:bg-input!",
-          !totalEnabledCount &&
-            !isLoading &&
-            "text-muted-foreground bg-transparent border-transparent",
-          isLoading && "bg-input/60",
+          "gap-0.5 rounded-full hover:bg-input!",
+          !totalEnabledCount && !isLoading && "text-muted-foreground",
+          (totalEnabledCount > 0 || isLoading) && "text-primary",
           open && "bg-input!",
           className,
         )}
       >
-        <span className={!totalEnabledCount ? "text-muted-foreground" : ""}>
-          <WrenchIcon className="size-3.5" />
-        </span>
+        <WrenchIcon className="size-3.5" />
 
         {(totalEnabledCount > 0 || isLoading) && (
           <>
