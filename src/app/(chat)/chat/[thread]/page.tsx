@@ -16,13 +16,9 @@ const fetchThread = cache(
   },
 );
 
-export async function generateMetadata({
-  params,
-}: { params: Promise<{ thread: string }> }): Promise<Metadata> {
-  const { thread: threadId } = await params;
-  const thread = await fetchThread(threadId);
+export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: thread?.title ? `${thread.title} - ${APP_NAME}` : APP_NAME,
+    title: APP_NAME,
     robots: { index: false, follow: false },
   };
 }

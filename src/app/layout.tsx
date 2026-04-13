@@ -37,7 +37,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: `${APP_NAME} - AI Chatbot for Intelligent Conversations`,
+    default: APP_NAME,
     template: `%s - ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
@@ -48,10 +48,12 @@ export const metadata: Metadata = {
     "LLM",
     "AI assistant",
     "intelligent conversation",
-    "code generation",
-    "creative writing",
     APP_NAME,
   ],
+  robots: {
+    index: true,
+    follow: true,
+  },
   alternates: {
     canonical: "/",
   },
@@ -64,14 +66,15 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: APP_NAME,
+    title: `${APP_NAME} - Your Online AI Agent`,
     description: APP_DESCRIPTION,
+    url: BASE_URL,
     siteName: APP_NAME,
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: APP_NAME,
+    title: `${APP_NAME} - Your Online AI Agent`,
     description: APP_DESCRIPTION,
   },
   appleWebApp: {
@@ -102,7 +105,9 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <GoogleAnalytics gaId="G-BRT60TY291" />
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

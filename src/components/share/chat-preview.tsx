@@ -25,6 +25,7 @@ export default function ChatPreview({
           <h1 className="text-3xl font-bold mb-2" data-testid="share-title">
             {thread.title}
           </h1>
+          <h2 className="sr-only">Shared Conversation</h2>
           <div className="text-xs text-muted-foreground flex items-center gap-2">
             {formatDate(thread.sharedAt, "MMM d, yyyy")}
             <Tooltip>
@@ -42,16 +43,19 @@ export default function ChatPreview({
             </Tooltip>
           </div>
         </div>
-        {thread.messages.map((message, index) => {
-          return (
-            <PreviewMessage
-              key={message.id}
-              message={message}
-              isLastMessage={index === thread.messages.length - 1}
-              readonly={true}
-            />
-          );
-        })}
+        <section aria-label="Conversation messages">
+          <h3 className="sr-only">Messages</h3>
+          {thread.messages.map((message, index) => {
+            return (
+              <PreviewMessage
+                key={message.id}
+                message={message}
+                isLastMessage={index === thread.messages.length - 1}
+                readonly={true}
+              />
+            );
+          })}
+        </section>
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-6 pointer-events-none">

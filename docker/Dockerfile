@@ -27,8 +27,12 @@ ENV POSTGRES_URL="postgres://user:pass@localhost:5432/dummy" \
 # provided as build args (--build-arg) and converted to ENV before `next build`.
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
 ARG NEXT_PUBLIC_BASE_URL
+ARG NEXT_PUBLIC_GA_ID
+ARG NEXT_PUBLIC_APP_NAME
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID \
-    NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
+    NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL \
+    NEXT_PUBLIC_GA_ID=$NEXT_PUBLIC_GA_ID \
+    NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME
 
 # Makes the next output standalone
 # https://github.com/vercel/next.js/discussions/65511
