@@ -26,14 +26,13 @@ import {
   ChevronRight,
   Settings,
   Coins,
-  Crown,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { appStore } from "@/app/store";
 import { BASE_THEMES, COOKIE_KEY_LOCALE, SUPPORTED_LOCALES } from "lib/const";
 import { capitalizeFirstLetter, cn, fetcher } from "lib/utils";
 import { authClient } from "auth/client";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import useSWR from "swr";
 import { getLocaleAction } from "@/i18n/get-locale";
 import { Suspense, useCallback } from "react";
@@ -57,6 +56,7 @@ export function AppSidebarUserInner(props: {
   const appStoreMutate = appStore((state) => state.mutate);
   const router = useRouter();
   const t = useTranslations("Layout");
+  const locale = useLocale();
 
   const logout = () => {
     authClient.signOut().finally(() => {
@@ -100,7 +100,8 @@ export function AppSidebarUserInner(props: {
                   {user?.name || user?.email}
                 </span>
                 <span className="truncate text-xs text-muted-foreground capitalize">
-                  {planLabel} · {creditBalance} credits
+                  {planLabel} · {creditBalance.toLocaleString(locale)}{" "}
+                  {t("creditsLabel").toLowerCase()}
                 </span>
               </div>
             </SidebarMenuButton>
@@ -111,52 +112,43 @@ export function AppSidebarUserInner(props: {
             align="start"
           >
             {/* Credits section */}
-            <div className="px-2 pb-2 mb-1 border-b border-border/40">
-              <button
-                type="button"
-                className="w-full rounded-md p-2.5 text-left transition-colors cursor-pointer hover:bg-sidebar-accent"
-                onClick={() => appStoreMutate({ openPlanModal: true })}
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-2 text-xs font-medium">
-                    <Coins className="size-3.5 text-primary" />
-                    Credits
-                  </div>
-                  <span className="text-xs font-semibold tabular-nums">
-                    {creditBalance} left
-                  </span>
-                </div>
-                <div className="h-1.5 rounded-full overflow-hidden bg-primary/20">
-                  <div
-                    className="h-full transition-all duration-300 rounded-full bg-primary"
-                    style={{
-                      width: `${Math.min(100, (creditBalance / 1000) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </button>
+            <button
+              type="button"
+              className="w-full rounded-md px-4 py-3 mx-auto text-left transition-colors cursor-pointer hover:bg-sidebar-accent"
+              onClick={() => appStoreMutate({ openPlanModal: true })}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-medium text-muted-foreground">
+                  {t("creditsLabel")}
+                </span>
+                <span className="text-xs font-semibold tabular-nums">
+                  {t("creditsLeft", {
+                    count: creditBalance.toLocaleString(locale),
+                  })}
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden bg-primary/15">
+                <div
+                  className="h-full transition-all duration-300 rounded-full bg-primary"
+                  style={{
+                    width: `${Math.min(100, (creditBalance / 1000) * 100)}%`,
+                  }}
+                />
+              </div>
               {planExpiresAt && planLabel !== "free" && (
-                <div className="px-2.5 mt-1 text-[11px] text-muted-foreground">
-                  <span className="capitalize">{planLabel}</span>
-                  {" · "}
+                <p className="mt-1.5 text-[11px] text-muted-foreground/70">
                   {t("planExpiresAt", {
-                    date: planExpiresAt.toLocaleDateString(undefined, {
+                    plan: capitalizeFirstLetter(planLabel),
+                    date: planExpiresAt.toLocaleDateString(locale, {
+                      year: "numeric",
                       month: "short",
                       day: "numeric",
-                      year: "numeric",
                     }),
                   })}
-                </div>
+                </p>
               )}
-              <button
-                type="button"
-                className="w-full flex items-center gap-2 rounded-md px-2.5 py-1.5 mt-1 text-xs font-medium cursor-pointer transition-colors text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
-                onClick={() => appStoreMutate({ openPlanModal: true })}
-              >
-                <Crown className="size-3.5 shrink-0" />
-                Upgrade plan
-              </button>
-            </div>
+            </button>
+            <DropdownMenuSeparator />
 
             <DropdownMenuItem
               className="cursor-pointer"

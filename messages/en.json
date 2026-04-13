@@ -220,6 +220,7 @@
     "yesterday": "Yesterday",
     "lastWeek": "Last 7 days",
     "older": "Older",
+    "chatOptions": "Chat options",
     "recentChats": "Recent Chats",
     "deleteAllChats": "Delete All Chats",
     "noConversationsYet": "No conversations yet",
@@ -241,7 +242,10 @@
     "joinCommunity": "Join Community",
     "userSettings": "User Settings",
     "usageRecords": "Usage Records",
-    "planExpiresAt": "Expires {date}",
+    "planExpiresAt": "{plan} · Expires {date}",
+    "creditsLabel": "Credits",
+    "creditsLeft": "{count} left",
+    "upgradePlan": "Upgrade plan",
     "yourPublicLinks": "Your Public Links"
   },
   "Usage": {

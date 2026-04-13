@@ -235,6 +235,7 @@ export function AppSidebarThreads() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            aria-label={t("chatOptions")}
                             className="data-[state=open]:bg-input! opacity-0 data-[state=open]:opacity-100! group-hover/threads:opacity-100 transition-opacity"
                           >
                             <MoreHorizontal />
@@ -292,7 +293,10 @@ export function AppSidebarThreads() {
                               </Link>
                             </SidebarMenuButton>
 
-                            <SidebarMenuAction className="data-[state=open]:bg-input data-[state=open]:opacity-100 opacity-0 group-hover/thread:opacity-100">
+                            <SidebarMenuAction
+                              aria-label={t("chatOptions")}
+                              className="data-[state=open]:bg-input data-[state=open]:opacity-100 opacity-0 group-hover/thread:opacity-100"
+                            >
                               <MoreHorizontal />
                             </SidebarMenuAction>
                           </div>

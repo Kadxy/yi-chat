@@ -36,6 +36,10 @@ export default () => {
             value: "strict-origin-when-cross-origin",
           },
           {
+            // CSP: script/frame/style are strict whitelists for XSS protection.
+            // connect-src is intentionally permissive — the JS execution tool
+            // lets users run arbitrary fetch() in the browser, so we cannot
+            // restrict target origins. Same reason for img-src (user content).
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
@@ -43,7 +47,7 @@ export default () => {
               "style-src 'self' 'unsafe-inline' https://accounts.google.com",
               "img-src 'self' data: blob: https: http:",
               "font-src 'self' data:",
-              "connect-src 'self' https://accounts.google.com https://s.jina.ai https://r.jina.ai https://*.yi.chat",
+              "connect-src 'self' https: http:",
               "frame-src 'self' https://accounts.google.com",
               "worker-src 'self' blob:",
             ].join("; "),
