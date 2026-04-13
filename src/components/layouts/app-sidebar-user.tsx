@@ -161,13 +161,13 @@ export function AppSidebarUserInner(props: {
             <SelectLanguage />
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="cursor-pointer"
+              className="cursor-pointer hidden md:flex"
               onClick={() => appStoreMutate({ openShortcutsPopup: true })}
             >
               <Command className="size-4 text-foreground" />
               <span>{t("keyboardShortcuts")}</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="hidden md:block" />
 
             <DropdownMenuItem
               onClick={() => router.push("/settings")}

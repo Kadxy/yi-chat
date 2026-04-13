@@ -4,7 +4,6 @@ import {
   ChevronDown,
   MonitorIcon,
   SendIcon,
-  FileTextIcon,
   Loader2,
   PaperclipIcon,
   PlusIcon,
@@ -36,11 +35,7 @@ import { useThreadFileUploader } from "@/hooks/use-thread-file-uploader";
 
 import { FileUIPart, TextUIPart } from "ai";
 import { toast } from "sonner";
-import {
-  isFilePartSupported,
-  isIngestSupported,
-  isUploadBlocked,
-} from "@/lib/ai/file-support";
+import { isFilePartSupported, isUploadBlocked } from "@/lib/ai/file-support";
 import { useChatModels } from "@/hooks/queries/use-chat-models";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { FileTypeIcon } from "./file-type-icon";
@@ -57,6 +52,7 @@ interface PromptInputProps {
   setModel?: (model: ChatModel) => void;
   threadId?: string;
   onFocus?: () => void;
+  docked?: boolean;
 }
 
 export default function PromptInput({
@@ -71,6 +67,7 @@ export default function PromptInput({
   isLoading,
   toolDisabled,
   threadId,
+  docked,
 }: PromptInputProps) {
   const t = useTranslations("Chat");
   const [isUploadDropdownOpen, setIsUploadDropdownOpen] = useState(false);
@@ -323,8 +320,20 @@ export default function PromptInput({
   return (
     <div className="max-w-3xl mx-auto">
       <div className="z-10 mx-auto w-full max-w-3xl relative">
-        <fieldset className="flex w-full min-w-0 max-w-full flex-col px-4">
-          <div className="shadow-lg rounded-4xl backdrop-blur-sm bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted">
+        <fieldset
+          className={cn(
+            "flex w-full min-w-0 max-w-full flex-col",
+            docked ? "md:px-4" : "px-4",
+          )}
+        >
+          <div
+            className={cn(
+              "backdrop-blur-sm bg-muted/60 relative flex w-full flex-col cursor-text z-10 items-stretch focus-within:bg-muted hover:bg-muted",
+              docked
+                ? "shadow-none md:shadow-lg rounded-none md:rounded-4xl"
+                : "shadow-lg rounded-4xl",
+            )}
+          >
             <div className="p-3">
               {/* Uploaded Files Preview - Above Input (Gemini style) */}
               {uploadedFiles.length > 0 && (
@@ -336,7 +345,6 @@ export default function PromptInput({
                     const displayName = file.name;
                     const displayExt =
                       file.name.split(".").pop()?.toUpperCase() || "FILE";
-                    const isSummarizable = isIngestSupported(file.mimeType);
                     return (
                       <div key={file.id} className="relative group">
                         {isImage ? (
@@ -399,53 +407,6 @@ export default function PromptInput({
                         >
                           <XIcon className="size-3" />
                         </button>
-
-                        {/* Summarize overlay for non-uploading files */}
-                        {!file.isUploading && isSummarizable && !isImage && (
-                          <div className="absolute inset-0 bg-background/70 rounded-xl backdrop-blur-sm transition-opacity flex items-center justify-center opacity-0 group-hover:opacity-100">
-                            <Button
-                              variant="secondary"
-                              size="icon"
-                              className="rounded-full size-7"
-                              onClick={async () => {
-                                try {
-                                  const url = file.url || file.dataUrl;
-                                  if (!url) {
-                                    toast.error("No file URL available");
-                                    return;
-                                  }
-                                  const res = await fetch(
-                                    "/api/storage/ingest",
-                                    {
-                                      method: "POST",
-                                      headers: {
-                                        "Content-Type": "application/json",
-                                      },
-                                      body: JSON.stringify({ url }),
-                                    },
-                                  );
-                                  if (!res.ok) {
-                                    const e = await res
-                                      .json()
-                                      .catch(() => ({}));
-                                    toast.error(
-                                      e.error || "Failed to ingest file",
-                                    );
-                                    return;
-                                  }
-                                  const data = await res.json();
-                                  setInput(
-                                    `${input ? input + "\n\n" : ""}${data.text}`,
-                                  );
-                                } catch (_err) {
-                                  toast.error("Failed to ingest file");
-                                }
-                              }}
-                            >
-                              <FileTextIcon className="size-3.5" />
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -456,7 +417,7 @@ export default function PromptInput({
                 ref={textareaRef}
                 id="chat-input"
                 name="chat-input"
-                className="w-full max-h-80 min-h-[24px] [field-sizing:content] break-words overflow-y-auto no-scrollbar resize-none focus:outline-none px-3 py-2 text-sm bg-transparent mb-2"
+                className="w-full max-h-80 min-h-[24px] [field-sizing:content] break-words overflow-y-auto no-scrollbar resize-none focus:outline-none px-3 py-2 text-base md:text-sm bg-transparent mb-2"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -469,7 +430,6 @@ export default function PromptInput({
                   })
                 }
                 rows={1}
-                autoFocus
               />
 
               <div className="flex w-full items-center">
@@ -507,7 +467,7 @@ export default function PromptInput({
                       {t("uploadFile")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className="cursor-pointer"
+                      className="cursor-pointer hidden md:flex"
                       onClick={handleCaptureScreen}
                     >
                       <MonitorIcon className="mr-2 size-4" />

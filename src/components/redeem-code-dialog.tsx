@@ -107,7 +107,6 @@ export function RedeemCodeDialog() {
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 disabled={isPending}
-                autoFocus
                 className="font-mono tracking-wider"
               />
             </div>

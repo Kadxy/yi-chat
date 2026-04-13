@@ -334,7 +334,7 @@ export default function ChatBot({
           </div>
         )}
         {emptyMessage ? (
-          <div className="flex-1 flex flex-col items-center justify-center pb-[12vh]">
+          <div className="flex-1 flex flex-col items-center justify-center pb-[6vh] md:pb-[12vh]">
             <ChatGreeting />
             <motion.div
               layoutId="prompt-input"
@@ -398,7 +398,7 @@ export default function ChatBot({
               )}
 
               {error && <ErrorMessage error={error} />}
-              <div className="min-w-0 min-h-52" />
+              <div className="min-w-0 min-h-36 md:min-h-52" />
             </div>
           </>
         )}
@@ -407,7 +407,7 @@ export default function ChatBot({
           <motion.div
             layoutId="prompt-input"
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="w-full z-10 absolute bottom-14"
+            className="w-full z-10 absolute bottom-0 md:bottom-14 pb-[env(safe-area-inset-bottom)]"
           >
             <div className="max-w-3xl mx-auto relative flex justify-center items-center -top-2">
               <ScrollToBottomButton
@@ -423,6 +423,7 @@ export default function ChatBot({
               setInput={setInput}
               isLoading={isLoading}
               onStop={stop}
+              docked
             />
           </motion.div>
         )}
@@ -469,7 +470,7 @@ function DeleteThreadPopup({
           <Button variant="ghost" onClick={onClose}>
             {t("Common.cancel")}
           </Button>
-          <Button variant="destructive" onClick={handleDelete} autoFocus>
+          <Button variant="destructive" onClick={handleDelete}>
             {t("Common.delete")}
             {isDeleting && <Loader className="size-3.5 ml-2 animate-spin" />}
           </Button>

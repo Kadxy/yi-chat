@@ -49,6 +49,7 @@ export default function AuthForm({
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval>>(null);
+  const otpRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     return () => {
@@ -215,6 +216,7 @@ export default function AuthForm({
   const handleOtpChange = (value: string) => {
     setOtp(value);
     if (value.length === OTP_LENGTH) {
+      otpRef.current?.blur();
       verifyOTP(value);
     }
   };
@@ -287,6 +289,7 @@ export default function AuthForm({
                   {t("SignIn.otpSentTo", { email: maskEmail(email) })}
                 </p>
                 <InputOTP
+                  ref={otpRef}
                   maxLength={OTP_LENGTH}
                   value={otp}
                   onChange={handleOtpChange}
