@@ -128,6 +128,30 @@ function isBinaryDoc(filename: string): boolean {
   return BINARY_DOC_EXTENSIONS.has(getExtension(filename));
 }
 
+function isNotebookFile(filename: string): boolean {
+  return getExtension(filename) === "ipynb";
+}
+
+const BINARY_CHECK_SIZE = 8192;
+
+/**
+ * Sniff the first 8KB of a buffer to determine if it's binary.
+ * - null byte (0x00) → binary immediately
+ * - non-printable chars (< 32, excluding tab/LF/CR) > 10% → binary
+ */
+function isBinaryContent(buffer: Buffer): boolean {
+  const checkSize = Math.min(buffer.length, BINARY_CHECK_SIZE);
+  let nonPrintable = 0;
+  for (let i = 0; i < checkSize; i++) {
+    const byte = buffer[i];
+    if (byte === 0) return true;
+    if (byte < 32 && byte !== 9 && byte !== 10 && byte !== 13) {
+      nonPrintable++;
+    }
+  }
+  return checkSize > 0 && nonPrintable / checkSize > 0.1;
+}
+
 function splitLines(text: string): string[] {
   return text.split(/\r?\n/);
 }
@@ -172,10 +196,91 @@ function formatLinesOutput(
   };
 }
 
+interface NotebookCell {
+  cell_type: string;
+  source: string[] | string;
+  outputs?: Array<{
+    output_type: string;
+    text?: string[] | string;
+    data?: Record<string, string[] | string>;
+    ename?: string;
+    evalue?: string;
+    traceback?: string[];
+  }>;
+}
+
+function parseNotebook(
+  raw: string,
+  name: string,
+  offset?: number,
+  limit?: number,
+) {
+  let notebook: { cells?: NotebookCell[] };
+  try {
+    notebook = JSON.parse(raw);
+  } catch {
+    return { isError: true, error: "Invalid notebook JSON." };
+  }
+
+  const cells = notebook.cells ?? [];
+  const parts: string[] = [];
+
+  for (let i = 0; i < cells.length; i++) {
+    const cell = cells[i];
+    const src = Array.isArray(cell.source)
+      ? cell.source.join("")
+      : (cell.source ?? "");
+    const header = `--- Cell ${i + 1} [${cell.cell_type}] ---`;
+    let block = `${header}\n${src}`;
+
+    if (cell.cell_type === "code" && cell.outputs?.length) {
+      const outputTexts: string[] = [];
+      for (const out of cell.outputs) {
+        if (
+          out.output_type === "stream" ||
+          out.output_type === "execute_result" ||
+          out.output_type === "display_data"
+        ) {
+          const t = out.text ?? out.data?.["text/plain"];
+          if (t) outputTexts.push(Array.isArray(t) ? t.join("") : t);
+        } else if (out.output_type === "error") {
+          outputTexts.push(`${out.ename}: ${out.evalue}`);
+        }
+      }
+      if (outputTexts.length) {
+        block += `\n\n[Output]\n${outputTexts.join("\n")}`;
+      }
+    }
+
+    parts.push(block);
+  }
+
+  const content = parts.join("\n\n");
+  const lines = splitLines(content);
+
+  if (
+    offset !== undefined ||
+    limit !== undefined ||
+    content.length > MAX_CONTENT_LENGTH
+  ) {
+    return formatLinesOutput(lines, name, "ipynb (notebook)", offset, limit);
+  }
+
+  return {
+    filename: name,
+    format: "ipynb (notebook)",
+    totalCells: cells.length,
+    totalLines: lines.length,
+    content: lines.map((line, i) => `${i + 1}\t${line}`).join("\n"),
+  };
+}
+
 export const readUserFileTool = createTool({
   description:
-    "Read the content of a user-uploaded file. Supports text-based files (code, markdown, JSON, CSV, config files, etc.) and document formats (DOCX, XLSX/XLS). " +
+    "Read the content of a user-uploaded file. Supports text-based files (code, markdown, JSON, CSV, config files, etc.), document formats (DOCX, XLSX/XLS), and Jupyter Notebooks (.ipynb). " +
+    "Files with unknown extensions are auto-detected via content sniffing. " +
     "DOCX files are converted to plain text. XLSX/XLS files are converted to CSV format with sheet names. " +
+    "Notebook files show cells with their type, source, and outputs. " +
     "Use offset and limit to read specific line ranges for large files. " +
     "Call without offset/limit first to see file info and the beginning of the content.",
   inputSchema: z.object({
@@ -247,14 +352,25 @@ export const readUserFileTool = createTool({
         };
       }
 
-      if (!isTextFile(name)) {
-        return {
-          isError: true,
-          error: `Cannot read binary file: ${name}. Only text-based files (code, markdown, JSON, CSV, config, etc.) are supported.`,
-        };
+      // Handle Jupyter Notebook (.ipynb)
+      if (isNotebookFile(name)) {
+        const buffer = await serverFileStorage.download(key);
+        const text = buffer.toString("utf-8");
+        return parseNotebook(text, name, offset, limit);
       }
 
       const buffer = await serverFileStorage.download(key);
+
+      // Known text extension → skip sniffing; unknown extension → sniff content
+      if (!isTextFile(name)) {
+        if (isBinaryContent(buffer)) {
+          return {
+            isError: true,
+            error: `Cannot read binary file: ${name}. Only text-based files are supported.`,
+          };
+        }
+      }
+
       const text = buffer.toString("utf-8");
 
       if (text.length > MAX_CONTENT_LENGTH) {
