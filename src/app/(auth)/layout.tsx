@@ -14,9 +14,9 @@ export default async function AuthLayout({
   }
   const t = await getTranslations("Auth.Intro");
   return (
-    <main className="relative w-full flex flex-col h-screen">
+    <main className="relative w-full flex flex-col h-dvh">
       <div className="flex-1">
-        <div className="flex min-h-screen w-full">
+        <div className="flex min-h-dvh w-full">
           <div className="hidden lg:flex lg:w-1/2 bg-muted border-r flex-col p-18 relative">
             <div className="absolute inset-0 w-full h-full">
               <BackgroundPaths />

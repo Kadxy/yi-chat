@@ -1443,6 +1443,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+      env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
   button {
@@ -1510,5 +1512,21 @@
 
   .transition-colors-300 {
     @apply transition-colors duration-300;
+  }
+
+  @keyframes caret-blink {
+    0%,
+    70%,
+    100% {
+      opacity: 1;
+    }
+    20%,
+    50% {
+      opacity: 0;
+    }
+  }
+
+  .animate-caret-blink {
+    animation: caret-blink 1.25s ease-out infinite;
   }
 }

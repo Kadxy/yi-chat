@@ -26,6 +26,11 @@ const APP_DESCRIPTION =
   "Yi Chat is a powerful AI chatbot that helps you with intelligent conversations, creative writing, code generation, and knowledge Q&A. Start chatting now!";
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },

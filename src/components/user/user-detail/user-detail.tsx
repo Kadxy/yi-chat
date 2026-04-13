@@ -4,6 +4,7 @@ import { BasicUserWithLastLogin } from "app-types/user";
 import { UserDetailFormCard } from "./user-detail-form-card";
 import { UserAccessCard } from "./user-access-card";
 import { UserCreditPlanCard } from "./user-credit-plan-card";
+import { UserChatHistoryCard } from "./user-chat-history-card";
 import { useProfileTranslations } from "@/hooks/use-profile-translations";
 import { useSidebar } from "ui/sidebar";
 import useSWR, { mutate } from "swr";
@@ -89,6 +90,8 @@ export function UserDetail({
             onUserDetailsUpdate={handleUserUpdate}
           />
         )}
+
+        {view === "admin" && <UserChatHistoryCard userId={initialUser.id} />}
       </div>
     </div>
   );

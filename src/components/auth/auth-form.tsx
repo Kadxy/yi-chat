@@ -237,7 +237,6 @@ export default function AuthForm({
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  autoFocus
                   disabled={loading}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -247,6 +246,7 @@ export default function AuthForm({
                     }
                   }}
                   type="email"
+                  autoComplete="email"
                   placeholder="you@example.com"
                   required
                 />
@@ -292,6 +292,7 @@ export default function AuthForm({
                   onChange={handleOtpChange}
                   disabled={loading}
                   autoFocus
+                  autoComplete="one-time-code"
                   containerClassName="justify-center"
                 >
                   <InputOTPGroup>

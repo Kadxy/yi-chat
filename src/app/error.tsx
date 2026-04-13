@@ -11,7 +11,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full h-dvh overflow-hidden">
       <BackgroundPaths />
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2 text-center">
