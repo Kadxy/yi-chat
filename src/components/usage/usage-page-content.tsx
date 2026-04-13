@@ -26,6 +26,7 @@ interface UsagePageContentProps {
   transactions: CreditTransaction[];
   balance: number;
   plan: string;
+  planExpiresAt?: string | null;
 }
 
 const TYPE_CONFIG: Record<string, { key: string; color: string; bg: string }> =
@@ -65,6 +66,11 @@ const TYPE_CONFIG: Record<string, { key: string; color: string; bg: string }> =
       color: "text-orange-700 dark:text-orange-400",
       bg: "bg-orange-50 dark:bg-orange-900/20",
     },
+    redemption: {
+      key: "typeRedemption",
+      color: "text-pink-700 dark:text-pink-400",
+      bg: "bg-pink-50 dark:bg-pink-900/20",
+    },
   };
 
 function formatDate(date: Date) {
@@ -81,6 +87,7 @@ export function UsagePageContent({
   transactions: initialTransactions,
   balance,
   plan,
+  planExpiresAt,
 }: UsagePageContentProps) {
   const t = useTranslations("Usage");
   const [transactions, setTransactions] =
@@ -134,6 +141,16 @@ export function UsagePageContent({
                 {t("currentPlan")}
               </p>
               <p className="text-2xl font-bold capitalize">{plan}</p>
+              {planExpiresAt && plan !== "free" && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {t("planExpiresAt", {
+                    date: new Date(planExpiresAt).toLocaleDateString(
+                      undefined,
+                      { month: "short", day: "numeric", year: "numeric" },
+                    ),
+                  })}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

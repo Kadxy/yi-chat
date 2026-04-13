@@ -22,6 +22,7 @@ import { authClient } from "auth/client";
 import { useTranslations } from "next-intl";
 import { SocialAuthenticationProvider } from "app-types/authentication";
 import SocialProviders from "./social-providers";
+import { getAltchaPayload } from "lib/captcha/client";
 
 type Step = "email" | "otp";
 
@@ -114,9 +115,15 @@ export default function AuthForm({
 
     setLoading(true);
     try {
+      const altchaPayload = await getAltchaPayload();
       const { error } = await authClient.emailOtp.sendVerificationOtp({
         email: email.trim(),
         type: "sign-in",
+        fetchOptions: {
+          headers: {
+            "x-altcha-payload": altchaPayload,
+          },
+        },
       });
 
       if (error) {
@@ -166,9 +173,15 @@ export default function AuthForm({
 
     setLoading(true);
     try {
+      const altchaPayload = await getAltchaPayload();
       const { error } = await authClient.emailOtp.sendVerificationOtp({
         email: email.trim(),
         type: "sign-in",
+        fetchOptions: {
+          headers: {
+            "x-altcha-payload": altchaPayload,
+          },
+        },
       });
 
       if (error) {

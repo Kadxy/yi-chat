@@ -8,6 +8,20 @@
       "when": 1775996240679,
       "tag": "0000_sloppy_boom_boom",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776053104318,
+      "tag": "0001_slim_vengeance",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776058319197,
+      "tag": "0002_zippy_kingpin",
+      "breakpoints": true
     }
   ]
 }

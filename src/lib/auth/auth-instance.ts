@@ -17,6 +17,7 @@ import { DEFAULT_USER_ROLE, USER_ROLES } from "app-types/roles";
 import { DEFAULT_PLAN, SIGNUP_CREDITS } from "app-types/plans";
 import { admin, user, ac } from "./roles";
 import { sendOTPEmail } from "lib/email";
+import { altchaCaptcha } from "lib/captcha/auth-plugin";
 
 const { socialAuthenticationProviders } = getAuthConfig();
 
@@ -25,6 +26,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const options = {
   secret: process.env.BETTER_AUTH_SECRET!,
   plugins: [
+    altchaCaptcha(),
     adminPlugin({
       defaultRole: DEFAULT_USER_ROLE,
       adminRoles: [USER_ROLES.ADMIN],

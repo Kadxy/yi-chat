@@ -267,7 +267,8 @@
     "typeTopup": "Påfyll",
     "typeUsage": "Forbruk",
     "typeAdminGrant": "Tildelt av admin",
-    "typeAdminDeduct": "Trukket av admin"
+    "typeAdminDeduct": "Trukket av admin",
+    "typeRedemption": "Redemption"
   },
   "Archive": {
     "archive": "Arkiver",
@@ -528,6 +529,9 @@
       "adminPanel": "Adminpanel",
       "backToApp": "Tilbake til appen"
     },
+    "Redemption": {
+      "title": "Redemption Codes"
+    },
     "Users": {
       "title": "Brukere",
       "allUsers": "Alle brukere",
@@ -597,7 +601,8 @@
       "signInRewards": "Innloggingsbelønninger",
       "priorityAndEarly": "Prioritet og tidlig tilgang"
     },
-    "next": "Neste"
+    "next": "Neste",
+    "haveRedeemCode": "Have a redemption code?"
   },
   "MCP": {
     "addMcpServer": "Legg til server",
@@ -632,5 +637,21 @@
     "toolCustomizationInstructionsPlaceholder": "Verktøytilpasningsinstruksjoner er ikke tilgjengelig.",
     "mcpServerCustomizationPlaceholder": "f.eks. hvis inndataverdien er e-post, skriv alltid inn e-posten i formatet eksempel@eksempel.com.",
     "noInstructions": "Ingen"
+  },
+  "Redemption": {
+    "title": "Redeem Code",
+    "description": "Enter a redemption code to receive credits or a plan upgrade.",
+    "placeholder": "Enter redemption code",
+    "submit": "Redeem",
+    "cancel": "Cancel",
+    "done": "Done",
+    "success": "Code redeemed successfully!",
+    "creditsAwarded": "+{amount} credits awarded",
+    "planUpgraded": "Plan upgraded to {plan} for {days} days",
+    "invalidCode": "Invalid or expired code",
+    "codeExpired": "This code has expired",
+    "codeExhausted": "This code has been fully used",
+    "alreadyRedeemed": "You have already redeemed this code",
+    "redeemFailed": "Failed to redeem code"
   }
 }

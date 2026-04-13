@@ -267,7 +267,8 @@
     "typeTopup": "チャージ",
     "typeUsage": "使用",
     "typeAdminGrant": "管理者付与",
-    "typeAdminDeduct": "管理者控除"
+    "typeAdminDeduct": "管理者控除",
+    "typeRedemption": "Redemption"
   },
   "Archive": {
     "archive": "アーカイブ",
@@ -528,6 +529,9 @@
       "adminPanel": "管理パネル",
       "backToApp": "アプリに戻る"
     },
+    "Redemption": {
+      "title": "Redemption Codes"
+    },
     "Users": {
       "title": "ユーザー",
       "allUsers": "すべてのユーザー",
@@ -597,7 +601,8 @@
       "signInRewards": "サインイン報酬",
       "priorityAndEarly": "優先＆早期アクセス"
     },
-    "next": "次へ"
+    "next": "次へ",
+    "haveRedeemCode": "Have a redemption code?"
   },
   "MCP": {
     "addMcpServer": "MCPサーバーを追加",
@@ -632,5 +637,21 @@
     "toolCustomizationInstructionsPlaceholder": "ツールカスタマイゼーション指示は利用できません。",
     "mcpServerCustomizationPlaceholder": "例：入力値がメールの場合、常にexample@example.comの形式でメールを入力してください。",
     "noInstructions": "なし"
+  },
+  "Redemption": {
+    "title": "Redeem Code",
+    "description": "Enter a redemption code to receive credits or a plan upgrade.",
+    "placeholder": "Enter redemption code",
+    "submit": "Redeem",
+    "cancel": "Cancel",
+    "done": "Done",
+    "success": "Code redeemed successfully!",
+    "creditsAwarded": "+{amount} credits awarded",
+    "planUpgraded": "Plan upgraded to {plan} for {days} days",
+    "invalidCode": "Invalid or expired code",
+    "codeExpired": "This code has expired",
+    "codeExhausted": "This code has been fully used",
+    "alreadyRedeemed": "You have already redeemed this code",
+    "redeemFailed": "Failed to redeem code"
   }
 }

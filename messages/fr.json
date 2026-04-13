@@ -267,7 +267,8 @@
     "typeTopup": "Recharge",
     "typeUsage": "Utilisation",
     "typeAdminGrant": "Octroi administrateur",
-    "typeAdminDeduct": "Déduction administrateur"
+    "typeAdminDeduct": "Déduction administrateur",
+    "typeRedemption": "Redemption"
   },
   "Archive": {
     "archive": "Archiver",
@@ -528,6 +529,9 @@
       "adminPanel": "Panneau d'Administration",
       "backToApp": "Retour à l'Application"
     },
+    "Redemption": {
+      "title": "Redemption Codes"
+    },
     "Users": {
       "title": "Utilisateurs",
       "allUsers": "Tous les Utilisateurs",
@@ -597,7 +601,8 @@
       "signInRewards": "Récompenses de connexion",
       "priorityAndEarly": "Priorité & accès anticipé"
     },
-    "next": "Suivant"
+    "next": "Suivant",
+    "haveRedeemCode": "Have a redemption code?"
   },
   "MCP": {
     "addMcpServer": "Ajouter un Serveur MCP",
@@ -632,5 +637,21 @@
     "toolCustomizationInstructionsPlaceholder": "Les instructions de personnalisation d'outils ne sont pas disponibles.",
     "mcpServerCustomizationPlaceholder": "ex. Si la valeur d'entrée est un email, toujours entrer l'email au format exemple@exemple.com.",
     "noInstructions": "Aucun"
+  },
+  "Redemption": {
+    "title": "Redeem Code",
+    "description": "Enter a redemption code to receive credits or a plan upgrade.",
+    "placeholder": "Enter redemption code",
+    "submit": "Redeem",
+    "cancel": "Cancel",
+    "done": "Done",
+    "success": "Code redeemed successfully!",
+    "creditsAwarded": "+{amount} credits awarded",
+    "planUpgraded": "Plan upgraded to {plan} for {days} days",
+    "invalidCode": "Invalid or expired code",
+    "codeExpired": "This code has expired",
+    "codeExhausted": "This code has been fully used",
+    "alreadyRedeemed": "You have already redeemed this code",
+    "redeemFailed": "Failed to redeem code"
   }
 }

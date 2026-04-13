@@ -18,6 +18,14 @@ const PlanModal = dynamic(
   { ssr: false },
 );
 
+const RedeemCodeDialog = dynamic(
+  () =>
+    import("@/components/redeem-code-dialog").then(
+      (mod) => mod.RedeemCodeDialog,
+    ),
+  { ssr: false },
+);
+
 function GlobalShortcuts() {
   const router = useRouter();
 
@@ -41,6 +49,7 @@ export function AppPopupProvider() {
     <>
       <KeyboardShortcutsPopup />
       <PlanModal />
+      <RedeemCodeDialog />
       <GlobalShortcuts />
     </>
   );

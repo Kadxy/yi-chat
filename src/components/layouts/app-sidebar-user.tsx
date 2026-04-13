@@ -68,6 +68,9 @@ export function AppSidebarUserInner(props: {
 
   const creditBalance = user?.creditBalance ?? 0;
   const planLabel = user?.plan || "Free";
+  const planExpiresAt = user?.planExpiresAt
+    ? new Date(user.planExpiresAt)
+    : null;
 
   return (
     <SidebarMenu>
@@ -132,6 +135,19 @@ export function AppSidebarUserInner(props: {
                   />
                 </div>
               </button>
+              {planExpiresAt && planLabel !== "free" && (
+                <div className="px-2.5 mt-1 text-[11px] text-muted-foreground">
+                  <span className="capitalize">{planLabel}</span>
+                  {" · "}
+                  {t("planExpiresAt", {
+                    date: planExpiresAt.toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    }),
+                  })}
+                </div>
+              )}
               <button
                 type="button"
                 className="w-full flex items-center gap-2 rounded-md px-2.5 py-1.5 mt-1 text-xs font-medium cursor-pointer transition-colors text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"

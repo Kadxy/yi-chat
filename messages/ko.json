@@ -267,7 +267,8 @@
     "typeTopup": "충전",
     "typeUsage": "사용",
     "typeAdminGrant": "관리자 지급",
-    "typeAdminDeduct": "관리자 차감"
+    "typeAdminDeduct": "관리자 차감",
+    "typeRedemption": "Redemption"
   },
   "Archive": {
     "archive": "보관",
@@ -528,6 +529,9 @@
       "adminPanel": "관리자 패널",
       "backToApp": "앱으로 돌아가기"
     },
+    "Redemption": {
+      "title": "Redemption Codes"
+    },
     "Users": {
       "title": "사용자",
       "allUsers": "모든 사용자",
@@ -597,7 +601,8 @@
       "signInRewards": "로그인 보상",
       "priorityAndEarly": "우선 및 조기 접근"
     },
-    "next": "다음"
+    "next": "다음",
+    "haveRedeemCode": "Have a redemption code?"
   },
   "MCP": {
     "addMcpServer": "서버 추가",
@@ -632,5 +637,21 @@
     "toolCustomizationInstructionsPlaceholder": "도구 사용자 지정 지침이 없습니다.",
     "mcpServerCustomizationPlaceholder": "예) 이 MCP 서버의 툴중에 입력값이 email인 경우 항상 example@example.com 형식으로 입력해주세요.",
     "noInstructions": "없음"
+  },
+  "Redemption": {
+    "title": "Redeem Code",
+    "description": "Enter a redemption code to receive credits or a plan upgrade.",
+    "placeholder": "Enter redemption code",
+    "submit": "Redeem",
+    "cancel": "Cancel",
+    "done": "Done",
+    "success": "Code redeemed successfully!",
+    "creditsAwarded": "+{amount} credits awarded",
+    "planUpgraded": "Plan upgraded to {plan} for {days} days",
+    "invalidCode": "Invalid or expired code",
+    "codeExpired": "This code has expired",
+    "codeExhausted": "This code has been fully used",
+    "alreadyRedeemed": "You have already redeemed this code",
+    "redeemFailed": "Failed to redeem code"
   }
 }

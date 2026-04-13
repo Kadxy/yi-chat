@@ -28,6 +28,7 @@ export type BasicUser = Omit<
   | "banExpires"
   | "plan"
   | "creditBalance"
+  | "planExpiresAt"
 > & {
   image?: string | null;
   role?: string | null;
@@ -36,6 +37,7 @@ export type BasicUser = Omit<
   banExpires?: Date | null;
   plan?: string | null;
   creditBalance?: number | null;
+  planExpiresAt?: Date | null;
 };
 
 export interface BasicUserWithLastLogin extends BasicUser {

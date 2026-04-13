@@ -1,7 +1,7 @@
 "use client";
 
 import { BasicUser } from "app-types/user";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { SWRConfig, SWRConfiguration } from "swr";
 
 export function SWRConfigProvider({
@@ -22,11 +22,5 @@ export function SWRConfigProvider({
     };
   }, [user]);
 
-  useEffect(() => {
-    console.log(
-      "%c⚡ Yi Chat",
-      "color: #00d4ff; font-size: 20px; font-weight: bold;",
-    );
-  }, []);
   return <SWRConfig value={config}>{children}</SWRConfig>;
 }

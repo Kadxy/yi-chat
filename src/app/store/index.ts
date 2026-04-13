@@ -30,6 +30,7 @@ export interface AppState {
   thinkingEnabled: boolean;
   openShortcutsPopup: boolean;
   openPlanModal: boolean;
+  openRedeemDialog: boolean;
 }
 
 export interface AppDispatch {
@@ -48,6 +49,7 @@ const initialState: AppState = {
   thinkingEnabled: false,
   openShortcutsPopup: false,
   openPlanModal: false,
+  openRedeemDialog: false,
 };
 
 export const appStore = create<AppState & AppDispatch>()(

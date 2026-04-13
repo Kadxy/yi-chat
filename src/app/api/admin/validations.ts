@@ -4,6 +4,7 @@ import { PLANS, type PlanName } from "app-types/plans";
 
 import { ActionState } from "lib/action-utils";
 import { BasicUserWithLastLogin } from "app-types/user";
+import type { RedemptionCodeEntity } from "lib/db/pg/schema.pg";
 
 export const UpdateUserRoleSchema = z.object({
   userId: z.uuid("Invalid user ID"),
@@ -29,6 +30,21 @@ export const UpdateUserPlanSchema = z.object({
   plan: z.enum(Object.values(PLANS) as [PlanName, ...PlanName[]]),
 });
 
+export const CreateRedemptionCodeSchema = z.object({
+  type: z.enum(["credits", "plan"]),
+  credits: z.coerce.number().min(1).max(1_000_000).optional(),
+  plan: z.enum(Object.values(PLANS) as [PlanName, ...PlanName[]]).optional(),
+  planDays: z.coerce.number().min(1).max(3650).optional(),
+  planCredits: z.coerce.number().min(0).max(1_000_000).optional(),
+  expiresAt: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export const ToggleRedemptionCodeSchema = z.object({
+  codeId: z.uuid("Invalid code ID"),
+  isActive: z.enum(["true", "false"]).transform((value) => value === "true"),
+});
+
 export type UpdateUserRoleActionState = ActionState & {
   user?: BasicUserWithLastLogin | null;
 };
@@ -42,3 +58,9 @@ export type AdjustCreditsActionState = ActionState & {
 };
 
 export type UpdateUserPlanActionState = ActionState;
+
+export type CreateRedemptionCodeActionState = ActionState & {
+  code?: RedemptionCodeEntity;
+};
+
+export type ToggleRedemptionCodeActionState = ActionState;

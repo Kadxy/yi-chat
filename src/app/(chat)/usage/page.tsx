@@ -4,7 +4,7 @@ import { UsagePageContent } from "@/components/usage/usage-page-content";
 import { Skeleton } from "ui/skeleton";
 
 async function UsageContent() {
-  const [transactions, { balance, plan }] = await Promise.all([
+  const [transactions, { balance, plan, planExpiresAt }] = await Promise.all([
     getCreditTransactions(),
     getCreditBalance(),
   ]);
@@ -14,6 +14,7 @@ async function UsageContent() {
       transactions={transactions}
       balance={balance}
       plan={plan}
+      planExpiresAt={planExpiresAt?.toISOString() ?? null}
     />
   );
 }

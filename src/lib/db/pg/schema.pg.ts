@@ -16,26 +16,40 @@ import { isNotNull } from "drizzle-orm";
 import { UIMessage } from "ai";
 import { ChatMetadata } from "app-types/chat";
 
-export const ChatThreadTable = pgTable("chat_thread", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  title: text("title").notNull(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => UserTable.id, { onDelete: "cascade" }),
-  isArchived: boolean("is_archived").notNull().default(false),
-  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-});
+export const ChatThreadTable = pgTable(
+  "chat_thread",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    title: text("title").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => UserTable.id, { onDelete: "cascade" }),
+    isArchived: boolean("is_archived").notNull().default(false),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("chat_thread_user_id_created_at_idx").on(t.userId, t.createdAt),
+  ],
+);
 
-export const ChatMessageTable = pgTable("chat_message", {
-  id: text("id").primaryKey().notNull(),
-  threadId: uuid("thread_id")
-    .notNull()
-    .references(() => ChatThreadTable.id, { onDelete: "cascade" }),
-  role: text("role").notNull().$type<UIMessage["role"]>(),
-  parts: json("parts").notNull().array().$type<UIMessage["parts"]>(),
-  metadata: json("metadata").$type<ChatMetadata>(),
-  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-});
+export const ChatMessageTable = pgTable(
+  "chat_message",
+  {
+    id: text("id").primaryKey().notNull(),
+    threadId: uuid("thread_id")
+      .notNull()
+      .references(() => ChatThreadTable.id, { onDelete: "cascade" }),
+    role: text("role").notNull().$type<UIMessage["role"]>(),
+    parts: json("parts").notNull().array().$type<UIMessage["parts"]>(),
+    metadata: json("metadata").$type<ChatMetadata>(),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [index("chat_message_thread_id_idx").on(t.threadId)],
+);
 
 export const McpServerTable = pgTable("mcp_server", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -69,6 +83,7 @@ export const UserTable = pgTable("user", {
   banExpires: timestamp("ban_expires"),
   role: text("role").notNull().default("user"),
   plan: text("plan").notNull().default("free"),
+  planExpiresAt: timestamp("plan_expires_at"),
   creditBalance: integer("credit_balance").notNull().default(0),
 });
 
@@ -93,6 +108,7 @@ export const CreditTransactionTable = pgTable(
         "usage",
         "admin_grant",
         "admin_deduct",
+        "redemption",
       ],
     }).notNull(),
     description: text("description"),
@@ -193,21 +209,45 @@ export type UserEntity = typeof UserTable.$inferSelect;
 export type CreditTransactionEntity =
   typeof CreditTransactionTable.$inferSelect;
 
-export const ChatShareTable = pgTable("chat_share", {
+export const ChatShareTable = pgTable(
+  "chat_share",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    title: text("title").notNull(),
+    sharerId: uuid("sharer_id")
+      .notNull()
+      .references(() => UserTable.id, { onDelete: "cascade" }),
+    originalThreadId: uuid("original_thread_id"),
+    messages: json("messages").notNull().$type<
+      Array<{
+        id: string;
+        role: UIMessage["role"];
+        parts: UIMessage["parts"];
+        metadata?: ChatMetadata;
+      }>
+    >(),
+    sharedAt: timestamp("shared_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    expiresAt: timestamp("expires_at"),
+  },
+  (t) => [index("chat_share_sharer_id_idx").on(t.sharerId)],
+);
+
+export const RedemptionCodeTable = pgTable("redemption_code", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
-  title: text("title").notNull(),
-  sharerId: uuid("sharer_id")
-    .notNull()
-    .references(() => UserTable.id, { onDelete: "cascade" }),
-  originalThreadId: uuid("original_thread_id"),
-  messages: json("messages").notNull().$type<
-    Array<{
-      id: string;
-      role: UIMessage["role"];
-      parts: UIMessage["parts"];
-      metadata?: ChatMetadata;
-    }>
-  >(),
-  sharedAt: timestamp("shared_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  code: varchar("code", { length: 32 }).notNull().unique(),
+  type: varchar("type", { enum: ["credits", "plan"] }).notNull(),
+  credits: integer("credits"),
+  plan: text("plan"),
+  planDays: integer("plan_days"),
+  planCredits: integer("plan_credits"),
+  isUsed: boolean("is_used").notNull().default(false),
+  usedBy: uuid("used_by").references(() => UserTable.id),
+  usedAt: timestamp("used_at"),
   expiresAt: timestamp("expires_at"),
+  isActive: boolean("is_active").notNull().default(true),
+  description: text("description"),
+  createdBy: uuid("created_by").references(() => UserTable.id),
+  createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+export type RedemptionCodeEntity = typeof RedemptionCodeTable.$inferSelect;

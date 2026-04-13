@@ -241,6 +241,7 @@
     "joinCommunity": "Join Community",
     "userSettings": "User Settings",
     "usageRecords": "Usage Records",
+    "planExpiresAt": "Expires {date}",
     "yourPublicLinks": "Your Public Links"
   },
   "Usage": {
@@ -267,7 +268,9 @@
     "typeTopup": "Top Up",
     "typeUsage": "Usage",
     "typeAdminGrant": "Admin Grant",
-    "typeAdminDeduct": "Admin Deduct"
+    "typeAdminDeduct": "Admin Deduct",
+    "typeRedemption": "Redemption",
+    "planExpiresAt": "Expires {date}"
   },
   "Archive": {
     "archive": "Archive",
@@ -528,6 +531,9 @@
       "adminPanel": "Admin Panel",
       "backToApp": "Back to App"
     },
+    "Redemption": {
+      "title": "Redemption Codes"
+    },
     "Users": {
       "title": "Users",
       "allUsers": "All Users",
@@ -597,7 +603,8 @@
       "signInRewards": "Sign-in rewards",
       "priorityAndEarly": "Priority & early access"
     },
-    "next": "Next"
+    "next": "Next",
+    "haveRedeemCode": "Have a redemption code?"
   },
   "MCP": {
     "addMcpServer": "Add MCP Server",
@@ -632,5 +639,23 @@
     "toolCustomizationInstructionsPlaceholder": "Tool customization instructions are not available.",
     "mcpServerCustomizationPlaceholder": "eg. If the input value is email, always enter the email in the format example@example.com.",
     "noInstructions": "None"
+  },
+  "Redemption": {
+    "title": "Redeem Code",
+    "description": "Enter a redemption code to receive credits or a plan upgrade.",
+    "placeholder": "Enter redemption code",
+    "submit": "Redeem",
+    "cancel": "Cancel",
+    "done": "Done",
+    "success": "Code redeemed successfully!",
+    "creditsAwarded": "+{amount} credits awarded",
+    "planUpgraded": "Plan upgraded to {plan} for {days} days",
+    "invalidCode": "Invalid or expired code",
+    "codeExpired": "This code has expired",
+    "codeExhausted": "This code has been fully used",
+    "codeAlreadyUsed": "This code has already been used",
+    "alreadyRedeemed": "You have already redeemed this code",
+    "planNotUpgrade": "This code cannot be used to downgrade your current plan",
+    "redeemFailed": "Failed to redeem code"
   }
 }

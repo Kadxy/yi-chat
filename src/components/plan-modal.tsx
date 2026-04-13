@@ -308,6 +308,16 @@ export function PlanModal() {
 
         {/* Footer */}
         <DialogFooter className="px-6 py-4 border-t">
+          <button
+            type="button"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            onClick={() => {
+              mutate({ openPlanModal: false });
+              mutate({ openRedeemDialog: true });
+            }}
+          >
+            {t("haveRedeemCode")}
+          </button>
           <div className="flex-1" />
           <Button disabled={!canProceed} size="sm">
             {t("next")}

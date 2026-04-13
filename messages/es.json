@@ -267,7 +267,8 @@
     "typeTopup": "Recarga",
     "typeUsage": "Uso",
     "typeAdminGrant": "Otorgado por admin",
-    "typeAdminDeduct": "Deducido por admin"
+    "typeAdminDeduct": "Deducido por admin",
+    "typeRedemption": "Redemption"
   },
   "Archive": {
     "archive": "Archivar",
@@ -528,6 +529,9 @@
       "adminPanel": "Panel de Administración",
       "backToApp": "Volver a la Aplicación"
     },
+    "Redemption": {
+      "title": "Redemption Codes"
+    },
     "Users": {
       "title": "Usuarios",
       "allUsers": "Todos los Usuarios",
@@ -597,7 +601,8 @@
       "signInRewards": "Recompensas de inicio de sesión",
       "priorityAndEarly": "Prioridad y acceso anticipado"
     },
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "haveRedeemCode": "Have a redemption code?"
   },
   "MCP": {
     "addMcpServer": "Agregar Servidor MCP",
@@ -632,5 +637,21 @@
     "toolCustomizationInstructionsPlaceholder": "Las instrucciones de personalización de herramientas no están disponibles.",
     "mcpServerCustomizationPlaceholder": "ej. Si el valor de entrada es email, siempre ingresa el email en el formato ejemplo@ejemplo.com.",
     "noInstructions": "Ninguno"
+  },
+  "Redemption": {
+    "title": "Redeem Code",
+    "description": "Enter a redemption code to receive credits or a plan upgrade.",
+    "placeholder": "Enter redemption code",
+    "submit": "Redeem",
+    "cancel": "Cancel",
+    "done": "Done",
+    "success": "Code redeemed successfully!",
+    "creditsAwarded": "+{amount} credits awarded",
+    "planUpgraded": "Plan upgraded to {plan} for {days} days",
+    "invalidCode": "Invalid or expired code",
+    "codeExpired": "This code has expired",
+    "codeExhausted": "This code has been fully used",
+    "alreadyRedeemed": "You have already redeemed this code",
+    "redeemFailed": "Failed to redeem code"
   }
 }

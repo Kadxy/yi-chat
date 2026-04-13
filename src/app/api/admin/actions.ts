@@ -13,11 +13,15 @@ import {
   AdjustCreditsActionState,
   UpdateUserPlanSchema,
   UpdateUserPlanActionState,
+  CreateRedemptionCodeSchema,
+  CreateRedemptionCodeActionState,
+  ToggleRedemptionCodeSchema,
+  ToggleRedemptionCodeActionState,
 } from "./validations";
 import logger from "lib/logger";
 import { getTranslations } from "next-intl/server";
 import { getUser } from "lib/user/server";
-import { creditRepository } from "lib/db/repository";
+import { creditRepository, redemptionRepository } from "lib/db/repository";
 
 export const updateUserRolesAction = validatedActionWithAdminPermission(
   UpdateUserRoleSchema,
@@ -182,6 +186,59 @@ export const updateUserPlanAction = validatedActionWithAdminPermission(
         success: false,
         message: "Failed to update plan.",
       };
+    }
+  },
+);
+
+export const createRedemptionCodeAction = validatedActionWithAdminPermission(
+  CreateRedemptionCodeSchema,
+  async (
+    data,
+    _formData,
+    userSession,
+  ): Promise<CreateRedemptionCodeActionState> => {
+    try {
+      const code = await redemptionRepository.createCode({
+        type: data.type,
+        credits: data.credits,
+        plan: data.plan,
+        planDays: data.planDays,
+        planCredits: data.planCredits,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
+        description: data.description,
+        createdBy: userSession.user.id,
+      });
+      return {
+        success: true,
+        message: `Redemption code "${code.code}" created.`,
+        code,
+      };
+    } catch (error: any) {
+      logger.error(error);
+      return {
+        success: false,
+        message: error?.message || "Failed to create redemption code.",
+      };
+    }
+  },
+);
+
+export const toggleRedemptionCodeAction = validatedActionWithAdminPermission(
+  ToggleRedemptionCodeSchema,
+  async (data): Promise<ToggleRedemptionCodeActionState> => {
+    try {
+      if (data.isActive) {
+        await redemptionRepository.activateCode(data.codeId);
+      } else {
+        await redemptionRepository.deactivateCode(data.codeId);
+      }
+      return {
+        success: true,
+        message: data.isActive ? "Code activated." : "Code deactivated.",
+      };
+    } catch (error) {
+      logger.error(error);
+      return { success: false, message: "Failed to update code status." };
     }
   },
 );

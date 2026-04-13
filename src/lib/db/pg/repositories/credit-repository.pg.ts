@@ -10,22 +10,51 @@ export type CreditTransactionType =
   | "topup"
   | "usage"
   | "admin_grant"
-  | "admin_deduct";
+  | "admin_deduct"
+  | "redemption";
 
 export const pgCreditRepository = {
   getBalance: async (
     userId: string,
-  ): Promise<{ balance: number; plan: string }> => {
+  ): Promise<{
+    balance: number;
+    plan: string;
+    planExpiresAt: Date | null;
+  }> => {
     const [row] = await db
       .select({
         balance: UserTable.creditBalance,
         plan: UserTable.plan,
+        planExpiresAt: UserTable.planExpiresAt,
       })
       .from(UserTable)
       .where(eq(UserTable.id, userId));
+
+    if (
+      row?.planExpiresAt &&
+      row.planExpiresAt <= new Date() &&
+      row.plan !== "free"
+    ) {
+      await db
+        .update(UserTable)
+        .set({ plan: "free", planExpiresAt: null, updatedAt: new Date() })
+        .where(eq(UserTable.id, userId));
+
+      await db.insert(CreditTransactionTable).values({
+        userId,
+        amount: 0,
+        balanceAfter: row.balance,
+        type: "subscription",
+        description: `Plan ${row.plan} expired, downgraded to free`,
+      });
+
+      return { balance: row.balance, plan: "free", planExpiresAt: null };
+    }
+
     return {
       balance: row?.balance ?? 0,
       plan: row?.plan ?? "free",
+      planExpiresAt: row?.planExpiresAt ?? null,
     };
   },
 

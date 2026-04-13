@@ -241,6 +241,7 @@
     "joinCommunity": "加入社区",
     "userSettings": "用户设置",
     "usageRecords": "消费记录",
+    "planExpiresAt": "{date} 到期",
     "yourPublicLinks": "你的公开链接"
   },
   "Usage": {
@@ -267,7 +268,9 @@
     "typeTopup": "充值",
     "typeUsage": "消耗",
     "typeAdminGrant": "管理员发放",
-    "typeAdminDeduct": "管理员扣除"
+    "typeAdminDeduct": "管理员扣除",
+    "typeRedemption": "兑换",
+    "planExpiresAt": "{date} 到期"
   },
   "Archive": {
     "archive": "归档",
@@ -528,6 +531,9 @@
       "adminPanel": "管理面板",
       "backToApp": "返回应用"
     },
+    "Redemption": {
+      "title": "兑换码"
+    },
     "Users": {
       "title": "用户",
       "allUsers": "所有用户",
@@ -597,7 +603,8 @@
       "signInRewards": "签到奖励",
       "priorityAndEarly": "优先与抢先体验"
     },
-    "next": "下一步"
+    "next": "下一步",
+    "haveRedeemCode": "有兑换码？"
   },
   "MCP": {
     "addMcpServer": "添加服务器",
@@ -632,5 +639,23 @@
     "toolCustomizationInstructionsPlaceholder": "工具自定义指令不可用。",
     "mcpServerCustomizationPlaceholder": "例如：如果输入值是电子邮件，始终以 example@example.com 格式输入电子邮件。",
     "noInstructions": "无"
+  },
+  "Redemption": {
+    "title": "兑换码",
+    "description": "输入兑换码以获取积分或升级套餐。",
+    "placeholder": "输入兑换码",
+    "submit": "兑换",
+    "cancel": "取消",
+    "done": "完成",
+    "success": "兑换成功！",
+    "creditsAwarded": "+{amount} 积分已到账",
+    "planUpgraded": "已升级至 {plan} 套餐，有效期 {days} 天",
+    "invalidCode": "无效或已过期的兑换码",
+    "codeExpired": "此兑换码已过期",
+    "codeExhausted": "此兑换码已被全部使用",
+    "codeAlreadyUsed": "此兑换码已被使用",
+    "alreadyRedeemed": "您已使用过此兑换码",
+    "planNotUpgrade": "此兑换码不能用于降级您当前的套餐",
+    "redeemFailed": "兑换失败"
   }
 }
