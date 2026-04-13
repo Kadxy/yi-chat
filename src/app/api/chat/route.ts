@@ -32,12 +32,14 @@ import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
 import { buildCsvIngestionPreviewParts } from "@/lib/ai/ingest/csv-ingest";
 import { serverFileStorage } from "lib/file-storage";
+import { rateLimit } from "lib/rate-limit";
+import { NextRequest } from "next/server";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `Chat API: `),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const json = await request.json();
 
@@ -46,6 +48,13 @@ export async function POST(request: Request) {
     if (!session?.user.id) {
       return new Response("Unauthorized", { status: 401 });
     }
+
+    const limited = rateLimit(request, "chat", {
+      limit: 30,
+      windowMs: 60_000,
+      key: session.user.id,
+    });
+    if (limited) return limited;
     const {
       id,
       message,
