@@ -106,7 +106,7 @@ export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
 
 // ── Global credit settings ──
 
-export const SIGNUP_CREDITS = 2_000;
+export const SIGNUP_CREDITS = 1_000;
 export const DAILY_SIGN_IN_CREDITS = 200;
 
 // ── Model credit costs ──
