@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 type RateLimitEntry = { count: number; resetAt: number };
 
+// In-memory store — sufficient for single-instance deployments.
+// For multi-instance, replace with Redis-backed store.
 const stores = new Map<string, Map<string, RateLimitEntry>>();
 
 function getStore(category: string): Map<string, RateLimitEntry> {

@@ -1,10 +1,31 @@
 import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat";
+  const appDescription =
+    process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
+    "A powerful AI chatbot for intelligent conversations.";
+
   return {
-    name: process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat",
-    short_name: process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat",
+    name: appName,
+    short_name: appName,
+    description: appDescription,
+    start_url: "/",
+    scope: "/",
+    id: "/",
     icons: [
+      {
+        src: "/web-app-manifest-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/web-app-manifest-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
       {
         src: "/web-app-manifest-192x192.png",
         sizes: "192x192",
@@ -21,5 +42,6 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#ffffff",
     background_color: "#ffffff",
     display: "standalone",
+    orientation: "portrait-primary",
   };
 }

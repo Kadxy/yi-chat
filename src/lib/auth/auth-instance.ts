@@ -121,7 +121,8 @@ const options = {
   },
   advanced: {
     useSecureCookies:
-      process.env.NO_HTTPS == "1"
+      // NO_HTTPS=1 is used by docker-compose / local builds to disable secure cookies
+      process.env.NO_HTTPS === "1"
         ? false
         : process.env.NODE_ENV === "production",
     database: {

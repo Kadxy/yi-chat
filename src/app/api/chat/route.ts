@@ -369,7 +369,7 @@ export async function POST(request: NextRequest) {
       stream,
     });
   } catch (error: any) {
-    logger.error(error);
-    return Response.json({ message: error.message }, { status: 500 });
+    logger.error(`Chat API error: ${error.message}`, error);
+    return Response.json({ message: "Internal server error" }, { status: 500 });
   }
 }

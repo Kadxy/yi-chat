@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "katex/dist/katex.min.css";
@@ -7,6 +7,7 @@ import {
   ThemeProvider,
   ThemeStyleProvider,
 } from "@/components/layouts/theme-provider";
+import { ServiceWorkerRegister } from "@/components/layouts/sw-register";
 import { Toaster } from "ui/sonner";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
@@ -25,6 +26,13 @@ const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Yi Chat";
 const APP_DESCRIPTION =
   process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
   "A powerful AI chatbot for intelligent conversations.";
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -53,6 +61,11 @@ export const metadata: Metadata = {
     title: APP_NAME,
     description: APP_DESCRIPTION,
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_NAME,
+  },
 };
 
 const jsonLd = {
@@ -80,6 +93,7 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <ServiceWorkerRegister />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
