@@ -56,3 +56,9 @@ local-data
 openai-compatible.config.ts
 certificates
 public/uploads
+
+# local agent / planning docs
+CLAUDE.md
+AGENTS.md
+PLAN.md
+.claude/
